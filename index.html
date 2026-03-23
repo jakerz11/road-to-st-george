@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Road to St. George</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f8f6f3;--surface:#fff;--text:#2d2d2d;--text2:#777;--radius:14px;
+  --shadow:0 2px 12px rgba(0,0,0,.08);--header-h:64px;--tab-h:50px;
+  --green:#43a047;--green-bg:#e8f5e9;--blue:#1e88e5;--blue-bg:#e3f2fd;
+  --orange:#fb8c00;--orange-bg:#fff3e0;--purple:#8e24aa;--purple-bg:#f3e5f5;
+  --red:#e53935;--red-bg:#ffebee;
+}
+html{-webkit-text-size-adjust:100%}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:20px;
+  -webkit-font-smoothing:antialiased}
+header{position:sticky;top:0;z-index:100;
+  background:linear-gradient(135deg,#ff7043 0%,#ff8a65 50%,#ffab91 100%);
+  color:#fff;padding:12px 16px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.15)}
+header h1{font-size:1.4rem;font-weight:800;letter-spacing:-.5px}
+header .subtitle{font-size:.8rem;opacity:.9;margin-top:2px}
+#countdown-chip{display:inline-block;background:rgba(255,255,255,.25);
+  border-radius:20px;padding:3px 12px;font-size:.75rem;font-weight:600;margin-top:6px}
+nav{position:sticky;top:var(--header-h);z-index:99;background:var(--surface);
+  display:flex;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+nav button{flex:1;padding:12px 0;border:none;background:none;font-size:.9rem;
+  font-weight:600;color:var(--text2);cursor:pointer;border-bottom:3px solid transparent;
+  transition:all .15s}
+nav button.active{color:var(--orange);border-bottom-color:var(--orange)}
+nav button:hover{background:rgba(0,0,0,.02)}
+.panel{display:none;padding:12px;max-width:600px;margin:0 auto}
+.panel.active{display:block}
+.card{background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);
+  padding:16px;margin-bottom:14px;overflow:hidden}
+.phase-bar{height:5px;margin:-16px -16px 14px -16px;border-radius:var(--radius) var(--radius) 0 0}
+.workout-header{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.workout-emoji{font-size:2rem}
+.workout-type{font-size:1.15rem;font-weight:700}
+.workout-meta{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:10px 0}
+.meta-item{background:var(--bg);border-radius:8px;padding:8px 10px}
+.meta-label{font-size:.7rem;color:var(--text2);text-transform:uppercase;letter-spacing:.5px}
+.meta-value{font-size:1rem;font-weight:600;margin-top:2px}
+.workout-notes{font-size:.85rem;color:var(--text2);font-style:italic;margin-top:8px;
+  padding:8px;background:var(--bg);border-radius:8px;border-left:3px solid var(--orange)}
+.day-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.day-nav .nav-arrow{width:44px;height:44px;border-radius:50%;border:none;
+  background:var(--surface);box-shadow:var(--shadow);font-size:1.2rem;cursor:pointer;
+  display:flex;align-items:center;justify-content:center}
+.day-nav .date-display{text-align:center}
+.day-nav .date-big{font-size:1.1rem;font-weight:700}
+.day-nav .date-small{font-size:.75rem;color:var(--text2)}
+.today-btn{font-size:.75rem;background:var(--orange);color:#fff;border:none;
+  border-radius:16px;padding:6px 14px;cursor:pointer;margin-top:6px;font-weight:600;
+  box-shadow:0 2px 6px rgba(251,140,0,.3);display:inline-block}
+.log-section{margin-top:14px}
+.log-row{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.log-label{font-size:.8rem;font-weight:600;color:var(--text2);min-width:70px}
+.toggle{position:relative;width:56px;height:32px;cursor:pointer}
+.toggle input{opacity:0;width:0;height:0}
+.toggle .slider{position:absolute;inset:0;background:#ddd;border-radius:16px;transition:.2s}
+.toggle .slider:before{content:"";position:absolute;left:3px;top:3px;width:26px;height:26px;
+  background:#fff;border-radius:50%;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.toggle input:checked+.slider{background:var(--green)}
+.toggle input:checked+.slider:before{transform:translateX(24px)}
+.rating-row{display:flex;gap:6px;flex-wrap:wrap}
+.rating-dot{width:34px;height:34px;border-radius:50%;border:2px solid #ddd;
+  display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;
+  cursor:pointer;transition:all .15s;color:#aaa;-webkit-tap-highlight-color:transparent}
+.rating-dot.selected{border-color:var(--orange);background:var(--orange);color:#fff;
+  transform:scale(1.1)}
+.rating-dot:active{transform:scale(.9)}
+.num-input{display:flex;align-items:center;gap:8px}
+.num-input button{width:36px;height:36px;border-radius:50%;border:2px solid #ddd;
+  background:var(--surface);font-size:1.1rem;cursor:pointer;display:flex;
+  align-items:center;justify-content:center;font-weight:700;color:var(--text)}
+.num-input button:active{background:var(--bg)}
+.num-input .val{font-size:1.1rem;font-weight:700;min-width:50px;text-align:center}
+.num-input .unit{font-size:.75rem;color:var(--text2)}
+.quote-card{text-align:center;padding:20px 16px;font-style:italic;color:var(--text2);
+  font-size:.85rem;line-height:1.5;background:linear-gradient(135deg,#fff9c4,#fff3e0);
+  border-radius:var(--radius)}
+.quote-card .attr{font-style:normal;font-weight:600;color:var(--text);margin-top:6px;font-size:.75rem}
+.streak-row{display:flex;gap:10px;margin-bottom:14px}
+.streak-card{flex:1;text-align:center;padding:12px 8px;background:var(--bg);border-radius:10px}
+.streak-num{font-size:1.5rem;font-weight:800}
+.streak-label{font-size:.7rem;color:var(--text2);margin-top:2px}
+.week-summary{margin-bottom:14px}
+.week-summary h3{font-size:.85rem;font-weight:700;margin-bottom:8px}
+.progress-bar{height:10px;background:#e0e0e0;border-radius:5px;overflow:hidden;margin:6px 0}
+.progress-fill{height:100%;border-radius:5px;transition:width .3s}
+.week-stats{display:flex;justify-content:space-between;font-size:.75rem;color:var(--text2)}
+/* Calendar */
+.cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.cal-nav h2{font-size:1.1rem;font-weight:700}
+.cal-nav button{width:40px;height:40px;border-radius:50%;border:none;background:var(--surface);
+  box-shadow:var(--shadow);font-size:1rem;cursor:pointer}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:14px}
+.cal-head{text-align:center;font-size:.7rem;font-weight:600;color:var(--text2);padding:6px 0}
+.cal-cell{aspect-ratio:1;border-radius:8px;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;font-size:.75rem;cursor:pointer;
+  position:relative;transition:transform .1s;min-height:44px}
+.cal-cell:active{transform:scale(.92)}
+.cal-cell.empty{cursor:default}
+.cal-cell .day-num{font-weight:600;font-size:.8rem}
+.cal-cell .day-emoji{font-size:.85rem;margin-top:1px}
+.cal-cell.today{outline:2.5px solid var(--text);outline-offset:-2px}
+.cal-cell.done:after{content:"\2713";position:absolute;top:2px;right:3px;
+  font-size:.65rem;color:var(--green);font-weight:900}
+.cal-cell.outside{opacity:.3}
+.legend{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:10px 0}
+.legend-item{display:flex;align-items:center;gap:4px;font-size:.7rem}
+.legend-dot{width:12px;height:12px;border-radius:3px}
+/* Stats */
+.stats-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:14px}
+@media(min-width:500px){.stats-grid{grid-template-columns:repeat(3,1fr)}}
+@media(min-width:700px){.stats-grid{grid-template-columns:repeat(4,1fr)}}
+.stat-card{background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);
+  padding:14px;text-align:center}
+.stat-emoji{font-size:1.5rem}
+.stat-value{font-size:1.4rem;font-weight:800;margin:4px 0}
+.stat-label{font-size:.7rem;color:var(--text2);text-transform:uppercase;letter-spacing:.3px}
+.chart-card{background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);
+  padding:16px;margin-bottom:14px;overflow-x:auto}
+.chart-card h3{font-size:.9rem;font-weight:700;margin-bottom:10px}
+.chart-card svg{width:100%;height:auto}
+.phase-timeline{margin-bottom:14px}
+.phase-timeline h3{font-size:.9rem;font-weight:700;margin-bottom:10px}
+.timeline-bar{display:flex;height:28px;border-radius:8px;overflow:hidden}
+.timeline-seg{display:flex;align-items:center;justify-content:center;
+  font-size:.6rem;font-weight:700;color:#fff;overflow:hidden;white-space:nowrap}
+.timeline-marker{position:relative;height:8px;margin-top:-4px}
+.timeline-arrow{position:absolute;top:-10px;transform:translateX(-50%);
+  font-size:1rem;filter:drop-shadow(0 1px 2px rgba(0,0,0,.3))}
+/* Modal */
+.modal-overlay{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.4);
+  display:none;align-items:flex-end;justify-content:center}
+.modal-overlay.open{display:flex}
+@media(min-width:600px){.modal-overlay.open{align-items:center}}
+.modal-content{background:var(--surface);width:100%;max-width:500px;
+  border-radius:20px 20px 0 0;max-height:85vh;overflow-y:auto;padding:20px;
+  animation:slideUp .2s ease-out}
+@media(min-width:600px){.modal-content{border-radius:var(--radius);max-height:80vh}}
+@keyframes slideUp{from{transform:translateY(30px);opacity:0}to{transform:none;opacity:1}}
+.modal-close{position:sticky;top:0;text-align:right}
+.modal-close button{width:36px;height:36px;border-radius:50%;border:none;
+  background:var(--bg);font-size:1.1rem;cursor:pointer}
+.rest-card{text-align:center;padding:20px;color:var(--text2)}
+.rest-card .rest-emoji{font-size:3rem;margin-bottom:8px}
+.race-card{text-align:center;background:linear-gradient(135deg,#fff9c4,#ffe082);
+  border-radius:var(--radius);padding:24px}
+.race-card .trophy{font-size:3.5rem}
+.race-card h2{font-size:1.3rem;margin:8px 0}
+</style>
+</head>
+<body>
+<header>
+  <h1>&#127939; Road to St. George &#9968;&#65039;</h1>
+  <div class="subtitle">St. George Marathon Training Tracker</div>
+  <div id="countdown-chip"></div>
+</header>
+<nav>
+  <button class="tab active" data-tab="today">Today</button>
+  <button class="tab" data-tab="calendar">Calendar</button>
+  <button class="tab" data-tab="stats">Stats</button>
+</nav>
+<main>
+  <section id="panel-today" class="panel active"></section>
+  <section id="panel-calendar" class="panel"></section>
+  <section id="panel-stats" class="panel"></section>
+</main>
+<div class="modal-overlay" id="modal">
+  <div class="modal-content" id="modal-body"></div>
+</div>
+
+<script>
+// ===== DATA =====
+const PLAN_RAW = [
+[1,"Base Building","03/23/2026","Mon","Easy Run",1.5,14,"Conversational",7.0,"Ease in \u2014 steady effort"],
+[1,"Base Building","03/24/2026","Tue","Rest",0,0,"-",0,"Recovery day \u2014 walk/stretch OK"],
+[1,"Base Building","03/25/2026","Wed","Easy Run",1.5,14,"Conversational",0,"Same distance, find your rhythm"],
+[1,"Base Building","03/26/2026","Thu","Cross-train",0,30,"Easy",0,"Bike, swim, yoga, or skate"],
+[1,"Base Building","03/27/2026","Fri","Easy Run",1.5,14,"Conversational",0,"Third short run this week"],
+[1,"Base Building","03/28/2026","Sat","Easy Run",2.5,24,"Conversational",0,"Stretch it out a bit on Saturday"],
+[1,"Base Building","03/29/2026","Sun","Rest",0,0,"-",0,"Recovery day \u2014 walk/stretch OK"],
+[2,"Base Building","03/30/2026","Mon","Easy Run",2.0,19,"Conversational",9.0,"Building up"],
+[2,"Base Building","03/31/2026","Tue","Rest",0,0,"-",0,"Recovery day \u2014 walk/stretch OK"],
+[2,"Base Building","04/01/2026","Wed","Easy Run",2.0,19,"Conversational",0,"Keep it conversational"],
+[2,"Base Building","04/02/2026","Thu","Cross-train",0,30,"Easy",0,"Bike, swim, yoga, or skate"],
+[2,"Base Building","04/03/2026","Fri","Easy Run",2.0,18,"Conversational",0,"Steady"],
+[2,"Base Building","04/04/2026","Sat","Long Run",3.0,28,"Easy/steady",0,"First real long run"],
+[2,"Base Building","04/05/2026","Sun","Rest",0,0,"-",0,"Recovery day \u2014 walk/stretch OK"],
+[3,"Base Building","04/06/2026","Mon","Easy Run",2.5,23,"Conversational",11.5,"Extending midweek distance"],
+[3,"Base Building","04/07/2026","Tue","Rest",0,0,"-",0,"Recovery day \u2014 walk/stretch OK"],
+[3,"Base Building","04/08/2026","Wed","Easy Run",2.5,23,"Conversational",0,"Easy effort"],
+[3,"Base Building","04/09/2026","Thu","Cross-train",0,30,"Easy",0,"Bike, swim, yoga, or skate"],
+[3,"Base Building","04/10/2026","Fri","Easy Run",2.5,22,"Conversational",0,"Steady"],
+[3,"Base Building","04/11/2026","Sat","Long Run",4.0,37,"Easy/steady",0,"New distance \u2014 stay easy"],
+[3,"Base Building","04/12/2026","Sun","Rest",0,0,"-",0,"Recovery day \u2014 walk/stretch OK"],
+[4,"Base Building","04/13/2026","Mon","Easy Run",3.0,27,"Conversational",14.0,"30 min continuous"],
+[4,"Base Building","04/14/2026","Tue","Rest",0,0,"-",0,"Recovery day \u2014 walk/stretch OK"],
+[4,"Base Building","04/15/2026","Wed","Easy Run",3.0,27,"Conversational",0,"Building consistency"],
+[4,"Base Building","04/16/2026","Thu","Cross-train",0,30,"Easy",0,"Bike, swim, yoga, or skate"],
+[4,"Base Building","04/17/2026","Fri","Easy Run",3.0,26,"Conversational",0,"Steady"],
+[4,"Base Building","04/18/2026","Sat","Long Run",5.0,45,"Easy/steady",0,"5 miler \u2014 nice block loop"],
+[4,"Base Building","04/19/2026","Sun","Rest",0,0,"-",0,"Recovery day \u2014 walk/stretch OK"],
+[5,"Base Building","04/20/2026","Mon","Easy Run",2.5,23,"Conversational",10.0,"Recovery week \u2014 dial it back"],
+[5,"Base Building","04/21/2026","Tue","Rest",0,0,"-",0,"Recovery day \u2014 walk/stretch OK"],
+[5,"Base Building","04/22/2026","Wed","Easy Run",2.0,19,"Conversational",0,"Easy"],
+[5,"Base Building","04/23/2026","Thu","Cross-train",0,30,"Easy",0,"Bike, swim, yoga, or skate"],
+[5,"Base Building","04/24/2026","Fri","Easy Run",2.0,18,"Conversational",0,"Short and easy"],
+[5,"Base Building","04/25/2026","Sat","Long Run",3.5,32,"Easy/steady",0,"Shorter long run this week"],
+[5,"Base Building","04/26/2026","Sun","Rest",0,0,"-",0,"Recovery day \u2014 walk/stretch OK"],
+[6,"Base Building","04/27/2026","Mon","Easy Run",3.0,27,"Conversational",16.0,""],
+[6,"Base Building","04/28/2026","Tue","Rest",0,0,"-",0,"Recovery day \u2014 walk/stretch OK"],
+[6,"Base Building","04/29/2026","Wed","Easy Run",3.5,32,"Conversational",0,"Pushing midweek a bit"],
+[6,"Base Building","04/30/2026","Thu","Cross-train",0,30,"Easy",0,"Bike, swim, yoga, or skate"],
+[6,"Base Building","05/01/2026","Fri","Easy Run",3.5,30,"Conversational",0,""],
+[6,"Base Building","05/02/2026","Sat","Long Run",6.0,55,"Easy/steady",0,"Longest run yet \u2014 you've built a base"],
+[6,"Base Building","05/03/2026","Sun","Rest",0,0,"-",0,"Recovery day \u2014 walk/stretch OK"],
+[7,"Bridge","05/04/2026","Mon","Easy Run",3.5,32,"Conversational",18.0,""],
+[7,"Bridge","05/05/2026","Tue","Rest",0,0,"-",0,"Recovery day \u2014 walk/stretch OK"],
+[7,"Bridge","05/06/2026","Wed","Easy Run",3.5,32,"Conversational",0,"Add a bit of distance"],
+[7,"Bridge","05/07/2026","Thu","Cross-train",0,30,"Easy",0,"Bike, swim, yoga, or skate"],
+[7,"Bridge","05/08/2026","Fri","Easy Run",4.0,36,"Conversational",0,""],
+[7,"Bridge","05/09/2026","Sat","Long Run",7.0,64,"Easy/steady",0,"Building long run endurance"],
+[7,"Bridge","05/10/2026","Sun","Rest",0,0,"-",0,"Recovery day \u2014 walk/stretch OK"],
+[8,"Bridge","05/11/2026","Mon","Easy Run",4.0,36,"Conversational",19.5,""],
+[8,"Bridge","05/12/2026","Tue","Rest",0,0,"-",0,"Recovery day \u2014 walk/stretch OK"],
+[8,"Bridge","05/13/2026","Wed","Tempo Run",3.5,32,"Comfortably hard",0,"First tempo \u2014 10 min warm up, 10 min tempo, cool down"],
+[8,"Bridge","05/14/2026","Thu","Cross-train",0,30,"Easy",0,"Bike, swim, yoga, or skate"],
+[8,"Bridge","05/15/2026","Fri","Easy Run",4.0,36,"Conversational",0,""],
+[8,"Bridge","05/16/2026","Sat","Long Run",8.0,73,"Easy/steady",0,"8 miles \u2014 you're a runner again"],
+[8,"Bridge","05/17/2026","Sun","Rest",0,0,"-",0,"Recovery day \u2014 walk/stretch OK"],
+[9,"Bridge","05/18/2026","Mon","Easy Run",3.0,27,"Conversational",14.0,""],
+[9,"Bridge","05/19/2026","Tue","Rest",0,0,"-",0,"Recovery day \u2014 walk/stretch OK"],
+[9,"Bridge","05/20/2026","Wed","Easy Run",3.0,27,"Conversational",0,""],
+[9,"Bridge","05/21/2026","Thu","Cross-train",0,30,"Easy",0,"Bike, swim, yoga, or skate"],
+[9,"Bridge","05/22/2026","Fri","Easy Run",3.0,27,"Conversational",0,""],
+[9,"Bridge","05/23/2026","Sat","Long Run",5.0,46,"Easy/steady",0,"Recovery week \u2014 easy long run"],
+[9,"Bridge","05/24/2026","Sun","Rest",0,0,"-",0,"Recovery day \u2014 walk/stretch OK"],
+[10,"Bridge","05/25/2026","Mon","Easy Run",4.0,36,"Conversational",22.0,""],
+[10,"Bridge","05/26/2026","Tue","Rest",0,0,"-",0,"Recovery day \u2014 walk/stretch OK"],
+[10,"Bridge","05/27/2026","Wed","Tempo Run",4.0,36,"Comfortably hard",0,"15 min tempo in the middle"],
+[10,"Bridge","05/28/2026","Thu","Cross-train",0,30,"Easy",0,"Bike, swim, yoga, or skate"],
+[10,"Bridge","05/29/2026","Fri","Easy Run",4.0,36,"Conversational",0,""],
+[10,"Bridge","05/30/2026","Sat","Long Run",10.0,92,"Easy/steady",0,"Double digits! Walk breaks OK"],
+[10,"Bridge","05/31/2026","Sun","Rest",0,0,"-",0,"Recovery day \u2014 walk/stretch OK"],
+[11,"Marathon Training","06/01/2026","Mon","Easy Run",4.0,36,"Conversational",26.0,""],
+[11,"Marathon Training","06/02/2026","Tue","Recovery Run",3.0,28,"Very easy",0,""],
+[11,"Marathon Training","06/03/2026","Wed","Tempo Run",5.0,45,"Comfortably hard",0,"20 min tempo effort"],
+[11,"Marathon Training","06/04/2026","Thu","Rest",0,0,"-",0,"Recovery day \u2014 walk/stretch OK"],
+[11,"Marathon Training","06/05/2026","Fri","Easy Run",4.0,36,"Conversational",0,""],
+[11,"Marathon Training","06/06/2026","Sat","Long Run",10.0,92,"Easy/steady",0,"Repeat 10 \u2014 build confidence at this distance"],
+[11,"Marathon Training","06/07/2026","Sun","Rest",0,0,"-",0,"Recovery day \u2014 walk/stretch OK"],
+[12,"Marathon Training","06/08/2026","Mon","Easy Run",4.0,36,"Conversational",22.0,""],
+[12,"Marathon Training","06/09/2026","Tue","Recovery Run",3.0,28,"Very easy",0,""],
+[12,"Marathon Training","06/10/2026","Wed","Easy Run",4.0,36,"Conversational",0,""],
+[12,"Marathon Training","06/11/2026","Thu","Rest",0,0,"-",0,"Recovery day \u2014 walk/stretch OK"],
+[12,"Marathon Training","06/12/2026","Fri","Easy Run",3.0,27,"Conversational",0,""],
+[12,"Marathon Training","06/13/2026","Sat","Long Run",8.0,73,"Easy/steady",0,"Recovery long run"],
+[12,"Marathon Training","06/14/2026","Sun","Rest",0,0,"-",0,"Recovery day \u2014 walk/stretch OK"],
+[13,"Marathon Training","06/15/2026","Mon","Easy Run",4.0,36,"Conversational",28.0,""],
+[13,"Marathon Training","06/16/2026","Tue","Recovery Run",3.0,28,"Very easy",0,""],
+[13,"Marathon Training","06/17/2026","Wed","Intervals",5.0,45,"Hard efforts",0,"6x800m w/ 400m jog recovery"],
+[13,"Marathon Training","06/18/2026","Thu","Rest",0,0,"-",0,"Recovery day \u2014 walk/stretch OK"],
+[13,"Marathon Training","06/19/2026","Fri","Easy Run",4.0,36,"Conversational",0,""],
+[13,"Marathon Training","06/20/2026","Sat","Long Run",12.0,110,"Easy/steady",0,"12 miles \u2014 new territory"],
+[13,"Marathon Training","06/21/2026","Sun","Rest",0,0,"-",0,"Recovery day \u2014 walk/stretch OK"],
+[14,"Marathon Training","06/22/2026","Mon","Easy Run",5.0,45,"Conversational",30.1,""],
+[14,"Marathon Training","06/23/2026","Tue","Recovery Run",3.0,28,"Very easy",0,""],
+[14,"Marathon Training","06/24/2026","Wed","Tempo Run",5.0,45,"Comfortably hard",0,"25 min tempo"],
+[14,"Marathon Training","06/25/2026","Thu","Rest",0,0,"-",0,"Recovery day \u2014 walk/stretch OK"],
+[14,"Marathon Training","06/26/2026","Fri","Easy Run",4.0,36,"Conversational",0,""],
+[14,"Marathon Training","06/27/2026","Sat","Long Run",13.1,120,"Easy/steady",0,"Half marathon distance \u2014 big milestone"],
+[14,"Marathon Training","06/28/2026","Sun","Rest",0,0,"-",0,"Recovery day \u2014 walk/stretch OK"],
+[15,"Marathon Training","06/29/2026","Mon","Easy Run",4.0,36,"Conversational",24.0,""],
+[15,"Marathon Training","06/30/2026","Tue","Recovery Run",3.0,28,"Very easy",0,""],
+[15,"Marathon Training","07/01/2026","Wed","Easy Run",4.0,36,"Conversational",0,""],
+[15,"Marathon Training","07/02/2026","Thu","Rest",0,0,"-",0,"Recovery day \u2014 walk/stretch OK"],
+[15,"Marathon Training","07/03/2026","Fri","Easy Run",3.0,27,"Conversational",0,""],
+[15,"Marathon Training","07/04/2026","Sat","Long Run",10.0,92,"Easy/steady",0,"Easy week \u2014 recover and absorb"],
+[15,"Marathon Training","07/05/2026","Sun","Rest",0,0,"-",0,"Recovery day \u2014 walk/stretch OK"],
+[16,"Marathon Training","07/06/2026","Mon","Easy Run",5.0,45,"Conversational",32.0,""],
+[16,"Marathon Training","07/07/2026","Tue","Recovery Run",3.0,28,"Very easy",0,""],
+[16,"Marathon Training","07/08/2026","Wed","Intervals",5.0,45,"Hard efforts",0,"5x1000m w/ 400m jog recovery"],
+[16,"Marathon Training","07/09/2026","Thu","Rest",0,0,"-",0,"Recovery day \u2014 walk/stretch OK"],
+[16,"Marathon Training","07/10/2026","Fri","Easy Run",5.0,45,"Conversational",0,""],
+[16,"Marathon Training","07/11/2026","Sat","Long Run",14.0,128,"Easy/steady",0,"14 miles \u2014 stay patient"],
+[16,"Marathon Training","07/12/2026","Sun","Rest",0,0,"-",0,"Recovery day \u2014 walk/stretch OK"],
+[17,"Marathon Training","07/13/2026","Mon","Easy Run",5.0,45,"Conversational",34.0,""],
+[17,"Marathon Training","07/14/2026","Tue","Recovery Run",3.0,28,"Very easy",0,""],
+[17,"Marathon Training","07/15/2026","Wed","Tempo Run",6.0,54,"Comfortably hard",0,"30 min tempo"],
+[17,"Marathon Training","07/16/2026","Thu","Rest",0,0,"-",0,"Recovery day \u2014 walk/stretch OK"],
+[17,"Marathon Training","07/17/2026","Fri","Easy Run",5.0,45,"Conversational",0,""],
+[17,"Marathon Training","07/18/2026","Sat","Long Run",15.0,138,"Easy/steady",0,"15 miles \u2014 practice fueling"],
+[17,"Marathon Training","07/19/2026","Sun","Rest",0,0,"-",0,"Recovery day \u2014 walk/stretch OK"],
+[18,"Marathon Training","07/20/2026","Mon","Easy Run",4.0,36,"Conversational",28.0,""],
+[18,"Marathon Training","07/21/2026","Tue","Recovery Run",3.0,28,"Very easy",0,""],
+[18,"Marathon Training","07/22/2026","Wed","Easy Run",5.0,45,"Conversational",0,""],
+[18,"Marathon Training","07/23/2026","Thu","Rest",0,0,"-",0,"Recovery day \u2014 walk/stretch OK"],
+[18,"Marathon Training","07/24/2026","Fri","Easy Run",4.0,36,"Conversational",0,""],
+[18,"Marathon Training","07/25/2026","Sat","Long Run",12.0,110,"Easy/steady",0,"Recovery week \u2014 stay easy"],
+[18,"Marathon Training","07/26/2026","Sun","Rest",0,0,"-",0,"Recovery day \u2014 walk/stretch OK"],
+[19,"Marathon Training","07/27/2026","Mon","Easy Run",5.0,45,"Conversational",35.0,""],
+[19,"Marathon Training","07/28/2026","Tue","Recovery Run",3.0,28,"Very easy",0,""],
+[19,"Marathon Training","07/29/2026","Wed","Intervals",6.0,55,"Hard efforts",0,"6x1000m w/ 400m jog"],
+[19,"Marathon Training","07/30/2026","Thu","Rest",0,0,"-",0,"Recovery day \u2014 walk/stretch OK"],
+[19,"Marathon Training","07/31/2026","Fri","Easy Run",5.0,45,"Conversational",0,""],
+[19,"Marathon Training","08/01/2026","Sat","Long Run",16.0,147,"Easy/steady",0,"16 miles \u2014 you're in marathon territory"],
+[19,"Marathon Training","08/02/2026","Sun","Rest",0,0,"-",0,"Recovery day \u2014 walk/stretch OK"],
+[20,"Marathon Training","08/03/2026","Mon","Easy Run",5.0,45,"Conversational",38.0,""],
+[20,"Marathon Training","08/04/2026","Tue","Recovery Run",4.0,37,"Very easy",0,""],
+[20,"Marathon Training","08/05/2026","Wed","Tempo Run",6.0,54,"Comfortably hard",0,"Race pace practice \u2014 20 min at goal pace"],
+[20,"Marathon Training","08/06/2026","Thu","Rest",0,0,"-",0,"Recovery day \u2014 walk/stretch OK"],
+[20,"Marathon Training","08/07/2026","Fri","Easy Run",5.0,45,"Conversational",0,""],
+[20,"Marathon Training","08/08/2026","Sat","Long Run",18.0,165,"Easy/steady",0,"18 miles \u2014 biggest long run yet"],
+[20,"Marathon Training","08/09/2026","Sun","Rest",0,0,"-",0,"Recovery day \u2014 walk/stretch OK"],
+[21,"Marathon Training","08/10/2026","Mon","Easy Run",4.0,36,"Conversational",29.0,""],
+[21,"Marathon Training","08/11/2026","Tue","Recovery Run",3.0,28,"Very easy",0,""],
+[21,"Marathon Training","08/12/2026","Wed","Easy Run",5.0,45,"Conversational",0,""],
+[21,"Marathon Training","08/13/2026","Thu","Rest",0,0,"-",0,"Recovery day \u2014 walk/stretch OK"],
+[21,"Marathon Training","08/14/2026","Fri","Easy Run",4.0,36,"Conversational",0,""],
+[21,"Marathon Training","08/15/2026","Sat","Long Run",13.0,119,"Easy/steady",0,"Recovery week \u2014 trust the process"],
+[21,"Marathon Training","08/16/2026","Sun","Rest",0,0,"-",0,"Recovery day \u2014 walk/stretch OK"],
+[22,"Marathon Training","08/17/2026","Mon","Easy Run",5.0,45,"Conversational",40.0,""],
+[22,"Marathon Training","08/18/2026","Tue","Recovery Run",4.0,37,"Very easy",0,""],
+[22,"Marathon Training","08/19/2026","Wed","Intervals",6.0,55,"Hard efforts",0,"6x1000m w/ 400m jog"],
+[22,"Marathon Training","08/20/2026","Thu","Rest",0,0,"-",0,"Recovery day \u2014 walk/stretch OK"],
+[22,"Marathon Training","08/21/2026","Fri","Easy Run",5.0,45,"Conversational",0,""],
+[22,"Marathon Training","08/22/2026","Sat","Long Run",20.0,184,"Easy/steady",0,"THE 20-MILER \u2014 crown jewel of training"],
+[22,"Marathon Training","08/23/2026","Sun","Rest",0,0,"-",0,"Recovery day \u2014 walk/stretch OK"],
+[23,"Marathon Training","08/24/2026","Mon","Easy Run",5.0,45,"Conversational",37.0,""],
+[23,"Marathon Training","08/25/2026","Tue","Recovery Run",3.0,28,"Very easy",0,""],
+[23,"Marathon Training","08/26/2026","Wed","Tempo Run",6.0,54,"Comfortably hard",0,"Race pace \u2014 20 min at goal pace"],
+[23,"Marathon Training","08/27/2026","Thu","Rest",0,0,"-",0,"Recovery day \u2014 walk/stretch OK"],
+[23,"Marathon Training","08/28/2026","Fri","Easy Run",5.0,45,"Conversational",0,""],
+[23,"Marathon Training","08/29/2026","Sat","Long Run",18.0,165,"Easy/steady",0,"Last big long run"],
+[23,"Marathon Training","08/30/2026","Sun","Rest",0,0,"-",0,"Recovery day \u2014 walk/stretch OK"],
+[24,"Marathon Training","08/31/2026","Mon","Easy Run",5.0,45,"Conversational",33.0,""],
+[24,"Marathon Training","09/01/2026","Tue","Recovery Run",3.0,28,"Very easy",0,""],
+[24,"Marathon Training","09/02/2026","Wed","Tempo Run",5.0,45,"Comfortably hard",0,"15 min at goal pace"],
+[24,"Marathon Training","09/03/2026","Thu","Rest",0,0,"-",0,"Recovery day \u2014 walk/stretch OK"],
+[24,"Marathon Training","09/04/2026","Fri","Easy Run",5.0,45,"Conversational",0,""],
+[24,"Marathon Training","09/05/2026","Sat","Long Run",15.0,138,"Easy/steady",0,"Comfortable \u2014 you've done longer"],
+[24,"Marathon Training","09/06/2026","Sun","Rest",0,0,"-",0,"Recovery day \u2014 walk/stretch OK"],
+[25,"Marathon Training","09/07/2026","Mon","Easy Run",5.0,45,"Conversational",30.0,""],
+[25,"Marathon Training","09/08/2026","Tue","Recovery Run",3.0,28,"Very easy",0,""],
+[25,"Marathon Training","09/09/2026","Wed","Tempo Run",5.0,45,"Comfortably hard",0,"Last real quality session"],
+[25,"Marathon Training","09/10/2026","Thu","Rest",0,0,"-",0,"Recovery day \u2014 walk/stretch OK"],
+[25,"Marathon Training","09/11/2026","Fri","Easy Run",4.0,36,"Conversational",0,""],
+[25,"Marathon Training","09/12/2026","Sat","Long Run",13.0,119,"Easy/steady",0,"Starting to taper \u2014 enjoy the lighter load"],
+[25,"Marathon Training","09/13/2026","Sun","Rest",0,0,"-",0,"Recovery day \u2014 walk/stretch OK"],
+[26,"Taper","09/14/2026","Mon","Easy Run",4.0,36,"Conversational",24.0,""],
+[26,"Taper","09/15/2026","Tue","Recovery Run",3.0,28,"Very easy",0,""],
+[26,"Taper","09/16/2026","Wed","Tempo Run",4.0,36,"Comfortably hard",0,"Short tempo \u2014 stay sharp"],
+[26,"Taper","09/17/2026","Thu","Rest",0,0,"-",0,"Recovery day \u2014 walk/stretch OK"],
+[26,"Taper","09/18/2026","Fri","Easy Run",3.0,27,"Conversational",0,""],
+[26,"Taper","09/19/2026","Sat","Long Run",10.0,92,"Easy/steady",0,"Last double-digit run"],
+[26,"Taper","09/20/2026","Sun","Rest",0,0,"-",0,"Recovery day \u2014 walk/stretch OK"],
+[27,"Taper","09/21/2026","Mon","Easy Run",3.0,27,"Conversational",17.0,""],
+[27,"Taper","09/22/2026","Tue","Recovery Run",2.0,18,"Very easy",0,""],
+[27,"Taper","09/23/2026","Wed","Tempo Run",3.0,27,"Comfortably hard",0,"Short and controlled"],
+[27,"Taper","09/24/2026","Thu","Rest",0,0,"-",0,"Recovery day \u2014 walk/stretch OK"],
+[27,"Taper","09/25/2026","Fri","Easy Run",3.0,27,"Conversational",0,""],
+[27,"Taper","09/26/2026","Sat","Long Run",6.0,55,"Easy/steady",0,"Easy \u2014 trust the training"],
+[27,"Taper","09/27/2026","Sun","Rest",0,0,"-",0,"Recovery day \u2014 walk/stretch OK"],
+[28,"Race Week","09/28/2026","Mon","Easy Run",2.0,18,"Conversational",33.2,"Shakeout run \u2014 stay loose"],
+[28,"Race Week","09/29/2026","Tue","Recovery Run",2.0,18,"Very easy",0,"Easy shakeout"],
+[28,"Race Week","09/30/2026","Wed","Easy Run",2.0,18,"Conversational",0,"Last real run \u2014 short strides at end"],
+[28,"Race Week","10/01/2026","Thu","Rest",0,0,"-",0,"Recovery day \u2014 walk/stretch OK"],
+[28,"Race Week","10/02/2026","Fri","Shakeout",1.0,10,"Very easy",0,"10 min jog + strides. Lay out gear tonight."],
+[28,"Race Week","10/03/2026","Sat","RACE DAY",26.2,0,"Goal pace",0,"St. George Marathon!"],
+[28,"Race Week","10/04/2026","Sun","Rest",0,0,"-",0,"Recovery day \u2014 walk/stretch OK"]
+];
+
+const EMOJI={"Easy Run":"\u{1F3C3}","Long Run":"\u{1F6E3}\uFE0F","Tempo Run":"\u26A1","Intervals":"\u{1F525}","Recovery Run":"\u{1F6B6}","Cross-train":"\u{1F6B4}","Rest":"\u{1F634}","Shakeout":"\u{1F45F}","RACE DAY":"\u{1F3C6}"};
+const PHASE_C={"Base Building":{bg:"#e8f5e9",accent:"#43a047"},"Bridge":{bg:"#e3f2fd",accent:"#1e88e5"},"Marathon Training":{bg:"#fff3e0",accent:"#fb8c00"},"Taper":{bg:"#f3e5f5",accent:"#8e24aa"},"Race Week":{bg:"#ffebee",accent:"#e53935"}};
+const RACE=new Date(2026,9,3);
+const MONTHS=["January","February","March","April","May","June","July","August","September","October","November","December"];
+const DAYS=["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+const QUOTES=[
+"The miracle isn't that I finished. The miracle is that I had the courage to start.",
+"Every mile is a gift. Unwrap it.",
+"You don't have to be fast. You just have to go.",
+"Run the mile you're in.",
+"The body achieves what the mind believes.",
+"One run can change your day. Many runs can change your life.",
+"Slow progress is still progress.",
+"Trust the process. Trust the training.",
+"Pain is temporary. Pride is forever.",
+"Running is the greatest metaphor for life, because you get out of it what you put into it.",
+"Today I will do what others won't, so tomorrow I can do what others can't.",
+"The real purpose of running isn't to win a race. It's to test the limits of the human heart.",
+"Don't dream of winning. Train for it.",
+"Your legs are not giving out. Your head is giving up.",
+"I run because if I didn't, I'd be sluggish and I'd feel bad about myself.",
+"A mile is always better than no miles.",
+"The starting line is the finish line for your excuses.",
+"Lace up. Show up. Never give up.",
+"It does not matter how slowly you go, as long as you do not stop.",
+"Strength doesn't come from what you can do. It comes from overcoming the things you once thought you couldn't.",
+"Some days you eat the run. Some days the run eats you.",
+"Dead last is greater than did not finish, which trumps did not start.",
+"The only bad run is the one that didn't happen.",
+"Running is a road to self-awareness and reliance. You can push yourself to extremes and learn the harsh reality of your physical and mental limitations.",
+"I often hear someone say I'm not a runner. There is some distant belief that you have to go fast or far to be a runner. I say, if you run, you're a runner.",
+"The obsession with running is really an obsession with the potential for more and more life.",
+"Run when you can, walk if you have to, crawl if you must; just never give up.",
+"Every accomplishment starts with the decision to try.",
+"You are tougher than you think you are, and you can do more than you think you can.",
+"The difference between a jogger and a runner is an entry form.",
+"St. George is waiting for you at the finish line."
+];
+
+// ===== PARSE =====
+const PLAN=PLAN_RAW.map(r=>({week:r[0],phase:r[1],date:r[2],day:r[3],workout:r[4],distance:r[5],time:r[6],pace:r[7],weeklyTotal:r[8],notes:r[9]}));
+const BY_DATE={};
+PLAN.forEach(p=>{BY_DATE[toISO(p.date)]=p});
+const ALL_DATES=PLAN.map(p=>toISO(p.date));
+
+function toISO(d){const[m,dd,y]=d.split('/');return `${y}-${m.padStart(2,'0')}-${dd.padStart(2,'0')}`}
+function fromISO(iso){const[y,m,d]=iso.split('-');return new Date(+y,+m-1,+d)}
+function todayISO(){const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
+function fmtDate(iso){const d=fromISO(iso);return `${MONTHS[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`}
+function fmtPace(min,mi){if(!mi||!min)return'--';const p=min/mi;const m=Math.floor(p);const s=Math.round((p-m)*60);return `${m}:${String(s).padStart(2,'0')} /mi`}
+function fmtTime(min){if(!min)return'0m';const h=Math.floor(min/60);const m=Math.round(min%60);return h?`${h}h ${m}m`:`${m}m`}
+function daysUntil(target){const now=new Date();now.setHours(0,0,0,0);return Math.ceil((target-now)/(1000*60*60*24))}
+
+// ===== STORAGE =====
+function loadLog(){try{return JSON.parse(localStorage.getItem('stg-marathon-log'))||{entries:{}}}catch(e){return{entries:{}}}}
+function saveLog(log){try{localStorage.setItem('stg-marathon-log',JSON.stringify(log))}catch(e){}}
+function getEntry(iso){return loadLog().entries[iso]||null}
+function setEntry(iso,data){const log=loadLog();log.entries[iso]=data;saveLog(log)}
+
+// ===== STATS =====
+function calcStats(){
+  const log=loadLog().entries;
+  let totalMi=0,totalMin=0,done=0,streak=0,bestStreak=0,tempStreak=0;
+  const weeklyActual=Array(28).fill(0);
+  ALL_DATES.forEach(iso=>{
+    const e=log[iso];const p=BY_DATE[iso];
+    if(e&&e.done){
+      done++;totalMi+=e.actualDist||0;totalMin+=e.actualTime||0;
+      if(p)weeklyActual[p.week-1]+=(e.actualDist||0);
+    }
+  });
+  // streak from today backwards
+  const ti=todayISO();
+  for(let i=ALL_DATES.indexOf(ti);i>=0;i--){
+    const e=log[ALL_DATES[i]];
+    if(e&&e.done)streak++;else break;
+  }
+  // best streak
+  ALL_DATES.forEach(iso=>{
+    const e=log[iso];
+    if(e&&e.done){tempStreak++;if(tempStreak>bestStreak)bestStreak=tempStreak}
+    else tempStreak=0;
+  });
+  const activeDays=PLAN.filter(p=>p.workout!=='Rest').length;
+  return{totalMi,totalMin,done,activeDays,streak,bestStreak,weeklyActual,
+    avgPace:totalMi?totalMin/totalMi:0,pct:activeDays?(done/activeDays*100):0};
+}
+
+// ===== CURRENT STATE =====
+let viewDate=todayISO();
+let calMonth,calYear;
+(function(){const d=new Date();calMonth=d.getMonth();calYear=d.getFullYear()})();
+
+// ===== COUNTDOWN =====
+function updateCountdown(){
+  const d=daysUntil(RACE);
+  document.getElementById('countdown-chip').textContent=d>0?`${d} days to race day!`:d===0?'RACE DAY!':'Race complete!';
+}
+
+// ===== RENDER TODAY =====
+function renderToday(){
+  const panel=document.getElementById('panel-today');
+  const p=BY_DATE[viewDate];
+  const entry=getEntry(viewDate);
+  const isToday=viewDate===todayISO();
+  const pc=p?PHASE_C[p.phase]:{bg:'#f5f5f5',accent:'#999'};
+  const stats=calcStats();
+
+  let html=`<div class="day-nav">
+    <button class="nav-arrow" onclick="navDay(-1)">\u25C0</button>
+    <div class="date-display">
+      <div class="date-big">${fmtDate(viewDate)}</div>
+      <div class="date-small">${p?'Week '+p.week+' \u2022 '+p.phase:'Outside training plan'}</div>
+      ${!isToday?'<button class="today-btn" onclick="goToday()">Jump to Today</button>':''}
+    </div>
+    <button class="nav-arrow" onclick="navDay(1)">\u25B6</button>
+  </div>`;
+
+  if(!p){
+    html+=`<div class="card rest-card"><div class="rest-emoji">\u{1F3C3}</div><p>No workout scheduled for this day</p></div>`;
+  } else if(p.workout==='RACE DAY'){
+    html+=`<div class="card race-card">
+      <div class="trophy">\u{1F3C6}</div>
+      <h2>RACE DAY!</h2>
+      <p>St. George Marathon \u2022 26.2 miles</p>
+      <p style="margin-top:8px;font-size:.85rem;color:#795548">You've trained for this. Trust your legs. Enjoy every mile.</p>
+    </div>`;
+    html+=renderLogForm(p,entry,viewDate);
+  } else if(p.workout==='Rest'){
+    html+=`<div class="card"><div class="phase-bar" style="background:${pc.accent}"></div>
+      <div style="text-align:center;padding:10px">
+        <div style="font-size:2.5rem">\u{1F634}</div>
+        <div class="workout-type" style="margin:8px 0">Rest Day</div>
+        <p style="font-size:.85rem;color:var(--text2)">${p.notes||'Recovery day \u2014 walk/stretch OK'}</p>
+      </div>
+    </div>`;
+    html+=renderLogForm(p,entry,viewDate);
+  } else {
+    html+=`<div class="card"><div class="phase-bar" style="background:${pc.accent}"></div>
+      <div class="workout-header">
+        <span class="workout-emoji">${EMOJI[p.workout]||'\u{1F3C3}'}</span>
+        <div><div class="workout-type">${p.workout}</div>
+          <div style="font-size:.75rem;color:var(--text2)">${p.pace}</div></div>
+      </div>
+      <div class="workout-meta">
+        ${p.distance?`<div class="meta-item"><div class="meta-label">Distance</div><div class="meta-value">${p.distance} mi</div></div>`:''}
+        ${p.time?`<div class="meta-item"><div class="meta-label">Time</div><div class="meta-value">${fmtTime(p.time)}</div></div>`:''}
+      </div>
+      ${p.notes?`<div class="workout-notes">${p.notes}</div>`:''}
+    </div>`;
+    html+=renderLogForm(p,entry,viewDate);
+  }
+
+  // Streak
+  html+=`<div class="streak-row">
+    <div class="streak-card"><div class="streak-num" style="color:var(--orange)">${stats.streak}</div><div class="streak-label">Current Streak</div></div>
+    <div class="streak-card"><div class="streak-num" style="color:var(--green)">${stats.bestStreak}</div><div class="streak-label">Best Streak</div></div>
+  </div>`;
+
+  // Week summary
+  if(p){
+    const weekPlan=PLAN.filter(x=>x.week===p.week);
+    const weekActive=weekPlan.filter(x=>x.workout!=='Rest');
+    const log=loadLog().entries;
+    const weekDone=weekPlan.filter(x=>{const e=log[toISO(x.date)];return e&&e.done}).length;
+    const weekMiActual=weekPlan.reduce((s,x)=>{const e=log[toISO(x.date)];return s+(e&&e.done?e.actualDist||0:0)},0);
+    const weekMiPlan=weekPlan.reduce((s,x)=>s+x.distance,0);
+    const pct=weekActive.length?Math.round(weekDone/weekActive.length*100):0;
+    html+=`<div class="card week-summary"><h3>Week ${p.week} Progress</h3>
+      <div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${pc.accent}"></div></div>
+      <div class="week-stats"><span>${weekDone}/${weekActive.length} workouts</span><span>${weekMiActual.toFixed(1)} / ${weekMiPlan.toFixed(1)} mi</span></div>
+    </div>`;
+  }
+
+  // Quote
+  const dayOfYear=Math.floor((new Date()-new Date(new Date().getFullYear(),0,0))/(1000*60*60*24));
+  const q=QUOTES[dayOfYear%QUOTES.length];
+  html+=`<div class="card quote-card">"${q}"<div class="attr">\u{1F3C3} Daily Motivation</div></div>`;
+
+  panel.innerHTML=html;
+}
+
+function renderLogForm(p,entry,iso){
+  const done=entry?entry.done:false;
+  const rating=entry?entry.rating:0;
+  const dist=entry?entry.actualDist:p.distance||0;
+  const time=entry?entry.actualTime:p.time||0;
+  const isRun=p.workout!=='Rest'&&p.workout!=='Cross-train';
+  let h=`<div class="card log-section"><h3 style="font-size:.9rem;font-weight:700;margin-bottom:12px">\u{1F4DD} Log This Workout</h3>`;
+  h+=`<div class="log-row"><span class="log-label">Done?</span>
+    <label class="toggle"><input type="checkbox" ${done?'checked':''} onchange="toggleDone('${iso}',this.checked)"><span class="slider"></span></label>
+    ${done?'<span style="color:var(--green);font-weight:700">\u2713 Completed!</span>':''}</div>`;
+  h+=`<div class="log-row"><span class="log-label">Rating</span><div class="rating-row">`;
+  for(let i=1;i<=10;i++){
+    h+=`<div class="rating-dot${rating===i?' selected':''}" onclick="setRating('${iso}',${i})">${i}</div>`;
+  }
+  h+=`</div></div>`;
+  if(isRun||p.workout==='RACE DAY'){
+    h+=`<div class="log-row"><span class="log-label">Distance</span>
+      <div class="num-input"><button onclick="adjNum('${iso}','dist',-0.1)">\u2212</button>
+      <span class="val" id="dist-${iso}">${dist.toFixed(1)}</span><span class="unit">mi</span>
+      <button onclick="adjNum('${iso}','dist',0.1)">+</button></div></div>`;
+  }
+  h+=`<div class="log-row"><span class="log-label">Time</span>
+    <div class="num-input"><button onclick="adjNum('${iso}','time',-1)">\u2212</button>
+    <span class="val" id="time-${iso}">${time}</span><span class="unit">min</span>
+    <button onclick="adjNum('${iso}','time',1)">+</button></div></div>`;
+  h+=`</div>`;
+  return h;
+}
+
+function toggleDone(iso,checked){
+  const entry=getEntry(iso)||{done:false,rating:0,actualDist:0,actualTime:0};
+  const p=BY_DATE[iso];
+  if(!entry.actualDist&&p)entry.actualDist=p.distance||0;
+  if(!entry.actualTime&&p)entry.actualTime=p.time||0;
+  entry.done=checked;
+  setEntry(iso,entry);
+  renderToday();
+  renderStats();
+}
+function setRating(iso,r){
+  const entry=getEntry(iso)||{done:false,rating:0,actualDist:0,actualTime:0};
+  const p=BY_DATE[iso];
+  if(!entry.actualDist&&p)entry.actualDist=p.distance||0;
+  if(!entry.actualTime&&p)entry.actualTime=p.time||0;
+  entry.rating=(entry.rating===r)?0:r;
+  if(entry.rating&&!entry.done)entry.done=true;
+  setEntry(iso,entry);
+  renderToday();
+}
+function adjNum(iso,field,delta){
+  const entry=getEntry(iso)||{done:false,rating:0,actualDist:0,actualTime:0};
+  const p=BY_DATE[iso];
+  if(field==='dist'){entry.actualDist=Math.max(0,Math.round(((entry.actualDist||p?.distance||0)+delta)*10)/10)}
+  else{entry.actualTime=Math.max(0,Math.round((entry.actualTime||p?.time||0)+delta))}
+  setEntry(iso,entry);
+  const el=document.getElementById(`${field}-${iso}`);
+  if(el)el.textContent=field==='dist'?(entry.actualDist).toFixed(1):entry.actualTime;
+}
+function navDay(dir){
+  const idx=ALL_DATES.indexOf(viewDate);
+  const next=idx+dir;
+  if(next>=0&&next<ALL_DATES.length){viewDate=ALL_DATES[next];renderToday()}
+}
+function goToday(){viewDate=todayISO();renderToday()}
+
+// ===== RENDER CALENDAR =====
+function renderCalendar(){
+  const panel=document.getElementById('panel-calendar');
+  const log=loadLog().entries;
+  const ti=todayISO();
+  const firstDay=new Date(calYear,calMonth,1);
+  const lastDay=new Date(calYear,calMonth+1,0);
+  let startDow=(firstDay.getDay()+6)%7; // Mon=0
+
+  let html=`<div class="cal-nav">
+    <button onclick="calNav(-1)">\u25C0</button>
+    <h2>${MONTHS[calMonth]} ${calYear}</h2>
+    <button onclick="calNav(1)">\u25B6</button>
+  </div>`;
+
+  html+=`<div class="cal-grid">`;
+  DAYS.forEach(d=>{html+=`<div class="cal-head">${d}</div>`});
+
+  // Empty cells before first day
+  for(let i=0;i<startDow;i++)html+=`<div class="cal-cell empty"></div>`;
+
+  for(let d=1;d<=lastDay.getDate();d++){
+    const iso=`${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const p=BY_DATE[iso];
+    const e=log[iso];
+    const isDone=e&&e.done;
+    const isT=iso===ti;
+    const bg=p?PHASE_C[p.phase]?.bg:'transparent';
+    const classes=['cal-cell',isT?'today':'',isDone?'done':'',!p?'outside':''].filter(Boolean).join(' ');
+    html+=`<div class="${classes}" style="background:${bg}" onclick="openModal('${iso}')">
+      <span class="day-num">${d}</span>
+      ${p?`<span class="day-emoji">${EMOJI[p.workout]||''}</span>`:''}
+    </div>`;
+  }
+  html+=`</div>`;
+
+  // Legend
+  html+=`<div class="legend">`;
+  for(const[name,c]of Object.entries(PHASE_C)){
+    html+=`<div class="legend-item"><div class="legend-dot" style="background:${c.accent}"></div>${name}</div>`;
+  }
+  html+=`</div>`;
+
+  panel.innerHTML=html;
+}
+function calNav(dir){
+  calMonth+=dir;
+  if(calMonth>11){calMonth=0;calYear++}
+  if(calMonth<0){calMonth=11;calYear--}
+  renderCalendar();
+}
+
+// ===== MODAL =====
+function openModal(iso){
+  const p=BY_DATE[iso];
+  if(!p)return;
+  const entry=getEntry(iso);
+  const pc=PHASE_C[p.phase]||{bg:'#f5f5f5',accent:'#999'};
+  let html=`<div class="modal-close"><button onclick="closeModal()">\u2715</button></div>`;
+  html+=`<div style="text-align:center;margin-bottom:8px">
+    <div style="font-size:.8rem;color:var(--text2)">${fmtDate(iso)}</div>
+    <div style="font-size:.75rem;color:${pc.accent};font-weight:600">Week ${p.week} \u2022 ${p.phase}</div>
+  </div>`;
+  if(p.workout==='Rest'){
+    html+=`<div style="text-align:center;padding:10px"><div style="font-size:2rem">\u{1F634}</div><div style="font-weight:700;margin:6px 0">Rest Day</div>
+      <div style="font-size:.85rem;color:var(--text2)">${p.notes}</div></div>`;
+  } else if(p.workout==='RACE DAY'){
+    html+=`<div class="race-card"><div class="trophy">\u{1F3C6}</div><h2>RACE DAY!</h2><p>26.2 mi \u2022 ${p.notes}</p></div>`;
+  } else {
+    html+=`<div style="text-align:center"><span style="font-size:2rem">${EMOJI[p.workout]||''}</span>
+      <div style="font-weight:700;font-size:1.1rem;margin:4px 0">${p.workout}</div>
+      <div style="font-size:.85rem;color:var(--text2)">${p.pace}</div></div>`;
+    html+=`<div class="workout-meta" style="margin:12px 0">
+      ${p.distance?`<div class="meta-item"><div class="meta-label">Distance</div><div class="meta-value">${p.distance} mi</div></div>`:''}
+      ${p.time?`<div class="meta-item"><div class="meta-label">Time</div><div class="meta-value">${fmtTime(p.time)}</div></div>`:''}
+    </div>`;
+    if(p.notes)html+=`<div class="workout-notes">${p.notes}</div>`;
+  }
+  html+=renderLogForm(p,entry,iso);
+  document.getElementById('modal-body').innerHTML=html;
+  document.getElementById('modal').classList.add('open');
+}
+function closeModal(){document.getElementById('modal').classList.remove('open')}
+document.getElementById('modal').addEventListener('click',function(e){if(e.target===this)closeModal()});
+
+// ===== RENDER STATS =====
+function renderStats(){
+  const panel=document.getElementById('panel-stats');
+  const s=calcStats();
+  const d=daysUntil(RACE);
+  const p=BY_DATE[todayISO()];
+  const phase=p?p.phase:'--';
+  const week=p?p.week:'--';
+
+  let html=`<div class="stats-grid">
+    <div class="stat-card"><div class="stat-emoji">\u{1F4C5}</div><div class="stat-value">${d>0?d:d===0?'TODAY':'Done!'}</div><div class="stat-label">Days to Race</div></div>
+    <div class="stat-card"><div class="stat-emoji">\u{1F45F}</div><div class="stat-value">${s.totalMi.toFixed(1)}</div><div class="stat-label">Miles Logged</div></div>
+    <div class="stat-card"><div class="stat-emoji">\u23F1\uFE0F</div><div class="stat-value">${fmtTime(s.totalMin)}</div><div class="stat-label">Total Time</div></div>
+    <div class="stat-card"><div class="stat-emoji">\u{1F4A8}</div><div class="stat-value">${s.avgPace?fmtPace(s.totalMin,s.totalMi):'--'}</div><div class="stat-label">Avg Pace</div></div>
+    <div class="stat-card"><div class="stat-emoji">\u2705</div><div class="stat-value">${s.pct.toFixed(0)}%</div><div class="stat-label">Completion</div></div>
+    <div class="stat-card"><div class="stat-emoji">\u{1F3AF}</div><div class="stat-value">${phase}</div><div class="stat-label" style="font-size:.6rem">Current Phase</div></div>
+    <div class="stat-card"><div class="stat-emoji">\u{1F4CA}</div><div class="stat-value">${week}</div><div class="stat-label">Week</div></div>
+    <div class="stat-card"><div class="stat-emoji">\u{1F525}</div><div class="stat-value">${s.streak}</div><div class="stat-label">Streak</div></div>
+  </div>`;
+
+  // Weekly mileage chart
+  const weeklyPlan=[];
+  for(let w=1;w<=28;w++){
+    const wp=PLAN.filter(x=>x.week===w);
+    const tot=wp.reduce((a,x)=>a+x.distance,0);
+    weeklyPlan.push(tot);
+  }
+  const maxMi=Math.max(...weeklyPlan,1);
+  const chartH=200,chartW=700,barW=20,gap=5,leftPad=35,botPad=25;
+  const totalW=leftPad+28*(barW+gap);
+  let svg=`<svg viewBox="0 0 ${totalW} ${chartH+botPad}" xmlns="http://www.w3.org/2000/svg">`;
+  // Grid lines
+  for(let m=0;m<=maxMi;m+=10){
+    const y=chartH-(m/maxMi)*chartH;
+    svg+=`<line x1="${leftPad}" y1="${y}" x2="${totalW}" y2="${y}" stroke="#e0e0e0" stroke-width="1"/>`;
+    svg+=`<text x="${leftPad-4}" y="${y+4}" font-size="9" fill="#999" text-anchor="end">${m}</text>`;
+  }
+  const curWeek=p?p.week:0;
+  for(let w=0;w<28;w++){
+    const x=leftPad+w*(barW+gap);
+    const planH=(weeklyPlan[w]/maxMi)*chartH;
+    const actH=(s.weeklyActual[w]/maxMi)*chartH;
+    const wp=PLAN.find(x=>x.week===w+1);
+    const color=wp?PHASE_C[wp.phase]?.accent:'#ccc';
+    svg+=`<rect x="${x}" y="${chartH-planH}" width="${barW}" height="${planH}" fill="${color}" opacity=".2" rx="3"/>`;
+    svg+=`<rect x="${x}" y="${chartH-actH}" width="${barW}" height="${actH}" fill="${color}" rx="3"/>`;
+    if(w+1===curWeek)svg+=`<rect x="${x-1}" y="${chartH-planH-1}" width="${barW+2}" height="${planH+2}" fill="none" stroke="#ff9800" stroke-width="2" rx="4"/>`;
+    svg+=`<text x="${x+barW/2}" y="${chartH+14}" font-size="8" fill="#999" text-anchor="middle">${w+1}</text>`;
+  }
+  svg+=`</svg>`;
+  html+=`<div class="chart-card"><h3>\u{1F4CA} Weekly Mileage (Planned vs Actual)</h3>${svg}</div>`;
+
+  // Rating over time chart
+  const log=loadLog().entries;
+  const ratingPoints=[];
+  ALL_DATES.forEach(iso=>{
+    const e=log[iso];const pl=BY_DATE[iso];
+    if(e&&e.rating&&pl){ratingPoints.push({iso,rating:e.rating,week:pl.week,phase:pl.phase})}
+  });
+  if(ratingPoints.length>0){
+    const rChartH=160,rLeftPad=30,rBotPad=25,rTopPad=10;
+    const rPointGap=Math.max(12,Math.min(24,(totalW-rLeftPad)/ratingPoints.length));
+    const rTotalW=rLeftPad+ratingPoints.length*rPointGap+10;
+    let rsvg=`<svg viewBox="0 0 ${rTotalW} ${rChartH+rBotPad+rTopPad}" xmlns="http://www.w3.org/2000/svg">`;
+    // Grid lines for ratings 2,4,6,8,10
+    for(let r=2;r<=10;r+=2){
+      const y=rTopPad+rChartH-(r/10)*rChartH;
+      rsvg+=`<line x1="${rLeftPad}" y1="${y}" x2="${rTotalW}" y2="${y}" stroke="#e0e0e0" stroke-width="1"/>`;
+      rsvg+=`<text x="${rLeftPad-4}" y="${y+3}" font-size="9" fill="#999" text-anchor="end">${r}</text>`;
+    }
+    // Moving average line (3-point)
+    const avgPoints=[];
+    for(let i=0;i<ratingPoints.length;i++){
+      const window=ratingPoints.slice(Math.max(0,i-1),Math.min(ratingPoints.length,i+2));
+      const avg=window.reduce((a,p)=>a+p.rating,0)/window.length;
+      avgPoints.push(avg);
+    }
+    // Area fill under the moving average
+    let areaPath=`M ${rLeftPad} ${rTopPad+rChartH}`;
+    avgPoints.forEach((avg,i)=>{
+      const x=rLeftPad+i*rPointGap;
+      const y=rTopPad+rChartH-(avg/10)*rChartH;
+      areaPath+=` L ${x} ${y}`;
+    });
+    areaPath+=` L ${rLeftPad+(avgPoints.length-1)*rPointGap} ${rTopPad+rChartH} Z`;
+    rsvg+=`<path d="${areaPath}" fill="url(#ratingGrad)" opacity=".3"/>`;
+    rsvg+=`<defs><linearGradient id="ratingGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#ff9800"/><stop offset="100%" stop-color="#fff3e0"/></linearGradient></defs>`;
+    // Line
+    let linePath='';
+    ratingPoints.forEach((pt,i)=>{
+      const x=rLeftPad+i*rPointGap;
+      const y=rTopPad+rChartH-(avgPoints[i]/10)*rChartH;
+      linePath+=(i===0?'M ':' L ')+`${x} ${y}`;
+    });
+    rsvg+=`<path d="${linePath}" fill="none" stroke="#ff9800" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>`;
+    // Dots colored by phase
+    ratingPoints.forEach((pt,i)=>{
+      const x=rLeftPad+i*rPointGap;
+      const y=rTopPad+rChartH-(pt.rating/10)*rChartH;
+      const color=PHASE_C[pt.phase]?.accent||'#999';
+      rsvg+=`<circle cx="${x}" cy="${y}" r="4.5" fill="${color}" stroke="#fff" stroke-width="1.5"/>`;
+      // Show week label every few points
+      if(i===0||ratingPoints[i-1]?.week!==pt.week){
+        rsvg+=`<text x="${x}" y="${rTopPad+rChartH+14}" font-size="7" fill="#999" text-anchor="middle">W${pt.week}</text>`;
+      }
+    });
+    rsvg+=`</svg>`;
+    const avgRating=ratingPoints.reduce((a,p)=>a+p.rating,0)/ratingPoints.length;
+    html+=`<div class="chart-card"><h3>\u2B50 Workout Rating Over Time</h3>
+      <div style="font-size:.75rem;color:var(--text2);margin-bottom:8px">Avg: <strong>${avgRating.toFixed(1)}</strong>/10 across ${ratingPoints.length} workouts \u2022 Dots colored by phase \u2022 Line = smoothed trend</div>
+      ${rsvg}</div>`;
+  }
+
+  // Phase timeline
+  const phaseLengths={"Base Building":6,"Bridge":4,"Marathon Training":15,"Taper":2,"Race Week":1};
+  html+=`<div class="card phase-timeline"><h3>\u{1F3C1} Training Progress</h3><div class="timeline-bar">`;
+  for(const[name,weeks]of Object.entries(phaseLengths)){
+    const pct=(weeks/28*100).toFixed(1);
+    html+=`<div class="timeline-seg" style="width:${pct}%;background:${PHASE_C[name].accent}">${name.replace('Marathon ','M.')}</div>`;
+  }
+  html+=`</div>`;
+  if(p){
+    const weeksBefore=p.week-1;
+    const pct=(weeksBefore/28*100).toFixed(1);
+    html+=`<div class="timeline-marker"><div class="timeline-arrow" style="left:${pct}%">\u{1F3C3}</div></div>`;
+  }
+  html+=`</div>`;
+
+  // Planned vs actual summary
+  const totalPlanned=681.3;
+  html+=`<div class="card"><h3 style="font-size:.9rem;font-weight:700;margin-bottom:8px">\u{1F4CF} Distance Progress</h3>
+    <div class="progress-bar" style="height:14px"><div class="progress-fill" style="width:${Math.min(100,s.totalMi/totalPlanned*100).toFixed(1)}%;background:linear-gradient(90deg,var(--green),var(--orange))"></div></div>
+    <div class="week-stats"><span>${s.totalMi.toFixed(1)} mi logged</span><span>${totalPlanned} mi planned</span></div>
+  </div>`;
+
+  panel.innerHTML=html;
+}
+
+// ===== TABS =====
+document.querySelectorAll('.tab').forEach(btn=>{
+  btn.addEventListener('click',function(){
+    document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+    this.classList.add('active');
+    const tab=this.dataset.tab;
+    document.getElementById('panel-'+tab).classList.add('active');
+    if(tab==='calendar')renderCalendar();
+    if(tab==='stats')renderStats();
+    if(tab==='today')renderToday();
+  });
+});
+
+// ===== INIT =====
+updateCountdown();
+renderToday();
+</script>
+</body>
+</html>
