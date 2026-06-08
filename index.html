@@ -159,6 +159,12 @@ nav button:hover{background:rgba(0,0,0,.02)}
   border-radius:var(--radius);padding:24px}
 .race-card .trophy{font-size:3.5rem}
 .race-card h2{font-size:1.3rem;margin:8px 0}
+.export-btn{display:flex;align-items:center;justify-content:center;gap:8px;
+  width:100%;padding:14px;border:none;border-radius:var(--radius);
+  background:linear-gradient(135deg,#43a047,#66bb6a);color:#fff;
+  font-size:1rem;font-weight:700;cursor:pointer;box-shadow:0 3px 10px rgba(67,160,71,.3);
+  transition:all .15s;letter-spacing:.2px}
+.export-btn:active{transform:scale(.97);box-shadow:0 1px 5px rgba(67,160,71,.2)}
 </style>
 </head>
 <body>
@@ -468,6 +474,33 @@ function calcStats(){
   const activeDays=PLAN.filter(p=>p.workout!=='Rest').length;
   return{totalMi,totalMin,done,activeDays,streak,bestStreak,weeklyActual,
     avgPace:totalMi?totalMin/totalMi:0,pct:activeDays?(done/activeDays*100):0};
+}
+
+// ===== EXPORT =====
+function exportCSV(){
+  const log=loadLog().entries;
+  const rows=[['Date','Workout','Miles Ran','Time (min)','Score']];
+  ALL_DATES.forEach(iso=>{
+    const e=log[iso];
+    if(e&&e.done){
+      const p=BY_DATE[iso];
+      rows.push([
+        fmtDate(iso),
+        p?p.workout:'',
+        (e.actualDist||0).toFixed(1),
+        e.actualTime||0,
+        e.rating||''
+      ]);
+    }
+  });
+  if(rows.length===1){alert('No completed workouts to export yet! Log some runs first.');return}
+  const csv=rows.map(r=>r.map(v=>`"${v}"`).join(',')).join('\n');
+  const blob=new Blob([csv],{type:'text/csv'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download='st-george-marathon-log.csv';
+  document.body.appendChild(a);a.click();
+  document.body.removeChild(a);URL.revokeObjectURL(url);
 }
 
 // ===== CURRENT STATE =====
@@ -847,6 +880,16 @@ function renderStats(){
   html+=`<div class="card"><h3 style="font-size:.9rem;font-weight:700;margin-bottom:8px">\u{1F4CF} Distance Progress</h3>
     <div class="progress-bar" style="height:14px"><div class="progress-fill" style="width:${Math.min(100,s.totalMi/totalPlanned*100).toFixed(1)}%;background:linear-gradient(90deg,var(--green),var(--orange))"></div></div>
     <div class="week-stats"><span>${s.totalMi.toFixed(1)} mi logged</span><span>${totalPlanned} mi planned</span></div>
+  </div>`;
+
+  // Export button
+  html+=`<div class="card">
+    <button class="export-btn" onclick="exportCSV()">
+      \u{1F4E5} Export Training Log (CSV)
+    </button>
+    <div style="text-align:center;font-size:.72rem;color:var(--text2);margin-top:8px">
+      Downloads a spreadsheet with date, miles, time &amp; score for every completed workout
+    </div>
   </div>`;
 
   panel.innerHTML=html;
