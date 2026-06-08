@@ -159,12 +159,12 @@ nav button:hover{background:rgba(0,0,0,.02)}
   border-radius:var(--radius);padding:24px}
 .race-card .trophy{font-size:3.5rem}
 .race-card h2{font-size:1.3rem;margin:8px 0}
-.export-btn{display:flex;align-items:center;justify-content:center;gap:8px;
-  width:100%;padding:14px;border:none;border-radius:var(--radius);
-  background:linear-gradient(135deg,#43a047,#66bb6a);color:#fff;
-  font-size:1rem;font-weight:700;cursor:pointer;box-shadow:0 3px 10px rgba(67,160,71,.3);
-  transition:all .15s;letter-spacing:.2px}
-.export-btn:active{transform:scale(.97);box-shadow:0 1px 5px rgba(67,160,71,.2)}
+.export-btn,.import-btn{display:flex;align-items:center;justify-content:center;gap:8px;
+  width:100%;padding:14px;border:none;border-radius:var(--radius);color:#fff;
+  font-size:1rem;font-weight:700;cursor:pointer;transition:all .15s;letter-spacing:.2px}
+.export-btn{background:linear-gradient(135deg,#43a047,#66bb6a);box-shadow:0 3px 10px rgba(67,160,71,.3)}
+.import-btn{background:linear-gradient(135deg,#1e88e5,#42a5f5);box-shadow:0 3px 10px rgba(30,136,229,.3);margin-top:10px}
+.export-btn:active,.import-btn:active{transform:scale(.97)}
 </style>
 </head>
 <body>
@@ -501,6 +501,103 @@ function exportCSV(){
   a.href=url;a.download='st-george-marathon-log.csv';
   document.body.appendChild(a);a.click();
   document.body.removeChild(a);URL.revokeObjectURL(url);
+}
+
+// ===== IMPORT =====
+const MONTH_IDX={jan:1,feb:2,mar:3,apr:4,may:5,jun:6,jul:7,aug:8,sep:9,oct:10,nov:11,dec:12,
+  january:1,february:2,march:3,april:4,june:6,july:7,august:8,september:9,october:10,november:11,december:12};
+// Robust single-line CSV parser (handles quoted fields w/ commas & escaped quotes)
+function parseCSVLine(line){
+  const out=[];let cur='',q=false;
+  for(let i=0;i<line.length;i++){
+    const c=line[i];
+    if(q){
+      if(c==='"'){if(line[i+1]==='"'){cur+='"';i++}else q=false}else cur+=c;
+    }else{
+      if(c==='"')q=true;else if(c===','){out.push(cur);cur=''}else cur+=c;
+    }
+  }
+  out.push(cur);return out;
+}
+// Parse "Jun 8, 2026, 12:58:57 PM" OR "March 23, 2026" -> "2026-06-08"
+function parseDateToISO(s){
+  if(!s)return null;s=s.trim().replace(/^"|"$/g,'');
+  const parts=s.split(',');
+  const md=parts[0].trim().split(/\s+/);
+  const mon=MONTH_IDX[(md[0]||'').toLowerCase()];
+  const day=parseInt(md[1],10);
+  const year=parseInt((parts[1]||'').trim(),10);
+  if(!mon||!day||!year)return null;
+  return `${year}-${String(mon).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+}
+function handleImport(input){
+  const file=input.files&&input.files[0];
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=function(ev){
+    try{processImport(ev.target.result)}
+    catch(e){alert('Sorry, could not read that file.\n\n'+e.message)}
+    input.value='';
+  };
+  reader.onerror=function(){alert('Could not read the file.')};
+  reader.readAsText(file);
+}
+function processImport(text){
+  const lines=text.split(/\r?\n/).filter(l=>l.trim().length);
+  if(lines.length<2){alert('That file looks empty.');return}
+  const header=parseCSVLine(lines[0]).map(h=>h.trim().replace(/^"|"$/g,''));
+  const isStrava=header.indexOf('Activity Date')>-1&&header.indexOf('Activity Type')>-1;
+  const dayRuns={}; // iso -> {dist,time,rating?}
+  if(isStrava){
+    const di=header.indexOf('Activity Date');
+    const ti=header.indexOf('Activity Type');
+    const distI=header.indexOf('Distance');     // first = kilometers
+    const movI=header.indexOf('Moving Time');   // seconds
+    for(let i=1;i<lines.length;i++){
+      const f=parseCSVLine(lines[i]);
+      if((f[ti]||'').trim()!=='Run')continue;   // runs only
+      const iso=parseDateToISO(f[di]);
+      if(!iso||!BY_DATE[iso])continue;
+      const km=parseFloat(f[distI])||0;
+      const mi=Math.round(km*0.621371*10)/10;
+      const min=Math.round((parseFloat(f[movI])||0)/60);
+      // de-dupe double recordings: keep the longest run per day
+      if(!dayRuns[iso]||mi>dayRuns[iso].dist)dayRuns[iso]={dist:mi,time:min};
+    }
+  }else{
+    // tracker's own backup format: Date, Workout, Miles Ran, Time (min), Score
+    const di=header.indexOf('Date');
+    const mdi=header.findIndex(h=>/mile/i.test(h));
+    const tmi=header.findIndex(h=>/time/i.test(h));
+    const sci=header.findIndex(h=>/score/i.test(h));
+    if(di<0||mdi<0){alert('Unrecognized file. Use your Strava activities.csv or a tracker backup export.');return}
+    for(let i=1;i<lines.length;i++){
+      const f=parseCSVLine(lines[i]);
+      const iso=parseDateToISO(f[di]);
+      if(!iso||!BY_DATE[iso])continue;
+      dayRuns[iso]={dist:Math.round((parseFloat(f[mdi])||0)*10)/10,
+        time:Math.round(parseFloat(f[tmi])||0),
+        rating:sci>-1?(parseInt(f[sci],10)||0):undefined};
+    }
+  }
+  const isos=Object.keys(dayRuns);
+  if(!isos.length){alert('No matching runs found.\n\nMake sure you picked your Strava "activities.csv" or a tracker backup file.');return}
+  const log=loadLog();
+  const existingCount=Object.keys(log.entries).length;
+  if(existingCount>0&&!confirm('Import '+isos.length+' workouts? This will fill in matching days (your existing ratings are kept).'))return;
+  isos.forEach(iso=>{
+    const r=dayRuns[iso];
+    const ex=log.entries[iso]||{};
+    log.entries[iso]={
+      done:true,
+      rating:(r.rating!==undefined)?r.rating:(ex.rating||0),
+      actualDist:r.dist,
+      actualTime:r.time
+    };
+  });
+  saveLog(log);
+  renderToday();renderStats();
+  alert('✅ Imported '+isos.length+' workouts!\nYour training log is restored.');
 }
 
 // ===== CURRENT STATE =====
@@ -882,13 +979,18 @@ function renderStats(){
     <div class="week-stats"><span>${s.totalMi.toFixed(1)} mi logged</span><span>${totalPlanned} mi planned</span></div>
   </div>`;
 
-  // Export button
+  // Export / Import buttons
   html+=`<div class="card">
     <button class="export-btn" onclick="exportCSV()">
       \u{1F4E5} Export Training Log (CSV)
     </button>
+    <input type="file" id="import-file" accept=".csv,text/csv,text/comma-separated-values" style="display:none" onchange="handleImport(this)">
+    <button class="import-btn" onclick="document.getElementById('import-file').click()">
+      \u{1F4E4} Import / Restore from CSV
+    </button>
     <div style="text-align:center;font-size:.72rem;color:var(--text2);margin-top:8px">
-      Downloads a spreadsheet with date, miles, time &amp; score for every completed workout
+      <strong>Export</strong> saves a backup spreadsheet. <strong>Import</strong> accepts your Strava
+      <em>activities.csv</em> or a tracker backup file.
     </div>
   </div>`;
 
