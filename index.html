@@ -159,6 +159,13 @@ nav button:hover{background:rgba(0,0,0,.02)}
   border-radius:var(--radius);padding:24px}
 .race-card .trophy{font-size:3.5rem}
 .race-card h2{font-size:1.3rem;margin:8px 0}
+.race-plan summary{cursor:pointer;font-weight:700;font-size:.95rem;list-style:none;display:flex;align-items:center;gap:6px}
+.race-plan summary::-webkit-details-marker{display:none}
+.race-plan summary::after{content:"\25BC";margin-left:auto;font-size:.7rem;color:var(--text2);transition:transform .2s}
+.race-plan[open] summary::after{transform:rotate(180deg)}
+.race-plan .rp-item{margin-top:12px;padding-top:10px;border-top:1px solid #eee}
+.race-plan .rp-title{font-weight:700;font-size:.85rem;margin-bottom:3px}
+.race-plan .rp-body{font-size:.82rem;color:var(--text2);line-height:1.45}
 .export-btn,.import-btn{display:flex;align-items:center;justify-content:center;gap:8px;
   width:100%;padding:14px;border:none;border-radius:var(--radius);color:#fff;
   font-size:1rem;font-weight:700;cursor:pointer;transition:all .15s;letter-spacing:.2px}
@@ -365,27 +372,44 @@ const PLAN_RAW = [
 [25,"Marathon Training","09/11/2026","Fri","Easy Run",4.0,36,"Conversational",0,""],
 [25,"Marathon Training","09/12/2026","Sat","Long Run",13.0,119,"Easy/steady",0,"Starting to taper \u2014 enjoy the lighter load"],
 [25,"Marathon Training","09/13/2026","Sun","Rest",0,0,"-",0,"Recovery day \u2014 walk/stretch OK"],
-[26,"Taper","09/14/2026","Mon","Easy Run",4.0,36,"Conversational",24.0,""],
-[26,"Taper","09/15/2026","Tue","Recovery Run",3.0,28,"Very easy",0,""],
-[26,"Taper","09/16/2026","Wed","Tempo Run",4.0,36,"Comfortably hard",0,"Short tempo \u2014 stay sharp"],
-[26,"Taper","09/17/2026","Thu","Rest",0,0,"-",0,"Recovery day \u2014 walk/stretch OK"],
-[26,"Taper","09/18/2026","Fri","Easy Run",3.0,27,"Conversational",0,""],
-[26,"Taper","09/19/2026","Sat","Long Run",10.0,92,"Easy/steady",0,"Last double-digit run"],
+[26,"Taper","09/14/2026","Mon","Rest",0,0,"-",21.0,"Day after 14.4. Walk, stretch, foam roll quads."],
+[26,"Taper","09/15/2026","Tue","Easy Run",4.0,40,"9:45\u201310:15 \u2022 HR cap 150",0,"Legs will feel flat. Normal. Keep it short."],
+[26,"Taper","09/16/2026","Wed","Easy Run",4.0,40,"9:45\u201310:15 \u2022 HR cap 150",0,"Add 4x20 sec strides at the end \u2014 turnover, not speed."],
+[26,"Taper","09/17/2026","Thu","Rest",0,0,"-",0,"Rest / walk \u2014 optional 20-min walk."],
+[26,"Taper","09/18/2026","Fri","Easy Run",3.0,30,"10:00 \u2022 HR cap 150",0,"Shakeout before Saturday."],
+[26,"Taper","09/19/2026","Sat","Long Run",10.0,106,"10:30\u201310:45 \u2022 HR cap 160",0,"DRESS REHEARSAL \u2014 full race sim: race shoes, race outfit, gel at mile 4 & 8, water every 2 mi. Find a route with a real descent for the last 3 mi to wake up your downhill quads."],
 [26,"Taper","09/20/2026","Sun","Rest",0,0,"-",0,"Recovery day \u2014 walk/stretch OK"],
-[27,"Taper","09/21/2026","Mon","Easy Run",3.0,27,"Conversational",17.0,""],
-[27,"Taper","09/22/2026","Tue","Recovery Run",2.0,18,"Very easy",0,""],
-[27,"Taper","09/23/2026","Wed","Tempo Run",3.0,27,"Comfortably hard",0,"Short and controlled"],
+[27,"Taper","09/21/2026","Mon","Rest",0,0,"-",15.0,"Recovery day \u2014 walk/stretch OK"],
+[27,"Taper","09/22/2026","Tue","Easy Run",3.0,30,"10:00 \u2022 HR cap 150",0,""],
+[27,"Taper","09/23/2026","Wed","Easy Run",3.0,30,"10:00 \u2022 HR cap 150",0,"4x20 sec strides. Last \u201cquality\u201d touch."],
 [27,"Taper","09/24/2026","Thu","Rest",0,0,"-",0,"Recovery day \u2014 walk/stretch OK"],
-[27,"Taper","09/25/2026","Fri","Easy Run",3.0,27,"Conversational",0,""],
-[27,"Taper","09/26/2026","Sat","Long Run",6.0,55,"Easy/steady",0,"Easy \u2014 trust the training"],
-[27,"Taper","09/27/2026","Sun","Rest",0,0,"-",0,"Recovery day \u2014 walk/stretch OK"],
-[28,"Race Week","09/28/2026","Mon","Easy Run",2.0,18,"Conversational",33.2,"Shakeout run \u2014 stay loose"],
-[28,"Race Week","09/29/2026","Tue","Recovery Run",2.0,18,"Very easy",0,"Easy shakeout"],
-[28,"Race Week","09/30/2026","Wed","Easy Run",2.0,18,"Conversational",0,"Last real run \u2014 short strides at end"],
-[28,"Race Week","10/01/2026","Thu","Rest",0,0,"-",0,"Recovery day \u2014 walk/stretch OK"],
-[28,"Race Week","10/02/2026","Fri","Shakeout",1.0,10,"Very easy",0,"10 min jog + strides. Lay out gear tonight."],
-[28,"Race Week","10/03/2026","Sat","RACE DAY",26.2,0,"Goal pace",0,"St. George Marathon!"],
-[28,"Race Week","10/04/2026","Sun","Rest",0,0,"-",0,"Recovery day \u2014 walk/stretch OK"]
+[27,"Taper","09/25/2026","Fri","Easy Run",2.0,20,"10:00 \u2022 HR cap 150",0,""],
+[27,"Taper","09/26/2026","Sat","Long Run",7.0,74,"10:30 \u2022 HR cap 160",0,"Same fueling routine as last week. Confirm the gel/timing works. Done by 8 AM to mimic race-day heat."],
+[27,"Taper","09/27/2026","Sun","Rest",0,0,"-",0,"Start hydrating deliberately \u2014 water + electrolytes daily from here."],
+[28,"Race Week","09/28/2026","Mon","Easy Run",3.0,30,"10:00 \u2022 HR cap 150",32.2,"Carb-up starts Wed, not today. Eat normal."],
+[28,"Race Week","09/29/2026","Tue","Rest",0,0,"-",0,"Lay out every piece of race gear. Pin the bib."],
+[28,"Race Week","09/30/2026","Wed","Shakeout",2.0,20,"10:00 \u2022 HR cap 145",0,"Carb-loading Wed\u2013Fri: rice, pasta, bread, potatoes. Cut fiber/fat Fri."],
+[28,"Race Week","10/01/2026","Thu","Rest",0,0,"-",0,"Drive to St. George. Hydrate on the road. Early bed."],
+[28,"Race Week","10/02/2026","Fri","Shakeout",1.0,10,"Very easy",0,"10 min jog + 4 strides. Big lunch, light early dinner. Set 2 alarms."],
+[28,"Race Week","10/03/2026","Sat","RACE DAY",26.2,0,"10:45 \u2192 hold \u2022 HR 165 max",0,"Target window 4:40\u20135:00. Finish healthy \u2014 see Race Plan below."],
+[28,"Race Week","10/04/2026","Sun","Rest",0,0,"-",0,"Rest / celebrate \u2014 walk. Eat everything."]
+];
+
+// Race Plan (from the "Race Plan" tab of the final 3-week schedule)
+const RACE_PLAN=[
+["\u{1F3AF} Goal","Primary: finish healthy. Target window 4:40\u20135:00. Stretch: sub-4:40 if the downhill is kind. Do NOT chase a number on a thin base."],
+["Mi 0\u20137 (Central \u2192 Veyo)","10:45\u201311:00. Feels absurdly easy. That is the point. Rolling terrain, mostly down. Bank NOTHING \u2014 banked time here is borrowed from mile 22."],
+["Mi 7\u20138 (Veyo hill)","The climb. Drop to 12:00+ or power-walk it. HR must stay under 165. Nobody's race is won here; plenty are lost."],
+["Mi 8\u201313 (rolling)","10:45. Settle. Gel at mile 9."],
+["Mi 13\u201320 (the drop into Snow Canyon)","Steep, sustained downhill. Shorten stride, quick feet, land under your hips \u2014 don't brake with your quads. 10:15\u201310:30 will feel free. Do not let it go under 10:00."],
+["Mi 20\u201326.2 (Bluff St into town)","This is where the low mileage shows up. Expect 11:30\u201312:30. Planned 30-sec walks at every aid station from mile 20. Mantra: 'just to the next station.'"],
+["\u{1F36C} Fueling","Gel every 45 min starting at 0:45 (\u2248 mi 4, 8, 12, 16, 20, 23). Practice EXACTLY this on Sep 19 & 26. Sip water every aid station; electrolytes every other. Do not experiment on race day."],
+["\u{1F6B6} Walk breaks","Pre-planned, not desperate. Veyo hill + every aid station from mile 20. A 30-sec walk costs ~15 sec net and saves your race."],
+["\u2764\ufe0f Heart rate","Cap 165 through mile 20. Your long runs sat at 160\u2013169 \u2014 anything above 170 before mile 20 means you're going too fast."],
+["\u{1F319} Night before","Gear laid out. Bib pinned. Gels taped/pocketed. Body glide everywhere. Bed by 9. You won't sleep well \u2014 that's fine, Thursday's sleep is the one that counts."],
+["\u{1F305} Race morning","Up ~3:15 AM for buses. Coffee + bagel/banana 2 hrs before start. Throwaway layers \u2014 it's 40\u00b0F at the start, 80\u00b0F+ at the finish."],
+["\u26a0\ufe0f What could go wrong","Quad shredding from the descent (mitigated by Sep 19 downhill sim + short stride). Cramping (electrolytes + not going out fast). GI (nothing new, practiced fueling). Going out too fast on the early downhill (the #1 St. George mistake)."],
+["\u{1F4AA} The honest truth","You ran 38% of planned volume since June. But you banked a 20-miler at 10:40 with HR 161 \u2014 controlled, not blown up \u2014 plus three 13-milers and a 14. You can finish this. Miles 20\u201326 will hurt more than they would with a full base. That's the trade. Respect the pacing plan and you'll cross the line."]
 ];
 
 const EMOJI={"Easy Run":"\u{1F3C3}","Long Run":"\u{1F6E3}\uFE0F","Tempo Run":"\u26A1","Intervals":"\u{1F525}","Recovery Run":"\u{1F6B6}","Cross-train":"\u{1F6B4}","Rest":"\u{1F634}","Shakeout":"\u{1F45F}","RACE DAY":"\u{1F3C6}","Easy Run (Travel)":"\u{2708}\uFE0F","Rest (Travel)":"\u{1F3D6}\uFE0F"};
@@ -637,8 +661,10 @@ function renderToday(){
       <div class="trophy">\u{1F3C6}</div>
       <h2>RACE DAY!</h2>
       <p>St. George Marathon \u2022 26.2 miles</p>
+      <p style="margin-top:8px;font-size:.85rem;color:#795548">${p.notes}</p>
       <p style="margin-top:8px;font-size:.85rem;color:#795548">You've trained for this. Trust your legs. Enjoy every mile.</p>
     </div>`;
+    html+=renderRacePlan(true);
     html+=renderLogForm(p,entry,viewDate);
   } else if(p.workout==='Rest'){
     html+=`<div class="card"><div class="phase-bar" style="background:${pc.accent}"></div>
@@ -664,6 +690,7 @@ function renderToday(){
     </div>`;
     html+=renderLogForm(p,entry,viewDate);
   }
+  if(p&&p.week>=26&&p.workout!=='RACE DAY')html+=renderRacePlan(false);
 
   // Streak
   html+=`<div class="streak-row">
@@ -692,6 +719,15 @@ function renderToday(){
   html+=`<div class="card quote-card">"${q}"<div class="attr">\u{1F3C3} Daily Motivation</div></div>`;
 
   panel.innerHTML=html;
+}
+
+function renderRacePlan(open){
+  let h=`<details class="card race-plan"${open?' open':''}><summary>\u{1F5FA}️ Race Plan • St. George</summary>`;
+  for(const[title,body]of RACE_PLAN){
+    h+=`<div class="rp-item"><div class="rp-title">${title}</div><div class="rp-body">${body}</div></div>`;
+  }
+  h+=`</details>`;
+  return h;
 }
 
 function renderLogForm(p,entry,iso){
