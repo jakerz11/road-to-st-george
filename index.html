@@ -79,6 +79,7 @@ button{-webkit-tap-highlight-color:transparent}
 .brand{display:flex;align-items:center;gap:9px;font-weight:800;letter-spacing:-.3px;font-size:1.02rem}
 .brand svg{width:30px;height:30px;flex:none;border-radius:9px}
 .brand small{display:block;font-size:.68rem;font-weight:700;color:rgba(255,255,255,.68);letter-spacing:.02em}
+@media (max-width:360px){.brand{font-size:.9rem}.brand svg{width:26px;height:26px}.topbar .chip{padding:4px 8px}}
 .topbar .chip{background:rgba(255,255,255,.14);color:#fff}
 .chip{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:999px;font-size:.74rem;
   font-weight:800;background:var(--surface-3);color:var(--text-2);white-space:nowrap}
@@ -125,7 +126,8 @@ main{max-width:560px;margin:0 auto;padding:12px 12px 0}
 .phasebar-wrap{position:relative}
 .phasebar-pin{position:absolute;top:-5px;width:4px;height:18px;margin-left:-2px;border-radius:3px;background:#fff;box-shadow:0 0 0 2px rgba(10,34,54,.55)}
 .phasebar-lbls{display:flex;gap:2px;margin-top:5px;font-size:.64rem;font-weight:800;color:rgba(255,255,255,.82)}
-.phasebar-lbls span{overflow:hidden;white-space:nowrap;text-overflow:clip}
+.phasebar-lbls span{white-space:nowrap}
+.phasebar-lbls span:last-child{text-align:right}
 /* ===== Alerts / rules ===== */
 .rule{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border-radius:13px;background:var(--surface-2);
   font-size:.84rem;color:var(--text-2);margin-top:8px;border:1px solid var(--line)}
@@ -389,7 +391,7 @@ details.more>summary::-webkit-details-marker{display:none}
 .goal{display:flex;align-items:center;gap:14px}
 .goal .gv{font-size:2.4rem;font-weight:800;letter-spacing:-1.5px;line-height:1}
 .select{appearance:none;-webkit-appearance:none;padding:9px 30px 9px 12px;border-radius:11px;border:1px solid var(--line);background:var(--surface-2);
-  font-weight:800;font-size:.86rem;background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);
+  font-weight:800;font-size:16px;background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);
   background-position:calc(100% - 15px) 55%,calc(100% - 10px) 55%;background-size:5px 5px;background-repeat:no-repeat;color:var(--text)}
 .splits{columns:2;column-gap:16px;font-size:.8rem;margin-top:8px}
 .splits div{display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid var(--line);break-inside:avoid;font-variant-numeric:tabular-nums}
@@ -408,23 +410,23 @@ details.more>summary::-webkit-details-marker{display:none}
   </div>
 </header>
 <main>
-  <section id="panel-today" class="panel active" aria-label="Today"></section>
-  <section id="panel-calendar" class="panel" aria-label="Calendar"></section>
-  <section id="panel-plan" class="panel" aria-label="Plan"></section>
-  <section id="panel-stats" class="panel" aria-label="Stats"></section>
+  <section id="panel-today" class="panel active" role="tabpanel" aria-labelledby="tab-today"></section>
+  <section id="panel-calendar" class="panel" role="tabpanel" aria-labelledby="tab-calendar"></section>
+  <section id="panel-plan" class="panel" role="tabpanel" aria-labelledby="tab-plan"></section>
+  <section id="panel-stats" class="panel" role="tabpanel" aria-labelledby="tab-stats"></section>
 </main>
 <div class="sheet" id="sheet" aria-hidden="true">
   <div class="sheet-panel" role="dialog" aria-modal="true" aria-labelledby="sheet-title" id="sheet-body"></div>
 </div>
 <nav class="tabbar" aria-label="Sections">
   <div class="tabbar-in" role="tablist">
-    <button class="tab" role="tab" aria-selected="true" data-act="tab" data-tab="today">
+    <button class="tab" role="tab" id="tab-today" aria-controls="panel-today" aria-selected="true" data-act="tab" data-tab="today">
       <svg viewBox="0 0 24 24"><path d="M3 18h18"/><path d="M7 18a5 5 0 0 1 10 0"/><path d="M12 6v3M5.6 9.6l2 2M18.4 9.6l-2 2M3 14h2M19 14h2"/></svg>Today</button>
-    <button class="tab" role="tab" aria-selected="false" data-act="tab" data-tab="calendar">
+    <button class="tab" role="tab" id="tab-calendar" aria-controls="panel-calendar" aria-selected="false" data-act="tab" data-tab="calendar">
       <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Calendar</button>
-    <button class="tab" role="tab" aria-selected="false" data-act="tab" data-tab="plan">
+    <button class="tab" role="tab" id="tab-plan" aria-controls="panel-plan" aria-selected="false" data-act="tab" data-tab="plan">
       <svg viewBox="0 0 24 24"><path d="M3 20l6-12 4 6 3-4 5 10z"/><path d="M15 5l3-1v3"/></svg>Plan</button>
-    <button class="tab" role="tab" aria-selected="false" data-act="tab" data-tab="stats">
+    <button class="tab" role="tab" id="tab-stats" aria-controls="panel-stats" aria-selected="false" data-act="tab" data-tab="stats">
       <svg viewBox="0 0 24 24"><path d="M4 20V11M10 20V5M16 20v-7M21 20H3"/></svg>Stats</button>
   </div>
 </nav>
@@ -1362,6 +1364,13 @@ function modeFor(iso) {
   const e = getE(iso); return e && e.upgrade ? 'upgrade' : 'floor';
 }
 function versionFor(d, mode) { return mode === 'upgrade' && d.up ? d.up : d.floor; }
+// A logged run without an explicit choice: Mon/Thu runs are the upgrade by definition; on Tue / the week-31
+// Saturday the distance decides (closer to the upgrade distance than the floor distance).
+function inferUpgrade(iso, mi) {
+  const d = DAYS[iso]; if (!d || !d.up || !(mi > 0)) return false;
+  if (!d.floor.run) return true;
+  return Math.abs(mi - d.up.mi) < Math.abs(mi - d.floor.mi);
+}
 
 // Pace guidance from the active track (so a checkpoint result updates every workout).
 function paceChips(d, mode, T) {
@@ -1677,7 +1686,7 @@ function weekCardHTML(w, S, selIso) {
       <div class="wkstat"><div class="v">0<small> mi</small></div><div class="l">Floor this week</div></div>
     </div>${ruleHTML('floor', 'good', 'Recovery week: the floor is rest. Walk 20–40 min a day and let St. George heal.')}` : null;
   return `<section class="card" aria-label="Week ${w}">
-    <div class="card-h">This week · ${fmtRange(W.start, W.end)}<span class="status ${s.status}">${st}</span></div>
+    <div class="card-h">${w === S.cur ? 'This week' : `Week ${w}`} · ${fmtRange(W.start, W.end)}<span class="status ${s.status}">${st}</span></div>
     <div class="sub" style="margin:-6px 0 10px">Week ${w} · ${esc(W.phase)}${tags ? ' · ' + tags : ''}</div>
     <div class="strip">${strip}</div>
     ${body !== null ? body : `<div class="wkstats">
@@ -1754,7 +1763,13 @@ function renderCalendar() {
 
 // ===== 9. DAY SHEET =====
 function openSheet(iso) { STATE.sheet = iso; renderSheet(); const sh = $('#sheet'); sh.classList.add('open'); sh.setAttribute('aria-hidden', 'false'); document.body.style.overflow = 'hidden'; setTimeout(() => { const x = $('#sheet .x'); if (x) x.focus(); }, 30); }
-function closeSheet() { STATE.sheet = null; const sh = $('#sheet'); sh.classList.remove('open'); sh.setAttribute('aria-hidden', 'true'); document.body.style.overflow = ''; refresh(); }
+function closeSheet() {
+  const iso = STATE.sheet; STATE.sheet = null;
+  const sh = $('#sheet'); sh.classList.remove('open'); sh.setAttribute('aria-hidden', 'true'); document.body.style.overflow = '';
+  refresh();
+  const back = iso && document.querySelector(`.panel.active [data-act="open"][data-iso="${iso}"]`);
+  if (back) back.focus({ preventScroll: true });
+}
 function renderSheet(soft) {
   if (!STATE.sheet) return;
   const body = $('#sheet-body'), iso = STATE.sheet, S = computeStats();
@@ -1934,7 +1949,7 @@ function tilesHTML(S) {
   return `<div class="tiles">
     ${tile('Miles logged', `${fmtMi(T.mi)}<small> mi</small>`, `${S.cur >= 1 ? `${fmtMi(floorToDate)} floor plan to date` : 'block starts Oct 5'}`)}
     ${tile('Floor weeks', `${T.hits}<small> / ${T.judged}</small>`, `streak ${S.streak} · best ${S.best}`)}
-    ${tile('Zero-run weeks', `${T.zero === 0 ? '✓ 0' : '✕ ' + T.zero}`, 'the #1 failure mode')}
+    ${tile('Zero-run weeks', `<span style="color:var(${T.zero === 0 ? '--good-ink' : '--bad-ink'})">${T.zero === 0 ? '✓ 0' : '✕ ' + T.zero}</span>`, 'the #1 failure mode')}
     ${tile('Runs', `${T.runs}`, `${plural(T.ups, 'upgrade')} used`)}
     ${tile('Strength', `${T.strength}<small> sessions</small>`, `2×/week · streak ${S.strStreak} wk${S.strStreak === 1 ? '' : 's'}`)}
     ${tile('Longest run', `${fmtMi(T.longest)}<small> mi</small>`, T.longestIso ? esc(fmtLong(T.longestIso)) : 'first 20 on Mar 27')}
@@ -2144,8 +2159,17 @@ function exportCSV(scope) {
   download(csv, scope === 'stg' ? 'st-george-2026-training-log.csv' : `uvm-2027-training-log-${todayISO()}.csv`);
   toast(`⬇️ Exported ${plural(rows.length - 1, 'day')}`);
 }
-function download(text, name) {
-  const url = URL.createObjectURL(new Blob([text], { type: 'text/csv;charset=utf-8' }));
+async function download(text, name) {
+  const blob = new Blob([text], { type: 'text/csv;charset=utf-8' });
+  // Installed as an app (home screen): hand the file to the share sheet ("Save to Files"), else a normal download.
+  const standalone = navigator.standalone === true || (window.matchMedia && matchMedia('(display-mode: standalone)').matches);
+  if (standalone && navigator.canShare && typeof File === 'function') {
+    try {
+      const file = new File([blob], name, { type: 'text/csv' });
+      if (navigator.canShare({ files: [file] })) { await navigator.share({ files: [file], title: name }); return; }
+    } catch (err) { if (err && err.name === 'AbortError') return; }
+  }
+  const url = URL.createObjectURL(blob);
   const a = document.createElement('a'); a.href = url; a.download = name;
   document.body.appendChild(a); a.click(); document.body.removeChild(a);
   setTimeout(() => URL.revokeObjectURL(url), 2000);
@@ -2231,8 +2255,9 @@ function importStrava(H, rows) {
         carry = old; delete DB.entries[r.utcIso]; moved++;
       }
     }
+    const up = ex.upgrade != null ? ex.upgrade : carry.upgrade != null ? carry.upgrade : inferUpgrade(iso, r.mi);
     DB.entries[iso] = normEntry({ done: true, actualDist: r.mi, actualTime: r.min, src: 'strava',
-      rating: ex.rating || carry.rating || 0, note: ex.note || carry.note, upgrade: ex.upgrade || carry.upgrade,
+      rating: ex.rating || carry.rating || 0, note: ex.note || carry.note, upgrade: up,
       strength: ex.strength || carry.strength || strengthDays.has(iso), pain: ex.pain || carry.pain });
   }
   let nStr = 0;
@@ -2276,7 +2301,7 @@ function commitField(el) {
   if (f === 'dist') {
     const v = parseFloat(el.value), mi = isFinite(v) && v > 0 ? Math.round(v * 100) / 100 : 0, d = DAYS[iso];
     const patch = { actualDist: mi, done: mi > 0 };
-    if (mi > 0 && d && d.up) patch.upgrade = modeFor(iso) === 'upgrade';
+    if (mi > 0 && d && d.up) patch.upgrade = modeFor(iso) === 'upgrade' || !d.floor.run;
     if (!mi && d && d.kind === 'walk') delete patch.done;
     putE(iso, patch);
   } else if (f === 'time') { const sec = parseDur(el.value); putE(iso, { actualTime: sec > 0 ? Math.round(sec) / 60 : 0 }); }
