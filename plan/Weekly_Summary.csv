@@ -1,0 +1,36 @@
+Week,Phase,Week of,Floor mi,Floor + Upgrades,Long Run,Tue (floor),Tue (upgrade),Saturday
+1,Recovery,10/05/2026,0,0,,Walk only,—,Recover from St. George
+2,Recovery,10/12/2026,9,9,3,Easy 3,—,3 easy runs
+3,Base,10/19/2026,12,15,5,3 easy + 4x20s strides,Add 1 mi + 6 strides,LR 5: Easy
+4,Base,10/26/2026,14,17,6,3 easy + 6 strides,4 mi w/ 8x30s fartlek surges,LR 6: Easy
+5,Base,11/02/2026,16,20,7,4 easy + 6 strides,5 mi w/ 6x10s hill sprints,LR 7: Easy
+6,Base,11/09/2026,13,16,5,3 easy + strides,—,LR 5: Cutback week
+7,Base,11/16/2026,18,22,8,4 mi w/ 6x30s pickups,5 mi w/ 10x(1 on / 1 off),LR 8: Easy
+8,Base,11/23/2026,16,19,7,4 easy + strides,4 mi w/ 8x10s hill sprints,LR 7: Easy
+9,Base,11/30/2026,20,24,9,4 mi w/ 2x5 min @ tempo,5 mi w/ 3x5 min @ tempo,LR 9: Easy
+10,Base,12/07/2026,22,26,10,5 mi w/ 6x30s hills,6 mi w/ 8x45s hills,LR 10: Easy
+11,Base,12/14/2026,18,21,8,4 easy + strides,—,LR 8: Cutback week
+12,Base,12/21/2026,20,24,10,4 mi w/ 3x5 min @ tempo,5 mi w/ 4x5 min @ tempo,LR 10: Easy
+13,Base,12/28/2026,24,28,11,5 mi w/ 15 min @ tempo,6 mi w/ 20 min @ tempo,LR 11: Easy
+14,Base,01/04/2027,26,31,12,5 mi w/ 5x2 min @ 5K effort,6 mi w/ 6x2 min @ 5K effort,LR 12: Easy
+15,Base,01/11/2027,22,26,6,4 easy + strides,—,CHECKPOINT: 5K time trial
+16,Build,01/18/2027,27,32,13,5 mi w/ 2x10 min @ T,7 mi: 6x800 @ I pace,LR 13: Easy
+17,Build,01/25/2027,29,34,14,5 mi w/ 3 @ MP,7 mi: 3x1.5 mi @ T,LR 14: Easy
+18,Build,02/01/2027,31,36,15,6 mi w/ 20 min @ T,7 mi: 5x1K @ I pace,LR 15: Last 3 @ MP
+19,Build,02/08/2027,25,29,12,5 easy + strides,6 mi w/ 4 @ MP,"LR 12: Cutback, easy"
+20,Build,02/15/2027,32,37,16,6 mi w/ 4 @ MP,8 mi: 4x1 mi @ T,LR 16: Downhill route (Provo Canyon / Wallsburg Rd)
+21,Build,02/22/2027,34,40,17,6 mi w/ 3x1 mi @ T,8 mi: 6x1K @ I pace,LR 17: Middle 6 @ MP
+22,Build,03/01/2027,35,41,18,6 mi w/ 25 min @ T,9 mi: 2x3 mi @ T,"LR 18: Easy, downhill last 5"
+23,Build,03/08/2027,28,33,9,5 easy + strides,—,CHECKPOINT: 10K time trial
+24,Peak,03/15/2027,36,46,18,6 mi w/ 5 @ MP,9 mi: 5x1 mi @ T,LR 18: Last 8 @ MP
+25,Peak,03/22/2027,38,48,20,6 mi w/ 2x2 mi @ T,9 mi: 8x800 @ I pace,"LR 20: Easy, first 20"
+26,Peak,03/29/2027,39,50,16,7 mi w/ 30 min @ T,10 mi: 3x2 mi @ T,LR 16: 10 @ MP
+27,Peak,04/05/2027,30,39,13,5 mi w/ 3 @ MP,7 mi w/ 5 @ MP,"LR 13: Cutback, easy"
+28,Peak,04/12/2027,38,48,18,6 mi w/ 4x1 mi @ T,10 mi: 6x1K @ I + downhill finish,"LR 18: Downhill course sim, last 6 steady"
+29,Peak,04/19/2027,30,39,13.1,5 mi w/ 3x1 mi @ half effort,7 mi: 3x1 mi @ half pace,CHECKPOINT: SLC HALF MARATHON
+30,Peak,04/26/2027,32,41,14,5 easy (no workout),—,"LR 14: Easy, recovering from half"
+31,Peak,05/03/2027,40,53,20,7 mi w/ 2x2 mi @ T,Upgrade LR to 22 + 10 mi: 4x1.5 @ T,"LR 20: PEAK: UVM course from Wallsburg, easy"
+32,Peak,05/10/2027,38,48,16,7 mi w/ 4x1K @ I,9 mi: 6x1K @ I pace,"LR 16: DRESS REHEARSAL: 10 @ goal MP, race gear + fueling"
+33,Taper,05/17/2027,32,37,13,6 mi w/ 4x1K @ I,8 mi: 5x1K @ I,LR 13: 6 @ goal MP
+34,Taper,05/24/2027,24,28,10,5 mi w/ 3 @ goal MP,6 mi: 4x1 mi @ MP,LR 10: 4 @ goal MP
+35,Taper,05/31/2027,35.2,38.2,26.2,4 w/ 2 @ MP,—,RACE Sat Jun 5

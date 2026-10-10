@@ -1,0 +1,26 @@
+TRAINING PACES,Easy,Long Run,Goal MP,Tempo (T),Intervals (I),When
+4:00 track (default),10:00–10:45,10:00–10:30,9:09,8:30–8:40,7:50–8:05,Start here. Every floor workout.
+3:45 track,9:45–10:30,9:45–10:15,8:35,8:00–8:10,7:20–7:35,If checkpoints say so
+3:30 track,9:15–10:00,9:30–10:15,8:00,7:35–7:45,6:55–7:10,Only if checkpoints say so
+,,,,,,
+CHECKPOINTS,Date,3:30 track,3:45 track,4:00 track,Behind 4:00,
+5K time trial,Sat Jan 16,≤ 23:30,≤ 25:00,≤ 27:00,> 27:00,Early read; fitness still building
+10K time trial,Sat Mar 13,≤ 47:00,≤ 52:00,≤ 56:00,> 56:00,
+SLC Half Marathon,Sat Apr 24,≤ 1:42,≤ 1:48,≤ 1:55,> 1:55,THIS sets your UVM race goal
+,,,,,,
+RACE GOAL FROM HALF,Half time,UVM goal,Pace,,,
+,≤ 1:42,3:30,8:00,,,
+,1:42–1:48,3:45,8:35,,,
+,1:48–1:55,4:00,9:09,,,
+,> 1:55,"4:00–4:10, run by feel",~9:15–9:30,,,Still a ~30+ min PR
+,,,,,,
+FLOOR vs UPGRADE RULES,,,,,,
+Floor,"4 runs every week: Tue, Wed, Fri, Sat. Non-negotiable. Zero-weeks are what sank the last block.",,,,,
+Upgrade when,Floor done last week + legs feel good + life allows. Earn it with 4 straight floor weeks before using upgrades regularly.,,,,,
+Upgrade Tue,Swap the floor workout for the upgrade version. Never do both.,,,,,
+Upgrade Mon/Thu,Easy miles only. Thu upgrade is Peak phase only.,,,,,
+Missed a day,Skip it. Never make up miles or stack hard days.,,,,,
+Busy week,Floor only. That is a successful week.,,,,,
+Strength,"2x/week, 20 min, every week. Required for the 1,444 ft drop.",,,,,
+Winter,Treadmill (1% incline) for Tue workouts on ice. Long runs midday Sat; storm = move to Fri.,,,,,
+Pain,"Sharp/localized pain = stop, 2 days off, reassess.",,,,,
