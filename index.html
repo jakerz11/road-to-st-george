@@ -5,11 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Road to UVM">
 <meta name="description" content="Floor + Upgrade training tracker for the Utah Valley Marathon, Sat Jun 5 2027.">
-<meta name="theme-color" content="#f2f4f3" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#0c1114" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#0b2236">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-180.png">
@@ -73,14 +72,14 @@ button{-webkit-tap-highlight-color:transparent}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .num{font-variant-numeric:tabular-nums}
 /* ===== Top bar ===== */
-.topbar{position:sticky;top:0;z-index:50;background:var(--bg);
-  background:color-mix(in srgb,var(--bg) 84%,transparent);
+.topbar{position:sticky;top:0;z-index:50;background:#0b2236;background:rgba(11,34,54,.94);color:#fff;
   -webkit-backdrop-filter:saturate(1.4) blur(14px);backdrop-filter:saturate(1.4) blur(14px);
-  padding:calc(var(--safe-t) + 10px) 16px 10px;border-bottom:1px solid var(--line)}
+  padding:calc(var(--safe-t) + 10px) 16px 10px;border-bottom:1px solid rgba(255,255,255,.06)}
 .topbar-in{max-width:560px;margin:0 auto;display:flex;align-items:center;gap:10px}
 .brand{display:flex;align-items:center;gap:9px;font-weight:800;letter-spacing:-.3px;font-size:1.02rem}
 .brand svg{width:30px;height:30px;flex:none;border-radius:9px}
-.brand small{display:block;font-size:.68rem;font-weight:700;color:var(--muted);letter-spacing:.02em}
+.brand small{display:block;font-size:.68rem;font-weight:700;color:rgba(255,255,255,.68);letter-spacing:.02em}
+.topbar .chip{background:rgba(255,255,255,.14);color:#fff}
 .chip{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:999px;font-size:.74rem;
   font-weight:800;background:var(--surface-3);color:var(--text-2);white-space:nowrap}
 .topbar .chip{margin-left:auto}
