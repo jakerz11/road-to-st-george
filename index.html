@@ -2,201 +2,834 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="St. George">
-<meta name="theme-color" content="#ff7043">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Road to UVM">
+<meta name="description" content="Floor + Upgrade training tracker for the Utah Valley Marathon, Sat Jun 5 2027.">
+<meta name="theme-color" content="#f2f4f3" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0c1114" media="(prefers-color-scheme: dark)">
 <link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-180.png">
-<title>Road to St. George</title>
+<title>Road to Utah Valley</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
+/* ===== Tokens (light) ===== */
 :root{
-  --bg:#f8f6f3;--surface:#fff;--text:#2d2d2d;--text2:#777;--radius:14px;
-  --shadow:0 2px 12px rgba(0,0,0,.08);--header-h:64px;--tab-h:50px;
-  --green:#43a047;--green-bg:#e8f5e9;--blue:#1e88e5;--blue-bg:#e3f2fd;
-  --orange:#fb8c00;--orange-bg:#fff3e0;--purple:#8e24aa;--purple-bg:#f3e5f5;
-  --red:#e53935;--red-bg:#ffebee;
+  color-scheme:light;
+  --bg:#f2f4f3;--surface:#ffffff;--surface-2:#f5f7f6;--surface-3:#e9edec;
+  --text:#101a20;--text-2:#4b5960;--muted:#79858a;--line:#e1e6e5;--axis:#c3cbc9;
+  --brand:#0f4c6e;--brand-2:#14668f;--accent:#2a78d6;--focus:#2a78d6;
+  --up:#9a5300;--up-bg:#fff3dd;--up-line:#f2a33a;
+  --good:#0ca30c;--good-ink:#006300;--good-bg:#e6f5e6;
+  --warn:#fab219;--warn-ink:#7a5000;--warn-bg:#fff5d9;
+  --bad:#d03b3b;--bad-ink:#a32020;--bad-bg:#fdeceb;
+  /* Phase colours: validated categorical set (adjacent CVD dE >= 13, normal-vision >= 27) */
+  --ph-recovery:#e87ba4;--ph-base:#008300;--ph-build:#2a78d6;--ph-peak:#eb6834;--ph-taper:#6250d6;
+  --ph-race:#eda100;--ph-stg:#a39e93;
+  --ghost:#e3e8e7;--ink-target:#4b5960;--plan-floor:#4b5960;--plan-up:#a3adb1;
+  --radius:18px;--radius-sm:12px;
+  --shadow:0 1px 2px rgba(16,26,32,.05),0 6px 18px rgba(16,26,32,.06);
+  --tabbar-h:62px;
+  --safe-b:env(safe-area-inset-bottom,0px);--safe-t:env(safe-area-inset-top,0px);
 }
-html{-webkit-text-size-adjust:100%}
-body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-  background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:20px;
-  -webkit-font-smoothing:antialiased}
-header{position:sticky;top:0;z-index:100;
-  background:linear-gradient(135deg,#ff7043 0%,#ff8a65 50%,#ffab91 100%);
-  color:#fff;padding:12px 16px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.15)}
-header h1{font-size:1.4rem;font-weight:800;letter-spacing:-.5px}
-header .subtitle{font-size:.8rem;opacity:.9;margin-top:2px}
-#countdown-chip{display:inline-block;background:rgba(255,255,255,.25);
-  border-radius:20px;padding:3px 12px;font-size:.75rem;font-weight:600;margin-top:6px}
-nav{position:sticky;top:var(--header-h);z-index:99;background:var(--surface);
-  display:flex;box-shadow:0 1px 4px rgba(0,0,0,.06)}
-nav button{flex:1;padding:12px 0;border:none;background:none;font-size:.9rem;
-  font-weight:600;color:var(--text2);cursor:pointer;border-bottom:3px solid transparent;
-  transition:all .15s}
-nav button.active{color:var(--orange);border-bottom-color:var(--orange)}
-nav button:hover{background:rgba(0,0,0,.02)}
-.panel{display:none;padding:12px;max-width:600px;margin:0 auto}
-.panel.active{display:block}
-.card{background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);
-  padding:16px;margin-bottom:14px;overflow:hidden}
-.phase-bar{height:5px;margin:-16px -16px 14px -16px;border-radius:var(--radius) var(--radius) 0 0}
-.workout-header{display:flex;align-items:center;gap:10px;margin-bottom:8px}
-.workout-emoji{font-size:2rem}
-.workout-type{font-size:1.15rem;font-weight:700}
-.workout-meta{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:10px 0}
-.meta-item{background:var(--bg);border-radius:8px;padding:8px 10px}
-.meta-label{font-size:.7rem;color:var(--text2);text-transform:uppercase;letter-spacing:.5px}
-.meta-value{font-size:1rem;font-weight:600;margin-top:2px}
-.workout-notes{font-size:.85rem;color:var(--text2);font-style:italic;margin-top:8px;
-  padding:8px;background:var(--bg);border-radius:8px;border-left:3px solid var(--orange)}
-.day-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
-.day-nav .nav-arrow{width:44px;height:44px;border-radius:50%;border:none;
-  background:var(--surface);box-shadow:var(--shadow);font-size:1.2rem;cursor:pointer;
-  display:flex;align-items:center;justify-content:center}
-.day-nav .date-display{text-align:center}
-.day-nav .date-big{font-size:1.1rem;font-weight:700}
-.day-nav .date-small{font-size:.75rem;color:var(--text2)}
-.today-btn{font-size:.75rem;background:var(--orange);color:#fff;border:none;
-  border-radius:16px;padding:6px 14px;cursor:pointer;margin-top:6px;font-weight:600;
-  box-shadow:0 2px 6px rgba(251,140,0,.3);display:inline-block}
-.log-section{margin-top:14px}
-.log-row{display:flex;align-items:center;gap:12px;margin-bottom:14px}
-.log-label{font-size:.8rem;font-weight:600;color:var(--text2);min-width:70px}
-.toggle{position:relative;width:56px;height:32px;cursor:pointer}
-.toggle input{opacity:0;width:0;height:0}
-.toggle .slider{position:absolute;inset:0;background:#ddd;border-radius:16px;transition:.2s}
-.toggle .slider:before{content:"";position:absolute;left:3px;top:3px;width:26px;height:26px;
-  background:#fff;border-radius:50%;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
-.toggle input:checked+.slider{background:var(--green)}
-.toggle input:checked+.slider:before{transform:translateX(24px)}
-.rating-row{display:flex;gap:6px;flex-wrap:wrap}
-.rating-dot{width:34px;height:34px;border-radius:50%;border:2px solid #ddd;
-  display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;
-  cursor:pointer;transition:all .15s;color:#aaa;-webkit-tap-highlight-color:transparent}
-.rating-dot.selected{border-color:var(--orange);background:var(--orange);color:#fff;
-  transform:scale(1.1)}
-.rating-dot:active{transform:scale(.9)}
-.num-input{display:flex;align-items:center;gap:8px}
-.num-input button{width:36px;height:36px;border-radius:50%;border:2px solid #ddd;
-  background:var(--surface);font-size:1.1rem;cursor:pointer;display:flex;
-  align-items:center;justify-content:center;font-weight:700;color:var(--text)}
-.num-input button:active{background:var(--bg)}
-.num-input .val{font-size:1.1rem;font-weight:700;min-width:50px;text-align:center}
-.num-input .unit{font-size:.75rem;color:var(--text2)}
-.quote-card{text-align:center;padding:20px 16px;font-style:italic;color:var(--text2);
-  font-size:.85rem;line-height:1.5;background:linear-gradient(135deg,#fff9c4,#fff3e0);
-  border-radius:var(--radius)}
-.quote-card .attr{font-style:normal;font-weight:600;color:var(--text);margin-top:6px;font-size:.75rem}
-.streak-row{display:flex;gap:10px;margin-bottom:14px}
-.streak-card{flex:1;text-align:center;padding:12px 8px;background:var(--bg);border-radius:10px}
-.streak-num{font-size:1.5rem;font-weight:800}
-.streak-label{font-size:.7rem;color:var(--text2);margin-top:2px}
-.week-summary{margin-bottom:14px}
-.week-summary h3{font-size:.85rem;font-weight:700;margin-bottom:8px}
-.progress-bar{height:10px;background:#e0e0e0;border-radius:5px;overflow:hidden;margin:6px 0}
-.progress-fill{height:100%;border-radius:5px;transition:width .3s}
-.week-stats{display:flex;justify-content:space-between;font-size:.75rem;color:var(--text2)}
-/* Calendar */
-.cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
-.cal-nav h2{font-size:1.1rem;font-weight:700}
-.cal-nav button{width:40px;height:40px;border-radius:50%;border:none;background:var(--surface);
-  box-shadow:var(--shadow);font-size:1rem;cursor:pointer}
-.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:14px}
-.cal-head{text-align:center;font-size:.7rem;font-weight:600;color:var(--text2);padding:6px 0}
-.cal-cell{aspect-ratio:1;border-radius:8px;display:flex;flex-direction:column;
-  align-items:center;justify-content:center;font-size:.75rem;cursor:pointer;
-  position:relative;transition:transform .1s;min-height:44px}
-.cal-cell:active{transform:scale(.92)}
-.cal-cell.empty{cursor:default}
-.cal-cell .day-num{font-weight:600;font-size:.8rem}
-.cal-cell .day-emoji{font-size:.85rem;margin-top:1px}
-.cal-cell.today{outline:2.5px solid var(--text);outline-offset:-2px}
-.cal-cell.done:after{content:"\2713";position:absolute;top:2px;right:3px;
-  font-size:.65rem;color:var(--green);font-weight:900}
-.cal-cell.outside{opacity:.3}
-.legend{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:10px 0}
-.legend-item{display:flex;align-items:center;gap:4px;font-size:.7rem}
-.legend-dot{width:12px;height:12px;border-radius:3px}
-/* Stats */
-.stats-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:14px}
-@media(min-width:500px){.stats-grid{grid-template-columns:repeat(3,1fr)}}
-@media(min-width:700px){.stats-grid{grid-template-columns:repeat(4,1fr)}}
-.stat-card{background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);
-  padding:14px;text-align:center}
-.stat-emoji{font-size:1.5rem}
-.stat-value{font-size:1.4rem;font-weight:800;margin:4px 0}
-.stat-label{font-size:.7rem;color:var(--text2);text-transform:uppercase;letter-spacing:.3px}
-.chart-card{background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);
-  padding:16px;margin-bottom:14px;overflow-x:auto}
-.chart-card h3{font-size:.9rem;font-weight:700;margin-bottom:10px}
-.chart-card svg{width:100%;height:auto}
-.phase-timeline{margin-bottom:14px}
-.phase-timeline h3{font-size:.9rem;font-weight:700;margin-bottom:10px}
-.timeline-bar{display:flex;height:28px;border-radius:8px;overflow:hidden}
-.timeline-seg{display:flex;align-items:center;justify-content:center;
-  font-size:.6rem;font-weight:700;color:#fff;overflow:hidden;white-space:nowrap}
-.timeline-marker{position:relative;height:8px;margin-top:-4px}
-.timeline-arrow{position:absolute;top:-10px;transform:translateX(-50%);
-  font-size:1rem;filter:drop-shadow(0 1px 2px rgba(0,0,0,.3))}
-/* Modal */
-.modal-overlay{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.4);
-  display:none;align-items:flex-end;justify-content:center}
-.modal-overlay.open{display:flex}
-@media(min-width:600px){.modal-overlay.open{align-items:center}}
-.modal-content{background:var(--surface);width:100%;max-width:500px;
-  border-radius:20px 20px 0 0;max-height:85vh;overflow-y:auto;padding:20px;
-  animation:slideUp .2s ease-out}
-@media(min-width:600px){.modal-content{border-radius:var(--radius);max-height:80vh}}
-@keyframes slideUp{from{transform:translateY(30px);opacity:0}to{transform:none;opacity:1}}
-.modal-close{position:sticky;top:0;text-align:right}
-.modal-close button{width:36px;height:36px;border-radius:50%;border:none;
-  background:var(--bg);font-size:1.1rem;cursor:pointer}
-.rest-card{text-align:center;padding:20px;color:var(--text2)}
-.rest-card .rest-emoji{font-size:3rem;margin-bottom:8px}
-.race-card{text-align:center;background:linear-gradient(135deg,#fff9c4,#ffe082);
-  border-radius:var(--radius);padding:24px}
-.race-card .trophy{font-size:3.5rem}
-.race-card h2{font-size:1.3rem;margin:8px 0}
-.race-plan summary{cursor:pointer;font-weight:700;font-size:.95rem;list-style:none;display:flex;align-items:center;gap:6px}
-.race-plan summary::-webkit-details-marker{display:none}
-.race-plan summary::after{content:"\25BC";margin-left:auto;font-size:.7rem;color:var(--text2);transition:transform .2s}
-.race-plan[open] summary::after{transform:rotate(180deg)}
-.race-plan .rp-item{margin-top:12px;padding-top:10px;border-top:1px solid #eee}
-.race-plan .rp-title{font-weight:700;font-size:.85rem;margin-bottom:3px}
-.race-plan .rp-body{font-size:.82rem;color:var(--text2);line-height:1.45}
-.export-btn,.import-btn{display:flex;align-items:center;justify-content:center;gap:8px;
-  width:100%;padding:14px;border:none;border-radius:var(--radius);color:#fff;
-  font-size:1rem;font-weight:700;cursor:pointer;transition:all .15s;letter-spacing:.2px}
-.export-btn{background:linear-gradient(135deg,#43a047,#66bb6a);box-shadow:0 3px 10px rgba(67,160,71,.3)}
-.import-btn{background:linear-gradient(135deg,#1e88e5,#42a5f5);box-shadow:0 3px 10px rgba(30,136,229,.3);margin-top:10px}
-.export-btn:active,.import-btn:active{transform:scale(.97)}
+/* ===== Tokens (dark): OS setting, unless the user forced light ===== */
+@media (prefers-color-scheme:dark){
+  :root:where(:not([data-theme="light"])){
+    color-scheme:dark;
+    --bg:#0c1114;--surface:#161c20;--surface-2:#1c2429;--surface-3:#243037;
+    --text:#eef2f3;--text-2:#b8c3c8;--muted:#8b979d;--line:#263137;--axis:#3a474e;
+    --brand:#0e3a55;--brand-2:#4aa3d4;--accent:#3987e5;--focus:#5aa2ef;
+    --up:#f7c46c;--up-bg:#3a2a10;--up-line:#f2a33a;
+    --good-ink:#4cc94c;--good-bg:#12301a;--warn-ink:#fab219;--warn-bg:#352a0e;--bad-ink:#ff8a8a;--bad-bg:#3d1818;
+    --ph-recovery:#d55181;--ph-base:#008300;--ph-build:#3987e5;--ph-peak:#d95926;--ph-taper:#9085e9;
+    --ph-race:#c98500;--ph-stg:#6f6b63;
+    --ghost:#27323a;--ink-target:#d5dde0;--plan-floor:#b8c3c8;--plan-up:#66737a;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 18px rgba(0,0,0,.25);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#0c1114;--surface:#161c20;--surface-2:#1c2429;--surface-3:#243037;
+  --text:#eef2f3;--text-2:#b8c3c8;--muted:#8b979d;--line:#263137;--axis:#3a474e;
+  --brand:#0e3a55;--brand-2:#4aa3d4;--accent:#3987e5;--focus:#5aa2ef;
+  --up:#f7c46c;--up-bg:#3a2a10;--up-line:#f2a33a;
+  --good-ink:#4cc94c;--good-bg:#12301a;--warn-ink:#fab219;--warn-bg:#352a0e;--bad-ink:#ff8a8a;--bad-bg:#3d1818;
+  --ph-recovery:#d55181;--ph-base:#008300;--ph-build:#3987e5;--ph-peak:#d95926;--ph-taper:#9085e9;
+  --ph-race:#c98500;--ph-stg:#6f6b63;
+  --ghost:#27323a;--ink-target:#d5dde0;--plan-floor:#b8c3c8;--plan-up:#66737a;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 18px rgba(0,0,0,.25);
+}
+/* ===== Base ===== */
+html{-webkit-text-size-adjust:100%;background:var(--bg)}
+body{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  background:var(--bg);color:var(--text);min-height:100vh;line-height:1.4;-webkit-font-smoothing:antialiased;
+  padding-bottom:calc(var(--tabbar-h) + var(--safe-b) + 18px)}
+button,input,select,textarea{font:inherit;color:inherit}
+button{-webkit-tap-highlight-color:transparent}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.num{font-variant-numeric:tabular-nums}
+/* ===== Top bar ===== */
+.topbar{position:sticky;top:0;z-index:50;background:var(--bg);
+  background:color-mix(in srgb,var(--bg) 84%,transparent);
+  -webkit-backdrop-filter:saturate(1.4) blur(14px);backdrop-filter:saturate(1.4) blur(14px);
+  padding:calc(var(--safe-t) + 10px) 16px 10px;border-bottom:1px solid var(--line)}
+.topbar-in{max-width:560px;margin:0 auto;display:flex;align-items:center;gap:10px}
+.brand{display:flex;align-items:center;gap:9px;font-weight:800;letter-spacing:-.3px;font-size:1.02rem}
+.brand svg{width:30px;height:30px;flex:none;border-radius:9px}
+.brand small{display:block;font-size:.68rem;font-weight:700;color:var(--muted);letter-spacing:.02em}
+.chip{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:999px;font-size:.74rem;
+  font-weight:800;background:var(--surface-3);color:var(--text-2);white-space:nowrap}
+.topbar .chip{margin-left:auto}
+main{max-width:560px;margin:0 auto;padding:12px 12px 0}
+.panel{display:none}
+.panel.active{display:block;animation:fade .2s ease-out}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+.page-title{font-size:1.5rem;font-weight:800;letter-spacing:-.6px;margin:6px 4px 12px}
+/* ===== Cards ===== */
+.card{background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px;margin-bottom:12px;position:relative;overflow:hidden}
+.card>h3,.card-h{font-size:.98rem;font-weight:800;letter-spacing:-.2px;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.card-h .chip,.card>h3 .chip{margin-left:auto}
+.eyebrow{font-size:.68rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.sub{font-size:.82rem;color:var(--text-2)}
+.muted{color:var(--muted)}
+.row{display:flex;align-items:center;gap:8px}
+.spacer{flex:1}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:14px;padding:12px 16px;
+  font-weight:800;font-size:.95rem;cursor:pointer;background:var(--surface-3);color:var(--text)}
+.btn:active{transform:scale(.98)}
+.btn.primary{background:var(--brand-2);color:#fff}
+.btn.block{width:100%}
+.btn.small{padding:7px 12px;font-size:.8rem;border-radius:10px}
+.btn.ghost{background:transparent;color:var(--text-2);padding:7px 10px}
+.link{border:0;background:none;color:var(--brand-2);font-weight:800;cursor:pointer;font-size:.82rem;padding:4px 0}
+/* ===== Hero ===== */
+.hero{position:relative;overflow:hidden;border-radius:22px;padding:18px 18px 14px;margin-bottom:12px;color:#fff;
+  background:linear-gradient(165deg,#0a2236 0%,#0f4c6e 52%,#1f86b0 100%);box-shadow:0 12px 30px rgba(10,34,54,.28)}
+.hero .glow{position:absolute;right:-50px;top:-60px;width:220px;height:220px;border-radius:50%;
+  background:radial-gradient(circle,rgba(247,196,108,.55) 0%,rgba(247,196,108,0) 66%);pointer-events:none}
+.hero svg.mtn{position:absolute;left:0;right:0;bottom:0;width:100%;height:110px;pointer-events:none}
+.hero>*:not(.glow):not(.mtn){position:relative}
+.hero .eyebrow{color:rgba(255,255,255,.78)}
+.hero-main{display:flex;align-items:flex-end;gap:12px;margin-top:8px}
+.hero-num{font-size:3.6rem;font-weight:800;letter-spacing:-2.5px;line-height:.9}
+.hero-lbl{font-size:.95rem;font-weight:700;line-height:1.2;padding-bottom:4px}
+.hero-lbl small{display:block;font-weight:600;opacity:.8;font-size:.78rem}
+.hero-meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.hero .chip{background:rgba(255,255,255,.16);color:#fff;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.phasebar{display:flex;gap:2px;height:8px;margin-top:16px;border-radius:999px;overflow:hidden}
+.phasebar span{display:block;height:100%}
+.phasebar-wrap{position:relative}
+.phasebar-pin{position:absolute;top:-5px;width:4px;height:18px;margin-left:-2px;border-radius:3px;background:#fff;box-shadow:0 0 0 2px rgba(10,34,54,.55)}
+.phasebar-lbls{display:flex;gap:2px;margin-top:5px;font-size:.64rem;font-weight:800;color:rgba(255,255,255,.82)}
+.phasebar-lbls span{overflow:hidden;white-space:nowrap;text-overflow:clip}
+/* ===== Alerts / rules ===== */
+.rule{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border-radius:13px;background:var(--surface-2);
+  font-size:.84rem;color:var(--text-2);margin-top:8px;border:1px solid var(--line)}
+.rule .ri{font-size:1.05rem;line-height:1.25;flex:none}
+.rule b{color:var(--text)}
+.rule.warn{background:var(--warn-bg);border-color:transparent;color:var(--text)}
+.rule.bad{background:var(--bad-bg);border-color:transparent;color:var(--text)}
+.rule.good{background:var(--good-bg);border-color:transparent;color:var(--text)}
+.alert{margin-bottom:12px}
+.alert .rule{margin-top:0;box-shadow:var(--shadow)}
+/* ===== Day nav ===== */
+.daynav{display:flex;align-items:center;gap:8px;margin:2px 0 10px}
+.daynav .arrow{width:42px;height:42px;border-radius:50%;border:0;background:var(--surface);box-shadow:var(--shadow);
+  font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;flex:none;color:var(--text)}
+.daynav .arrow:disabled{opacity:.35}
+.daynav .mid{flex:1;text-align:center;min-width:0}
+.daynav .d1{font-weight:800;font-size:1.05rem;letter-spacing:-.2px}
+.daynav .d2{font-size:.74rem;color:var(--muted);font-weight:700}
+.today-pill{display:inline-block;margin-top:5px;border:0;border-radius:999px;padding:4px 12px;font-size:.72rem;font-weight:800;
+  background:var(--brand-2);color:#fff;cursor:pointer}
+/* ===== Workout card ===== */
+.wo{padding-top:21px}
+.wo::before{content:"";position:absolute;left:0;right:0;top:0;height:5px;background:var(--phase,var(--muted))}
+.wo-head{display:flex;align-items:flex-start;gap:10px}
+.wo-icon{font-size:1.9rem;line-height:1;flex:none;margin-top:2px}
+.wo-title{font-size:1.28rem;font-weight:800;letter-spacing:-.4px;line-height:1.2}
+.badges{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
+.badge{display:inline-flex;align-items:center;gap:4px;font-size:.68rem;font-weight:800;letter-spacing:.03em;padding:3px 8px;border-radius:999px;
+  background:var(--surface-3);color:var(--text-2)}
+.badge.key{background:#fff1c9;color:#6b4a00}
+.badge.up{background:var(--up-bg);color:var(--up)}
+.badge.phase{background:transparent;border:1.5px solid var(--phase,var(--line));color:var(--text-2)}
+:root[data-theme="dark"] .badge.key{background:#3b2f0c;color:#f7d27a}
+@media (prefers-color-scheme:dark){:root:where(:not([data-theme="light"])) .badge.key{background:#3b2f0c;color:#f7d27a}}
+.seg{display:inline-flex;background:var(--surface-3);border-radius:13px;padding:3px;gap:3px;margin-top:14px}
+.seg button{border:0;background:none;padding:8px 14px;border-radius:10px;font-weight:800;font-size:.85rem;color:var(--text-2);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.14)}
+.seg button.upbtn[aria-pressed="true"]{background:linear-gradient(135deg,#f9cf7f,#f2a33a);color:#3b2400}
+.seg.wide{display:flex}
+.seg.wide button{flex:1}
+.wo-dist{display:flex;align-items:baseline;gap:6px;margin-top:14px}
+.wo-dist b{font-size:2.7rem;font-weight:800;letter-spacing:-1.6px;line-height:1}
+.wo-dist span{font-size:1rem;font-weight:700;color:var(--text-2)}
+.wo-desc{font-size:1.02rem;font-weight:700;margin-top:6px}
+.wo-notes{font-size:.86rem;color:var(--text-2);margin-top:6px}
+.wo-alt{font-size:.8rem;color:var(--muted);margin-top:8px}
+.paces{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.pace{display:flex;flex-direction:column;gap:1px;padding:7px 10px;border-radius:11px;background:var(--surface-2);border:1px solid var(--line);min-width:0}
+.pace i{font-style:normal;font-size:.62rem;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.pace b{font-size:.95rem;font-variant-numeric:tabular-nums;white-space:nowrap}
+.pace s{text-decoration:none;font-size:.66rem;color:var(--muted)}
+.strength-line{display:flex;gap:10px;align-items:center;margin-top:12px;padding:10px 12px;border-radius:13px;background:var(--surface-2);font-size:.84rem;color:var(--text-2)}
+.strength-line b{color:var(--text)}
+/* ===== Log card ===== */
+.donebtn{width:100%;padding:15px;border-radius:15px;border:0;font-size:1.05rem;font-weight:800;cursor:pointer;
+  background:var(--brand-2);color:#fff;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 6px 16px rgba(20,102,143,.25)}
+.donebtn.up{background:linear-gradient(135deg,#f6b951,#e48a14);color:#2b1800;box-shadow:0 6px 16px rgba(228,138,20,.25)}
+.logged{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:15px;background:var(--good-bg);color:var(--good-ink);font-weight:800}
+.logged .spacer{flex:1}
+.logged button{border:0;background:none;color:var(--good-ink);font-weight:800;text-decoration:underline;cursor:pointer;font-size:.8rem}
+.fields{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.field label,.flabel{display:block;font-size:.66rem;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);margin-bottom:5px}
+.field input,.field select,.field textarea,.input{width:100%;font-size:16px;padding:11px 12px;border-radius:12px;border:1px solid var(--line);
+  background:var(--surface-2);font-weight:700;font-variant-numeric:tabular-nums;color:var(--text)}
+.field textarea{font-weight:500;resize:vertical;min-height:44px}
+.field.full{grid-column:1/-1}
+.paceout{font-size:.78rem;color:var(--text-2);margin-top:6px;font-weight:600;min-height:1.1em}
+.feel{display:grid;grid-template-columns:repeat(10,1fr);gap:4px}
+.feel button{aspect-ratio:1;max-height:36px;border-radius:50%;border:1.5px solid var(--line);background:var(--surface);
+  font-size:.78rem;font-weight:800;color:var(--muted);cursor:pointer;padding:0}
+.feel button[aria-pressed="true"]{background:var(--brand-2);border-color:var(--brand-2);color:#fff}
+.toggles{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.tgl{display:inline-flex;align-items:center;gap:6px;padding:9px 13px;border-radius:999px;border:1.5px solid var(--line);
+  background:var(--surface);font-weight:800;font-size:.84rem;cursor:pointer;color:var(--text-2)}
+.tgl[aria-pressed="true"]{border-color:var(--good);background:var(--good-bg);color:var(--good-ink)}
+.tgl.pain[aria-pressed="true"]{border-color:var(--bad);background:var(--bad-bg);color:var(--bad-ink)}
+details.more{margin-top:10px}
+details.more>summary{cursor:pointer;list-style:none;font-weight:800;font-size:.85rem;color:var(--brand-2);padding:6px 0}
+details.more>summary::-webkit-details-marker{display:none}
+/* ===== Week card ===== */
+.strip{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin:2px 0 12px}
+.sd{display:flex;flex-direction:column;align-items:center;gap:2px;padding:7px 0 6px;border-radius:12px;background:var(--surface-2);
+  border:1.5px solid transparent;cursor:pointer;position:relative;min-height:76px;color:var(--text)}
+.sd .dn{font-size:.62rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.sd .dd{font-size:.95rem;font-weight:800}
+.sd .di{font-size:.95rem;line-height:1.1}
+.sd .dm{font-size:.66rem;color:var(--text-2);font-weight:800}
+.sd.sel{border-color:var(--text)}
+.sd.today .dd{color:var(--accent)}
+.sd.done{background:var(--good-bg)}
+.sd.done::after{content:"✓";position:absolute;top:2px;right:5px;font-size:.66rem;font-weight:900;color:var(--good-ink)}
+.sd.miss::after{content:"";position:absolute;top:6px;right:6px;width:6px;height:6px;border-radius:50%;border:1.5px solid var(--bad)}
+.sd .str{position:absolute;bottom:3px;right:4px;font-size:.55rem}
+.wkstats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.wkstat{background:var(--surface-2);border-radius:12px;padding:9px 10px}
+.wkstat .v{font-size:1.15rem;font-weight:800;letter-spacing:-.3px}
+.wkstat .v small{font-size:.75rem;color:var(--muted);font-weight:700}
+.wkstat .l{font-size:.68rem;color:var(--text-2);font-weight:700}
+.meter{position:relative;height:10px;border-radius:999px;background:var(--surface-3);margin:14px 0 6px}
+.meter .fill{position:absolute;left:0;top:0;bottom:0;border-radius:999px;background:var(--accent);max-width:100%}
+.meter .tick{position:absolute;top:-4px;bottom:-4px;width:3px;margin-left:-1.5px;background:var(--ink-target);border-radius:2px}
+.meter-lbls{display:flex;justify-content:space-between;font-size:.7rem;color:var(--muted);font-weight:700}
+.status{display:inline-flex;align-items:center;gap:5px;font-size:.74rem;font-weight:800;padding:4px 10px;border-radius:999px}
+.status.hit{background:var(--good-bg);color:var(--good-ink)}
+.status.open{background:var(--warn-bg);color:var(--warn-ink)}
+.status.miss{background:var(--bad-bg);color:var(--bad-ink)}
+.status.future{background:var(--surface-3);color:var(--text-2)}
+.streaks{display:flex;gap:8px;margin-top:12px}
+.streak{flex:1;display:flex;gap:10px;align-items:center;padding:10px 12px;border-radius:13px;background:var(--surface-2)}
+.streak .sv{font-size:1.4rem;font-weight:800;line-height:1}
+.streak .sl{font-size:.72rem;color:var(--text-2);font-weight:700;line-height:1.25}
+.dots{display:flex;gap:4px;margin-top:6px}
+.dots i{width:10px;height:10px;border-radius:50%;background:var(--surface-3);display:block}
+.dots i.on{background:var(--good)}
+/* ===== Lists ===== */
+.list{display:flex;flex-direction:column}
+.li{display:flex;align-items:center;gap:12px;padding:11px 2px;border-top:1px solid var(--line)}
+.li:first-child{border-top:0}
+.li .lic{width:36px;height:36px;border-radius:11px;background:var(--surface-2);display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex:none}
+.li .lim{flex:1;min-width:0}
+.li .lt{font-weight:800;font-size:.9rem}
+.li .ls{font-size:.76rem;color:var(--text-2)}
+.li .lr{font-size:.76rem;font-weight:800;color:var(--text-2);text-align:right;white-space:nowrap}
+.li.btnlike{cursor:pointer}
+.quote{text-align:center;padding:20px 18px;font-size:.92rem;line-height:1.5;color:var(--text-2);font-style:italic}
+.quote b{display:block;font-style:normal;font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-top:8px}
+/* ===== Calendar ===== */
+.calnav{display:flex;align-items:center;justify-content:space-between;margin:4px 2px 10px}
+.calnav h2{font-size:1.2rem;font-weight:800;letter-spacing:-.4px}
+.calnav button{width:40px;height:40px;border-radius:50%;border:0;background:var(--surface);box-shadow:var(--shadow);cursor:pointer;color:var(--text)}
+.calnav button:disabled{opacity:.35}
+.calgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.calhd{text-align:center;font-size:.64rem;font-weight:800;color:var(--muted);padding:4px 0;letter-spacing:.05em;text-transform:uppercase}
+.cc{position:relative;min-height:58px;border-radius:11px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
+  padding:5px 2px 4px;cursor:pointer;background:var(--surface);border:1.5px solid transparent;color:var(--text);overflow:hidden}
+.cc::before{content:"";position:absolute;inset:0;background:var(--tint,transparent);opacity:.13;pointer-events:none}
+.cc>*{position:relative}
+.cc.empty{background:transparent;cursor:default}
+.cc .cn{font-size:.74rem;font-weight:800;align-self:flex-start;padding-left:4px}
+.cc .ci{font-size:.95rem;line-height:1.1;margin-top:1px}
+.cc .cm{font-size:.62rem;font-weight:800;color:var(--text-2)}
+.cc.today{border-color:var(--text)}
+.cc.done{background:var(--good-bg)}
+.cc.done::after{content:"✓";position:absolute;top:3px;right:5px;font-size:.64rem;font-weight:900;color:var(--good-ink)}
+.cc.miss::after{content:"";position:absolute;top:6px;right:6px;width:6px;height:6px;border-radius:50%;border:1.5px solid var(--bad)}
+.cc.key{box-shadow:inset 0 0 0 1.5px var(--ph-race)}
+.cc.off{opacity:.45}
+.legend{display:flex;flex-wrap:wrap;gap:6px 12px;margin-top:12px;font-size:.72rem;color:var(--text-2);font-weight:700}
+.legend span{display:inline-flex;align-items:center;gap:5px}
+.legend i{width:12px;height:12px;border-radius:4px;display:inline-block}
+/* ===== Tiles ===== */
+.tiles{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:12px}
+@media (min-width:520px){.tiles{grid-template-columns:repeat(3,1fr)}}
+.tile{background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);padding:13px 14px}
+.tile .tl{font-size:.74rem;color:var(--text-2);font-weight:700}
+.tile .tv{font-size:1.55rem;font-weight:800;letter-spacing:-.6px;margin-top:2px;line-height:1.15}
+.tile .tv small{font-size:.8rem;color:var(--muted);font-weight:700;letter-spacing:0}
+.tile .ts{font-size:.7rem;color:var(--muted);margin-top:3px;font-weight:600}
+/* ===== Tables ===== */
+.tbl{width:100%;border-collapse:collapse;font-size:.8rem}
+.tbl th,.tbl td{padding:7px 6px;text-align:left;border-top:1px solid var(--line);font-variant-numeric:tabular-nums;white-space:nowrap}
+.tbl th{font-size:.64rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border-top:0}
+.tbl td.r,.tbl th.r{text-align:right}
+.tbl .hl{background:color-mix(in srgb,var(--accent) 10%,transparent)}
+.tblwrap{overflow-x:auto;margin:0 -4px;padding:0 4px}
+/* ===== Sheet (modal) ===== */
+.sheet{position:fixed;inset:0;z-index:200;background:rgba(6,12,16,.45);display:none;align-items:flex-end;justify-content:center}
+.sheet.open{display:flex}
+.sheet-panel{background:var(--bg);width:100%;max-width:560px;max-height:88vh;overflow-y:auto;border-radius:22px 22px 0 0;
+  padding:10px 12px calc(16px + var(--safe-b));animation:up .22s ease-out;overscroll-behavior:contain}
+@media (min-width:640px){.sheet{align-items:center}.sheet-panel{border-radius:22px;max-height:84vh}}
+@keyframes up{from{transform:translateY(40px);opacity:.4}to{transform:none;opacity:1}}
+.sheet-top{display:flex;align-items:center;gap:8px;padding:4px 4px 10px;position:sticky;top:-10px;background:var(--bg);z-index:2}
+.sheet-top .x{margin-left:auto;width:36px;height:36px;border-radius:50%;border:0;background:var(--surface-3);cursor:pointer;font-size:1rem;color:var(--text)}
+.grabber{width:40px;height:5px;border-radius:3px;background:var(--axis);margin:0 auto 8px}
+/* ===== Tab bar ===== */
+.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:60;background:var(--surface);
+  background:color-mix(in srgb,var(--surface) 90%,transparent);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);
+  border-top:1px solid var(--line);padding-bottom:var(--safe-b)}
+.tabbar-in{display:flex;max-width:560px;margin:0 auto}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;height:var(--tabbar-h);border:0;background:none;
+  color:var(--muted);font-size:.68rem;font-weight:800;cursor:pointer;letter-spacing:.02em}
+.tab svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.tab[aria-selected="true"]{color:var(--brand-2)}
+/* ===== Toast & tooltip ===== */
+.toast{position:fixed;left:50%;bottom:calc(var(--tabbar-h) + var(--safe-b) + 14px);transform:translateX(-50%) translateY(20px);opacity:0;
+  background:#101a20;color:#fff;padding:11px 16px;border-radius:14px;font-size:.86rem;font-weight:700;z-index:300;
+  transition:all .22s ease;pointer-events:none;max-width:calc(100vw - 32px);box-shadow:0 8px 24px rgba(0,0,0,.25)}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.tip{position:fixed;z-index:400;pointer-events:none;background:var(--surface);color:var(--text);border:1px solid var(--line);
+  box-shadow:0 8px 24px rgba(0,0,0,.18);border-radius:11px;padding:8px 10px;font-size:.76rem;line-height:1.4;white-space:pre-line;max-width:240px}
+.tip b{font-size:.9rem}
+/* ===== Charts ===== */
+.chart{width:100%;height:auto;display:block;overflow:visible;touch-action:pan-y}
+.chart text{font-size:9px;fill:var(--muted);font-family:inherit;font-weight:600}
+.chart .t-ink{fill:var(--text-2);font-weight:800}
+.chart .grid{stroke:var(--line);stroke-width:1}
+.chart .base{stroke:var(--axis);stroke-width:1}
+.chart .hit{fill:transparent}
+.chart g.mk{cursor:pointer;outline:none}
+.chart g.mk .hair{stroke:var(--text-2);stroke-width:1;opacity:0}
+.chart g.mk:hover .hair,.chart g.mk:focus .hair{opacity:.55}
+.chart g.mk:hover .lift,.chart g.mk:focus .lift{filter:brightness(1.12) saturate(1.1)}
+.chart g.mk:focus .hit{stroke:var(--focus);stroke-width:1.5}
+.lg{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.72rem;color:var(--text-2);font-weight:700;margin:2px 0 10px}
+.lg span{display:inline-flex;align-items:center;gap:6px}
+.lg .sw{width:12px;height:12px;border-radius:3px;display:inline-block}
+.lg .ln{width:16px;height:0;border-top:2px solid;display:inline-block}
+.lg .tk{width:12px;height:3px;border-radius:2px;display:inline-block}
+.grid35{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+.gc{position:relative;border-radius:10px;background:var(--surface-2);padding:6px 4px 5px;text-align:center;cursor:default;border-top:3px solid var(--phase,var(--line));outline:none}
+.gc:focus-visible{box-shadow:0 0 0 2px var(--focus)}
+.gc .gw{font-size:.6rem;font-weight:800;color:var(--muted)}
+.gc .gs{font-size:.95rem;font-weight:900;line-height:1.3}
+.gc .gd{font-size:.55rem;letter-spacing:1px;color:var(--muted);min-height:.8em}
+.gc.hit{background:var(--good-bg)}.gc.hit .gs{color:var(--good-ink)}
+.gc.miss{background:var(--bad-bg)}.gc.miss .gs{color:var(--bad-ink)}
+.gc.open{background:var(--warn-bg)}.gc.open .gs{color:var(--warn-ink)}
+.gc.now{box-shadow:inset 0 0 0 1.5px var(--text)}
+/* ===== Plan tab ===== */
+.tl-wrap{position:relative;margin-top:4px}
+.tl{display:flex;gap:2px;height:30px;border-radius:10px;overflow:hidden}
+.tl .seg-ph{display:flex;align-items:center;justify-content:center;font-size:.62rem;font-weight:800;color:#fff;overflow:hidden;white-space:nowrap;min-width:0}
+.tl-marks{position:relative;height:34px;margin-top:4px}
+.tl-mark{position:absolute;top:0;transform:translateX(-50%);font-size:.7rem;line-height:1}
+.tl-now{position:absolute;top:-4px;bottom:-4px;width:3px;margin-left:-1.5px;background:var(--text);border-radius:2px;box-shadow:0 0 0 2px var(--surface)}
+.phase-rows .li .lic{color:#fff;font-weight:900;font-size:.74rem;width:50px}
+.wkrow{border-top:1px solid var(--line)}
+.wkrow:first-child{border-top:0}
+.wkrow>summary{list-style:none;display:flex;align-items:center;gap:10px;padding:10px 2px;cursor:pointer}
+.wkrow>summary::-webkit-details-marker{display:none}
+.wkrow .wn{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:.8rem;
+  background:var(--surface-2);border-left:4px solid var(--phase,var(--line));flex:none}
+.wkrow .wm{flex:1;min-width:0}
+.wkrow .wt{font-weight:800;font-size:.86rem}
+.wkrow .ws{font-size:.74rem;color:var(--text-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wkrow .wr{font-size:.95rem;flex:none}
+.wkdays{padding:0 0 10px 44px}
+.wkday{display:grid;grid-template-columns:34px 1fr auto;gap:8px;align-items:start;padding:6px 0;font-size:.8rem;border-top:1px dashed var(--line);cursor:pointer}
+.wkday:first-child{border-top:0}
+.wkday .wdn{font-weight:800;color:var(--muted);font-size:.72rem;padding-top:1px}
+.wkday .wup{color:var(--up);font-size:.74rem;margin-top:2px}
+.wkday .wck{font-weight:900;color:var(--good-ink)}
+.cp{padding:12px 0;border-top:1px solid var(--line)}
+.cp:first-of-type{border-top:0;padding-top:2px}
+.cp-head{display:flex;align-items:flex-start;gap:10px}
+.cp-input{display:flex;gap:8px;align-items:center;margin-top:10px}
+.cp-input input{max-width:130px}
+.cuts{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-top:8px}
+.cut{border-radius:9px;background:var(--surface-2);padding:5px 4px;text-align:center;border:1.5px solid transparent}
+.cut b{display:block;font-size:.8rem;font-variant-numeric:tabular-nums}
+.cut i{font-style:normal;font-size:.6rem;font-weight:800;color:var(--muted);letter-spacing:.04em}
+.cut.on{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 10%,var(--surface))}
+.goal{display:flex;align-items:center;gap:14px}
+.goal .gv{font-size:2.4rem;font-weight:800;letter-spacing:-1.5px;line-height:1}
+.select{appearance:none;-webkit-appearance:none;padding:9px 30px 9px 12px;border-radius:11px;border:1px solid var(--line);background:var(--surface-2);
+  font-weight:800;font-size:.86rem;background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);
+  background-position:calc(100% - 15px) 55%,calc(100% - 10px) 55%;background-size:5px 5px;background-repeat:no-repeat;color:var(--text)}
+.splits{columns:2;column-gap:16px;font-size:.8rem;margin-top:8px}
+.splits div{display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid var(--line);break-inside:avoid;font-variant-numeric:tabular-nums}
+.splits div b{font-weight:800}
+.foot{text-align:center;font-size:.7rem;color:var(--muted);margin:18px 0 6px}
 </style>
 </head>
 <body>
-<header>
-  <h1>&#127939; Road to St. George &#9968;&#65039;</h1>
-  <div class="subtitle">St. George Marathon Training Tracker</div>
-  <div id="countdown-chip"></div>
+<header class="topbar">
+  <div class="topbar-in">
+    <div class="brand">
+      <svg viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="bg-g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0a2236"/><stop offset="1" stop-color="#1f86b0"/></linearGradient></defs><rect width="64" height="64" rx="16" fill="url(#bg-g)"/><circle cx="45" cy="19" r="7" fill="#f7c46c"/><path d="M0 50 L17 28 L26 38 L37 20 L64 52 V64 H0Z" fill="#e8f2f7"/><path d="M0 56 L14 44 L24 50 L36 40 L50 50 L64 46 V64 H0Z" fill="#9cc7dc"/><path d="M27 64 C30 56 38 54 36 47" stroke="#f2a33a" stroke-width="3.2" fill="none" stroke-linecap="round"/></svg>
+      <div>Road to Utah Valley<small>UVM · Jun 5, 2027</small></div>
+    </div>
+    <span class="chip" id="countdown-chip" aria-live="polite"></span>
+  </div>
 </header>
-<nav>
-  <button class="tab active" data-tab="today">Today</button>
-  <button class="tab" data-tab="calendar">Calendar</button>
-  <button class="tab" data-tab="stats">Stats</button>
-</nav>
 <main>
-  <section id="panel-today" class="panel active"></section>
-  <section id="panel-calendar" class="panel"></section>
-  <section id="panel-stats" class="panel"></section>
+  <section id="panel-today" class="panel active" aria-label="Today"></section>
+  <section id="panel-calendar" class="panel" aria-label="Calendar"></section>
+  <section id="panel-plan" class="panel" aria-label="Plan"></section>
+  <section id="panel-stats" class="panel" aria-label="Stats"></section>
 </main>
-<div class="modal-overlay" id="modal">
-  <div class="modal-content" id="modal-body"></div>
+<div class="sheet" id="sheet" aria-hidden="true">
+  <div class="sheet-panel" role="dialog" aria-modal="true" aria-labelledby="sheet-title" id="sheet-body"></div>
 </div>
-
+<nav class="tabbar" aria-label="Sections">
+  <div class="tabbar-in" role="tablist">
+    <button class="tab" role="tab" aria-selected="true" data-act="tab" data-tab="today">
+      <svg viewBox="0 0 24 24"><path d="M3 18h18"/><path d="M7 18a5 5 0 0 1 10 0"/><path d="M12 6v3M5.6 9.6l2 2M18.4 9.6l-2 2M3 14h2M19 14h2"/></svg>Today</button>
+    <button class="tab" role="tab" aria-selected="false" data-act="tab" data-tab="calendar">
+      <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Calendar</button>
+    <button class="tab" role="tab" aria-selected="false" data-act="tab" data-tab="plan">
+      <svg viewBox="0 0 24 24"><path d="M3 20l6-12 4 6 3-4 5 10z"/><path d="M15 5l3-1v3"/></svg>Plan</button>
+    <button class="tab" role="tab" aria-selected="false" data-act="tab" data-tab="stats">
+      <svg viewBox="0 0 24 24"><path d="M4 20V11M10 20V5M16 20v-7M21 20H3"/></svg>Stats</button>
+  </div>
+</nav>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<div class="tip" id="tip" hidden></div>
+<input type="file" id="import-file" accept=".csv,text/csv,text/comma-separated-values" hidden>
+<noscript><p style="padding:20px">This tracker needs JavaScript turned on.</p></noscript>
 <script>
-// ===== DATA =====
-const PLAN_RAW = [
+'use strict';
+/* =====================================================================
+   Road to Utah Valley: single-file PWA training tracker.
+   No build step, no network. Plan data is embedded below.
+   ===================================================================== */
+
+// ===== 1. PLAN DATA =====
+// Verbatim copy of plan/Daily_Plan.csv (source of truth for daily workouts).
+// To update the plan, paste the new CSV between the backticks.
+const DAILY_CSV = `Week,Phase,Date,Day,FLOOR (required),Floor mi,UPGRADE (optional),Upgrade mi,Pace,Notes
+1,Recovery,10/05/2026,Mon,Rest / walk,,,,—,No running. Walk 20–40 min.
+,,10/06/2026,Tue,Rest / walk,,,,—,No running. Walk 20–40 min.
+,,10/07/2026,Wed,Rest / walk,,,,—,No running. Walk 20–40 min.
+,,10/08/2026,Thu,Rest / walk,,,,—,No running. Walk 20–40 min.
+,,10/09/2026,Fri,Rest / walk,,,,—,No running. Walk 20–40 min.
+,,10/10/2026,Sat,Rest / walk,,,,—,No running. Walk 20–40 min.
+,,10/11/2026,Sun,Rest / walk,,,,—,No running. Walk 20–40 min.
+2,Recovery,10/12/2026,Mon,Rest,,,,—,
+,,10/13/2026,Tue,Easy Run,3,,,10:00+,First runs back. Stop if anything hurts sharp.
+,,10/14/2026,Wed,Rest,,,,—,
+,,10/15/2026,Thu,Easy Run,3,,,10:00+,First runs back. Stop if anything hurts sharp.
+,,10/16/2026,Fri,Rest,,,,—,
+,,10/17/2026,Sat,Easy Run,3,,,10:00+,First runs back. Stop if anything hurts sharp.
+,,10/18/2026,Sun,Rest,,,,—,
+3,Base,10/19/2026,Mon,Rest,,Easy Run,3,10:00–10:45,Upgrade = 5th run. Floor = rest + 20 min strength.
+,,10/20/2026,Tue,Easy + Strides,3,Add 1 mi + 6 strides,,See Paces tab,3 easy + 4x20s strides
+,,10/21/2026,Wed,Easy Run,2.5,,,10:00–10:45,"Talk test. Govern by pace, not HR."
+,,10/22/2026,Thu,Rest / Strength,,,,—,"20 min strength: bridges, calf raises, step-downs, lunges"
+,,10/23/2026,Fri,Easy + Strides,1.5,,,10:00–10:45,6x20s strides at the end
+,,10/24/2026,Sat,Long Run,5,,,10:00–10:30,Easy
+,,10/25/2026,Sun,Rest,,,,—,
+4,Base,10/26/2026,Mon,Rest,,Easy Run,3,10:00–10:45,Upgrade = 5th run. Floor = rest + 20 min strength.
+,,10/27/2026,Tue,Easy + Strides,3,4 mi w/ 8x30s fartlek surges,,See Paces tab,3 easy + 6 strides
+,,10/28/2026,Wed,Easy Run,3,,,10:00–10:45,"Talk test. Govern by pace, not HR."
+,,10/29/2026,Thu,Rest / Strength,,,,—,"20 min strength: bridges, calf raises, step-downs, lunges"
+,,10/30/2026,Fri,Easy + Strides,2,,,10:00–10:45,6x20s strides at the end
+,,10/31/2026,Sat,Long Run,6,,,10:00–10:30,Easy
+,,11/01/2026,Sun,Rest,,,,—,
+5,Base,11/02/2026,Mon,Rest,,Easy Run,4,10:00–10:45,Upgrade = 5th run. Floor = rest + 20 min strength.
+,,11/03/2026,Tue,Easy + Strides,4,5 mi w/ 6x10s hill sprints,,See Paces tab,4 easy + 6 strides
+,,11/04/2026,Wed,Easy Run,3,,,10:00–10:45,"Talk test. Govern by pace, not HR."
+,,11/05/2026,Thu,Rest / Strength,,,,—,"20 min strength: bridges, calf raises, step-downs, lunges"
+,,11/06/2026,Fri,Easy + Strides,2,,,10:00–10:45,6x20s strides at the end
+,,11/07/2026,Sat,Long Run,7,,,10:00–10:30,Easy
+,,11/08/2026,Sun,Rest,,,,—,
+6,Base,11/09/2026,Mon,Rest,,Easy Run,3,10:00–10:45,Upgrade = 5th run. Floor = rest + 20 min strength.
+,,11/10/2026,Tue,Easy + Strides,3,,,See Paces tab,3 easy + strides
+,,11/11/2026,Wed,Easy Run,3,,,10:00–10:45,Cutback
+,,11/12/2026,Thu,Rest / Strength,,,,—,"20 min strength: bridges, calf raises, step-downs, lunges"
+,,11/13/2026,Fri,Easy + Strides,2,,,10:00–10:45,6x20s strides at the end
+,,11/14/2026,Sat,Long Run,5,,,10:00–10:30,Cutback week
+,,11/15/2026,Sun,Rest,,,,—,
+7,Base,11/16/2026,Mon,Rest,,Easy Run,4,10:00–10:45,Upgrade = 5th run. Floor = rest + 20 min strength.
+,,11/17/2026,Tue,Quality,4,5 mi w/ 10x(1 on / 1 off),,See Paces tab,4 mi w/ 6x30s pickups
+,,11/18/2026,Wed,Easy Run,3.5,,,10:00–10:45,"Talk test. Govern by pace, not HR."
+,,11/19/2026,Thu,Rest / Strength,,,,—,"20 min strength: bridges, calf raises, step-downs, lunges"
+,,11/20/2026,Fri,Easy + Strides,2.5,,,10:00–10:45,6x20s strides at the end
+,,11/21/2026,Sat,Long Run,8,,,10:00–10:30,Easy
+,,11/22/2026,Sun,Rest,,,,—,
+8,Base,11/23/2026,Mon,Rest,,Easy Run,3,10:00–10:45,Upgrade = 5th run. Floor = rest + 20 min strength.
+,,11/24/2026,Tue,Easy + Strides,4,4 mi w/ 8x10s hill sprints,,See Paces tab,4 easy + strides
+,,11/25/2026,Wed,Easy Run,3,,,10:00–10:45,"Thanksgiving Thu 11/26: Turkey Trot optional, easy"
+,,11/26/2026,Thu,Rest / Strength,,,,—,"20 min strength: bridges, calf raises, step-downs, lunges"
+,,11/27/2026,Fri,Easy + Strides,2,,,10:00–10:45,6x20s strides at the end
+,,11/28/2026,Sat,Long Run,7,,,10:00–10:30,Easy
+,,11/29/2026,Sun,Rest,,,,—,
+9,Base,11/30/2026,Mon,Rest,,Easy Run,4,10:00–10:45,Upgrade = 5th run. Floor = rest + 20 min strength.
+,,12/01/2026,Tue,Quality,4,5 mi w/ 3x5 min @ tempo,,See Paces tab,4 mi w/ 2x5 min @ tempo
+,,12/02/2026,Wed,Easy Run,4,,,10:00–10:45,"Talk test. Govern by pace, not HR."
+,,12/03/2026,Thu,Rest / Strength,,,,—,"20 min strength: bridges, calf raises, step-downs, lunges"
+,,12/04/2026,Fri,Easy + Strides,3,,,10:00–10:45,6x20s strides at the end
+,,12/05/2026,Sat,Long Run,9,,,10:00–10:30,Easy
+,,12/06/2026,Sun,Rest,,,,—,
+10,Base,12/07/2026,Mon,Rest,,Easy Run,4,10:00–10:45,Upgrade = 5th run. Floor = rest + 20 min strength.
+,,12/08/2026,Tue,Quality,5,6 mi w/ 8x45s hills,,See Paces tab,5 mi w/ 6x30s hills
+,,12/09/2026,Wed,Easy Run,4,,,10:00–10:45,"Talk test. Govern by pace, not HR."
+,,12/10/2026,Thu,Rest / Strength,,,,—,"20 min strength: bridges, calf raises, step-downs, lunges"
+,,12/11/2026,Fri,Easy + Strides,3,,,10:00–10:45,6x20s strides at the end
+,,12/12/2026,Sat,Long Run,10,,,10:00–10:30,Easy
+,,12/13/2026,Sun,Rest,,,,—,
+11,Base,12/14/2026,Mon,Rest,,Easy Run,3,10:00–10:45,Upgrade = 5th run. Floor = rest + 20 min strength.
+,,12/15/2026,Tue,Easy + Strides,4,,,See Paces tab,4 easy + strides
+,,12/16/2026,Wed,Easy Run,3.5,,,10:00–10:45,Cutback
+,,12/17/2026,Thu,Rest / Strength,,,,—,"20 min strength: bridges, calf raises, step-downs, lunges"
+,,12/18/2026,Fri,Easy + Strides,2.5,,,10:00–10:45,6x20s strides at the end
+,,12/19/2026,Sat,Long Run,8,,,10:00–10:30,Cutback week
+,,12/20/2026,Sun,Rest,,,,—,
+12,Base,12/21/2026,Mon,Rest,,Easy Run,4,10:00–10:45,Upgrade = 5th run. Floor = rest + 20 min strength.
+,,12/22/2026,Tue,Quality,4,5 mi w/ 4x5 min @ tempo,,See Paces tab,4 mi w/ 3x5 min @ tempo
+,,12/23/2026,Wed,Easy Run,3.5,,,10:00–10:45,Christmas Fri 12/25: run Thu instead
+,,12/24/2026,Thu,Rest / Strength,,,,—,"20 min strength: bridges, calf raises, step-downs, lunges"
+,,12/25/2026,Fri,Easy + Strides,2.5,,,10:00–10:45,6x20s strides at the end
+,,12/26/2026,Sat,Long Run,10,,,10:00–10:30,Easy
+,,12/27/2026,Sun,Rest,,,,—,
+13,Base,12/28/2026,Mon,Rest,,Easy Run,4,10:00–10:45,Upgrade = 5th run. Floor = rest + 20 min strength.
+,,12/29/2026,Tue,Quality,5,6 mi w/ 20 min @ tempo,,See Paces tab,5 mi w/ 15 min @ tempo
+,,12/30/2026,Wed,Easy Run,5,,,10:00–10:45,New Year Fri 1/1: run Thu instead
+,,12/31/2026,Thu,Rest / Strength,,,,—,"20 min strength: bridges, calf raises, step-downs, lunges"
+,,01/01/2027,Fri,Easy + Strides,3,,,10:00–10:45,6x20s strides at the end
+,,01/02/2027,Sat,Long Run,11,,,10:00–10:30,Easy
+,,01/03/2027,Sun,Rest,,,,—,
+14,Base,01/04/2027,Mon,Rest,,Easy Run,5,10:00–10:45,Upgrade = 5th run. Floor = rest + 20 min strength.
+,,01/05/2027,Tue,Quality,5,6 mi w/ 6x2 min @ 5K effort,,See Paces tab,5 mi w/ 5x2 min @ 5K effort
+,,01/06/2027,Wed,Easy Run,5.5,,,10:00–10:45,"Talk test. Govern by pace, not HR."
+,,01/07/2027,Thu,Rest / Strength,,,,—,"20 min strength: bridges, calf raises, step-downs, lunges"
+,,01/08/2027,Fri,Easy + Strides,3.5,,,10:00–10:45,6x20s strides at the end
+,,01/09/2027,Sat,Long Run,12,,,10:00–10:30,Easy
+,,01/10/2027,Sun,Rest,,,,—,
+15,Base,01/11/2027,Mon,Rest,,Easy Run,4,10:00–10:45,Upgrade = 5th run. Floor = rest + 20 min strength.
+,,01/12/2027,Tue,Easy + Strides,4,,,See Paces tab,4 easy + strides
+,,01/13/2027,Wed,Easy Run,7,,,10:00–10:45,"Talk test. Govern by pace, not HR."
+,,01/14/2027,Thu,Rest / Strength,,,,—,"20 min strength: bridges, calf raises, step-downs, lunges"
+,,01/15/2027,Fri,Easy + Strides,5,,,10:00–10:45,6x20s strides at the end
+,,01/16/2027,Sat,CHECKPOINT: 5K time trial,6,,,Race effort,1 mi WU + 5K all-out + 1 mi CD. See Checkpoints tab.
+,,01/17/2027,Sun,Rest,,,,—,
+16,Build,01/18/2027,Mon,Rest,,Easy Run,5,9:45–10:30,Upgrade = 5th run. Floor = rest + 20 min strength.
+,,01/19/2027,Tue,Quality,5,7 mi: 6x800 @ I pace,,See Paces tab,5 mi w/ 2x10 min @ T
+,,01/20/2027,Wed,Easy Run,5.5,,,9:45–10:30,"Talk test. Govern by pace, not HR."
+,,01/21/2027,Thu,Rest / Strength,,,,—,"20 min strength: bridges, calf raises, step-downs, lunges"
+,,01/22/2027,Fri,Easy + Strides,3.5,,,9:45–10:30,6x20s strides at the end
+,,01/23/2027,Sat,Long Run,13,,,Easy + MP segments,Easy
+,,01/24/2027,Sun,Rest,,,,—,
+17,Build,01/25/2027,Mon,Rest,,Easy Run,5,9:45–10:30,Upgrade = 5th run. Floor = rest + 20 min strength.
+,,01/26/2027,Tue,Quality,5,7 mi: 3x1.5 mi @ T,,See Paces tab,5 mi w/ 3 @ MP
+,,01/27/2027,Wed,Easy Run,6,,,9:45–10:30,"Talk test. Govern by pace, not HR."
+,,01/28/2027,Thu,Rest / Strength,,,,—,"20 min strength: bridges, calf raises, step-downs, lunges"
+,,01/29/2027,Fri,Easy + Strides,4,,,9:45–10:30,6x20s strides at the end
+,,01/30/2027,Sat,Long Run,14,,,Easy + MP segments,Easy
+,,01/31/2027,Sun,Rest,,,,—,
+18,Build,02/01/2027,Mon,Rest,,Easy Run,5,9:45–10:30,Upgrade = 5th run. Floor = rest + 20 min strength.
+,,02/02/2027,Tue,Quality,6,7 mi: 5x1K @ I pace,,See Paces tab,6 mi w/ 20 min @ T
+,,02/03/2027,Wed,Easy Run,6,,,9:45–10:30,"Talk test. Govern by pace, not HR."
+,,02/04/2027,Thu,Rest / Strength,,,,—,"20 min strength: bridges, calf raises, step-downs, lunges"
+,,02/05/2027,Fri,Easy + Strides,4,,,9:45–10:30,6x20s strides at the end
+,,02/06/2027,Sat,Long Run,15,,,Easy + MP segments,Last 3 @ MP
+,,02/07/2027,Sun,Rest,,,,—,
+19,Build,02/08/2027,Mon,Rest,,Easy Run,4,9:45–10:30,Upgrade = 5th run. Floor = rest + 20 min strength.
+,,02/09/2027,Tue,Easy + Strides,5,6 mi w/ 4 @ MP,,See Paces tab,5 easy + strides
+,,02/10/2027,Wed,Easy Run,5,,,9:45–10:30,Cutback
+,,02/11/2027,Thu,Rest / Strength,,,,—,"20 min strength: bridges, calf raises, step-downs, lunges"
+,,02/12/2027,Fri,Easy + Strides,3,,,9:45–10:30,6x20s strides at the end
+,,02/13/2027,Sat,Long Run,12,,,Easy + MP segments,"Cutback, easy"
+,,02/14/2027,Sun,Rest,,,,—,
+20,Build,02/15/2027,Mon,Rest,,Easy Run,5,9:45–10:30,Upgrade = 5th run. Floor = rest + 20 min strength.
+,,02/16/2027,Tue,Quality,6,8 mi: 4x1 mi @ T,,See Paces tab,6 mi w/ 4 @ MP
+,,02/17/2027,Wed,Easy Run,6,,,9:45–10:30,"Talk test. Govern by pace, not HR."
+,,02/18/2027,Thu,Rest / Strength,,,,—,"20 min strength: bridges, calf raises, step-downs, lunges"
+,,02/19/2027,Fri,Easy + Strides,4,,,9:45–10:30,6x20s strides at the end
+,,02/20/2027,Sat,Long Run,16,,,Easy + MP segments,Downhill route (Provo Canyon / Wallsburg Rd)
+,,02/21/2027,Sun,Rest,,,,—,
+21,Build,02/22/2027,Mon,Rest,,Easy Run,6,9:45–10:30,Upgrade = 5th run. Floor = rest + 20 min strength.
+,,02/23/2027,Tue,Quality,6,8 mi: 6x1K @ I pace,,See Paces tab,6 mi w/ 3x1 mi @ T
+,,02/24/2027,Wed,Easy Run,6.5,,,9:45–10:30,"Talk test. Govern by pace, not HR."
+,,02/25/2027,Thu,Rest / Strength,,,,—,"20 min strength: bridges, calf raises, step-downs, lunges"
+,,02/26/2027,Fri,Easy + Strides,4.5,,,9:45–10:30,6x20s strides at the end
+,,02/27/2027,Sat,Long Run,17,,,Easy + MP segments,Middle 6 @ MP
+,,02/28/2027,Sun,Rest,,,,—,
+22,Build,03/01/2027,Mon,Rest,,Easy Run,6,9:45–10:30,Upgrade = 5th run. Floor = rest + 20 min strength.
+,,03/02/2027,Tue,Quality,6,9 mi: 2x3 mi @ T,,See Paces tab,6 mi w/ 25 min @ T
+,,03/03/2027,Wed,Easy Run,6.5,,,9:45–10:30,"Talk test. Govern by pace, not HR."
+,,03/04/2027,Thu,Rest / Strength,,,,—,"20 min strength: bridges, calf raises, step-downs, lunges"
+,,03/05/2027,Fri,Easy + Strides,4.5,,,9:45–10:30,6x20s strides at the end
+,,03/06/2027,Sat,Long Run,18,,,Easy + MP segments,"Easy, downhill last 5"
+,,03/07/2027,Sun,Rest,,,,—,
+23,Build,03/08/2027,Mon,Rest,,Easy Run,5,9:45–10:30,Upgrade = 5th run. Floor = rest + 20 min strength.
+,,03/09/2027,Tue,Easy + Strides,5,,,See Paces tab,5 easy + strides
+,,03/10/2027,Wed,Easy Run,8.5,,,9:45–10:30,"Talk test. Govern by pace, not HR."
+,,03/11/2027,Thu,Rest / Strength,,,,—,"20 min strength: bridges, calf raises, step-downs, lunges"
+,,03/12/2027,Fri,Easy + Strides,5.5,,,9:45–10:30,6x20s strides at the end
+,,03/13/2027,Sat,CHECKPOINT: 10K time trial,9,,,Race effort,1.5 mi WU + 10K hard + 1.5 mi CD. See Checkpoints tab.
+,,03/14/2027,Sun,Rest,,,,—,
+24,Peak,03/15/2027,Mon,Rest,,Easy Run,6,9:30–10:15,Upgrade = 5th run. Floor = rest + 20 min strength.
+,,03/16/2027,Tue,Quality,6,9 mi: 5x1 mi @ T,,See Paces tab,6 mi w/ 5 @ MP
+,,03/17/2027,Wed,Easy Run,7,,,9:30–10:15,"Talk test. Govern by pace, not HR."
+,,03/18/2027,Thu,Rest / Strength,,Easy 4 (Peak only),4,—,"20 min strength: bridges, calf raises, step-downs, lunges"
+,,03/19/2027,Fri,Easy + Strides,5,,,9:30–10:15,6x20s strides at the end
+,,03/20/2027,Sat,Long Run,18,,,Easy + MP segments,Last 8 @ MP
+,,03/21/2027,Sun,Rest,,,,—,
+25,Peak,03/22/2027,Mon,Rest,,Easy Run,6,9:30–10:15,Upgrade = 5th run. Floor = rest + 20 min strength.
+,,03/23/2027,Tue,Quality,6,9 mi: 8x800 @ I pace,,See Paces tab,6 mi w/ 2x2 mi @ T
+,,03/24/2027,Wed,Easy Run,7,,,9:30–10:15,"Talk test. Govern by pace, not HR."
+,,03/25/2027,Thu,Rest / Strength,,Easy 4 (Peak only),4,—,"20 min strength: bridges, calf raises, step-downs, lunges"
+,,03/26/2027,Fri,Easy + Strides,5,,,9:30–10:15,6x20s strides at the end
+,,03/27/2027,Sat,Long Run,20,,,Easy + MP segments,"Easy, first 20"
+,,03/28/2027,Sun,Rest,,,,—,
+26,Peak,03/29/2027,Mon,Rest,,Easy Run,7,9:30–10:15,Upgrade = 5th run. Floor = rest + 20 min strength.
+,,03/30/2027,Tue,Quality,7,10 mi: 3x2 mi @ T,,See Paces tab,7 mi w/ 30 min @ T
+,,03/31/2027,Wed,Easy Run,9.5,,,9:30–10:15,"Talk test. Govern by pace, not HR."
+,,04/01/2027,Thu,Rest / Strength,,Easy 4 (Peak only),4,—,"20 min strength: bridges, calf raises, step-downs, lunges"
+,,04/02/2027,Fri,Easy + Strides,6.5,,,9:30–10:15,6x20s strides at the end
+,,04/03/2027,Sat,Long Run,16,,,Easy + MP segments,10 @ MP
+,,04/04/2027,Sun,Rest,,,,—,
+27,Peak,04/05/2027,Mon,Rest,,Easy Run,5,9:30–10:15,Upgrade = 5th run. Floor = rest + 20 min strength.
+,,04/06/2027,Tue,Quality,5,7 mi w/ 5 @ MP,,See Paces tab,5 mi w/ 3 @ MP
+,,04/07/2027,Wed,Easy Run,7,,,9:30–10:15,Cutback
+,,04/08/2027,Thu,Rest / Strength,,Easy 4 (Peak only),4,—,"20 min strength: bridges, calf raises, step-downs, lunges"
+,,04/09/2027,Fri,Easy + Strides,5,,,9:30–10:15,6x20s strides at the end
+,,04/10/2027,Sat,Long Run,13,,,Easy + MP segments,"Cutback, easy"
+,,04/11/2027,Sun,Rest,,,,—,
+28,Peak,04/12/2027,Mon,Rest,,Easy Run,6,9:30–10:15,Upgrade = 5th run. Floor = rest + 20 min strength.
+,,04/13/2027,Tue,Quality,6,10 mi: 6x1K @ I + downhill finish,,See Paces tab,6 mi w/ 4x1 mi @ T
+,,04/14/2027,Wed,Easy Run,8.5,,,9:30–10:15,"Talk test. Govern by pace, not HR."
+,,04/15/2027,Thu,Rest / Strength,,Easy 4 (Peak only),4,—,"20 min strength: bridges, calf raises, step-downs, lunges"
+,,04/16/2027,Fri,Easy + Strides,5.5,,,9:30–10:15,6x20s strides at the end
+,,04/17/2027,Sat,Long Run,18,,,Easy + MP segments,"Downhill course sim, last 6 steady"
+,,04/18/2027,Sun,Rest,,,,—,
+29,Peak,04/19/2027,Mon,Rest,,Easy Run,5,9:30–10:15,Upgrade = 5th run. Floor = rest + 20 min strength.
+,,04/20/2027,Tue,Quality,5,7 mi: 3x1 mi @ half pace,,See Paces tab,5 mi w/ 3x1 mi @ half effort
+,,04/21/2027,Wed,Easy Run,7,,,9:30–10:15,"Talk test. Govern by pace, not HR."
+,,04/22/2027,Thu,Rest / Strength,,Easy 4 (Peak only),4,—,"20 min strength: bridges, calf raises, step-downs, lunges"
+,,04/23/2027,Fri,Easy + Strides,5,,,9:30–10:15,6x20s strides at the end
+,,04/24/2027,Sat,CHECKPOINT: SLC HALF MARATHON,13.1,,,Race effort,Race it. Result sets your UVM goal (Checkpoints tab).
+,,04/25/2027,Sun,Rest,,,,—,
+30,Peak,04/26/2027,Mon,Rest,,Easy Run,5,9:30–10:15,Upgrade = 5th run. Floor = rest + 20 min strength.
+,,04/27/2027,Tue,Easy + Strides,5,,,See Paces tab,5 easy (no workout)
+,,04/28/2027,Wed,Easy Run,8,,,9:30–10:15,"Talk test. Govern by pace, not HR."
+,,04/29/2027,Thu,Rest / Strength,,Easy 4 (Peak only),4,—,"20 min strength: bridges, calf raises, step-downs, lunges"
+,,04/30/2027,Fri,Easy + Strides,5,,,9:30–10:15,6x20s strides at the end
+,,05/01/2027,Sat,Long Run,14,,,Easy + MP segments,"Easy, recovering from half"
+,,05/02/2027,Sun,Rest,,,,—,
+31,Peak,05/03/2027,Mon,Rest,,Easy Run,7,9:30–10:15,Upgrade = 5th run. Floor = rest + 20 min strength.
+,,05/04/2027,Tue,Quality,7,Upgrade LR to 22 + 10 mi: 4x1.5 @ T,,See Paces tab,7 mi w/ 2x2 mi @ T
+,,05/05/2027,Wed,Easy Run,8,,,9:30–10:15,"Talk test. Govern by pace, not HR."
+,,05/06/2027,Thu,Rest / Strength,,Easy 4 (Peak only),4,—,"20 min strength: bridges, calf raises, step-downs, lunges"
+,,05/07/2027,Fri,Easy + Strides,5,,,9:30–10:15,6x20s strides at the end
+,,05/08/2027,Sat,Long Run,20,+2 mi (Wk 31 only),2,Easy + MP segments,"PEAK: UVM course from Wallsburg, easy"
+,,05/09/2027,Sun,Rest,,,,—,
+32,Peak,05/10/2027,Mon,Rest,,Easy Run,6,9:30–10:15,Upgrade = 5th run. Floor = rest + 20 min strength.
+,,05/11/2027,Tue,Quality,7,9 mi: 6x1K @ I pace,,See Paces tab,7 mi w/ 4x1K @ I
+,,05/12/2027,Wed,Easy Run,9,,,9:30–10:15,"Talk test. Govern by pace, not HR."
+,,05/13/2027,Thu,Rest / Strength,,Easy 4 (Peak only),4,—,"20 min strength: bridges, calf raises, step-downs, lunges"
+,,05/14/2027,Fri,Easy + Strides,6,,,9:30–10:15,6x20s strides at the end
+,,05/15/2027,Sat,Long Run,16,,,Easy + MP segments,"DRESS REHEARSAL: 10 @ goal MP, race gear + fueling"
+,,05/16/2027,Sun,Rest,,,,—,
+33,Taper,05/17/2027,Mon,Rest,,Easy Run,5,9:30–10:15,Upgrade = 5th run. Floor = rest + 20 min strength.
+,,05/18/2027,Tue,Quality,6,8 mi: 5x1K @ I,,See Paces tab,6 mi w/ 4x1K @ I
+,,05/19/2027,Wed,Easy Run,8,,,9:30–10:15,"Talk test. Govern by pace, not HR."
+,,05/20/2027,Thu,Rest / Strength,,,,—,"20 min strength: bridges, calf raises, step-downs, lunges"
+,,05/21/2027,Fri,Easy + Strides,5,,,9:30–10:15,6x20s strides at the end
+,,05/22/2027,Sat,Long Run,13,,,Easy + MP segments,6 @ goal MP
+,,05/23/2027,Sun,Rest,,,,—,
+34,Taper,05/24/2027,Mon,Rest,,Easy Run,4,9:30–10:15,Upgrade = 5th run. Floor = rest + 20 min strength.
+,,05/25/2027,Tue,Quality,5,6 mi: 4x1 mi @ MP,,See Paces tab,5 mi w/ 3 @ goal MP
+,,05/26/2027,Wed,Easy Run,5.5,,,9:30–10:15,"Talk test. Govern by pace, not HR."
+,,05/27/2027,Thu,Rest / Strength,,,,—,"20 min strength: bridges, calf raises, step-downs, lunges"
+,,05/28/2027,Fri,Easy + Strides,3.5,,,9:30–10:15,6x20s strides at the end
+,,05/29/2027,Sat,Long Run,10,,,Easy + MP segments,4 @ goal MP
+,,05/30/2027,Sun,Rest,,,,—,
+35,Taper,05/31/2027,Mon,Rest,,Easy Run,3,—,
+,,06/01/2027,Tue,Quality,4,,,Goal MP,4 mi w/ 2 @ goal MP
+,,06/02/2027,Wed,Easy Run,3,,,10:00,Carb-load starts Thu
+,,06/03/2027,Thu,Rest,,,,—,Lay out gear. Bib pickup Fri.
+,,06/04/2027,Fri,Shakeout,2,,,Very easy,"2 mi + 4 strides. Early dinner, early bed."
+,,06/05/2027,Sat,RACE DAY: UTAH VALLEY MARATHON,26.2,,,Goal pace,"6:00 AM start, Wallsburg → Provo"
+,,06/06/2027,Sun,Rest,,,,—,Celebrate.`;
+// Verbatim copy of plan/Weekly_Summary.csv (official weekly floor / upgrade targets).
+const WEEKLY_CSV = `Week,Phase,Week of,Floor mi,Floor + Upgrades,Long Run,Tue (floor),Tue (upgrade),Saturday
+1,Recovery,10/05/2026,0,0,,Walk only,—,Recover from St. George
+2,Recovery,10/12/2026,9,9,3,Easy 3,—,3 easy runs
+3,Base,10/19/2026,12,15,5,3 easy + 4x20s strides,Add 1 mi + 6 strides,LR 5: Easy
+4,Base,10/26/2026,14,17,6,3 easy + 6 strides,4 mi w/ 8x30s fartlek surges,LR 6: Easy
+5,Base,11/02/2026,16,20,7,4 easy + 6 strides,5 mi w/ 6x10s hill sprints,LR 7: Easy
+6,Base,11/09/2026,13,16,5,3 easy + strides,—,LR 5: Cutback week
+7,Base,11/16/2026,18,22,8,4 mi w/ 6x30s pickups,5 mi w/ 10x(1 on / 1 off),LR 8: Easy
+8,Base,11/23/2026,16,19,7,4 easy + strides,4 mi w/ 8x10s hill sprints,LR 7: Easy
+9,Base,11/30/2026,20,24,9,4 mi w/ 2x5 min @ tempo,5 mi w/ 3x5 min @ tempo,LR 9: Easy
+10,Base,12/07/2026,22,26,10,5 mi w/ 6x30s hills,6 mi w/ 8x45s hills,LR 10: Easy
+11,Base,12/14/2026,18,21,8,4 easy + strides,—,LR 8: Cutback week
+12,Base,12/21/2026,20,24,10,4 mi w/ 3x5 min @ tempo,5 mi w/ 4x5 min @ tempo,LR 10: Easy
+13,Base,12/28/2026,24,28,11,5 mi w/ 15 min @ tempo,6 mi w/ 20 min @ tempo,LR 11: Easy
+14,Base,01/04/2027,26,31,12,5 mi w/ 5x2 min @ 5K effort,6 mi w/ 6x2 min @ 5K effort,LR 12: Easy
+15,Base,01/11/2027,22,26,6,4 easy + strides,—,CHECKPOINT: 5K time trial
+16,Build,01/18/2027,27,32,13,5 mi w/ 2x10 min @ T,7 mi: 6x800 @ I pace,LR 13: Easy
+17,Build,01/25/2027,29,34,14,5 mi w/ 3 @ MP,7 mi: 3x1.5 mi @ T,LR 14: Easy
+18,Build,02/01/2027,31,36,15,6 mi w/ 20 min @ T,7 mi: 5x1K @ I pace,LR 15: Last 3 @ MP
+19,Build,02/08/2027,25,29,12,5 easy + strides,6 mi w/ 4 @ MP,"LR 12: Cutback, easy"
+20,Build,02/15/2027,32,37,16,6 mi w/ 4 @ MP,8 mi: 4x1 mi @ T,LR 16: Downhill route (Provo Canyon / Wallsburg Rd)
+21,Build,02/22/2027,34,40,17,6 mi w/ 3x1 mi @ T,8 mi: 6x1K @ I pace,LR 17: Middle 6 @ MP
+22,Build,03/01/2027,35,41,18,6 mi w/ 25 min @ T,9 mi: 2x3 mi @ T,"LR 18: Easy, downhill last 5"
+23,Build,03/08/2027,28,33,9,5 easy + strides,—,CHECKPOINT: 10K time trial
+24,Peak,03/15/2027,36,46,18,6 mi w/ 5 @ MP,9 mi: 5x1 mi @ T,LR 18: Last 8 @ MP
+25,Peak,03/22/2027,38,48,20,6 mi w/ 2x2 mi @ T,9 mi: 8x800 @ I pace,"LR 20: Easy, first 20"
+26,Peak,03/29/2027,39,50,16,7 mi w/ 30 min @ T,10 mi: 3x2 mi @ T,LR 16: 10 @ MP
+27,Peak,04/05/2027,30,39,13,5 mi w/ 3 @ MP,7 mi w/ 5 @ MP,"LR 13: Cutback, easy"
+28,Peak,04/12/2027,38,48,18,6 mi w/ 4x1 mi @ T,10 mi: 6x1K @ I + downhill finish,"LR 18: Downhill course sim, last 6 steady"
+29,Peak,04/19/2027,30,39,13.1,5 mi w/ 3x1 mi @ half effort,7 mi: 3x1 mi @ half pace,CHECKPOINT: SLC HALF MARATHON
+30,Peak,04/26/2027,32,41,14,5 easy (no workout),—,"LR 14: Easy, recovering from half"
+31,Peak,05/03/2027,40,53,20,7 mi w/ 2x2 mi @ T,Upgrade LR to 22 + 10 mi: 4x1.5 @ T,"LR 20: PEAK: UVM course from Wallsburg, easy"
+32,Peak,05/10/2027,38,48,16,7 mi w/ 4x1K @ I,9 mi: 6x1K @ I pace,"LR 16: DRESS REHEARSAL: 10 @ goal MP, race gear + fueling"
+33,Taper,05/17/2027,32,37,13,6 mi w/ 4x1K @ I,8 mi: 5x1K @ I,LR 13: 6 @ goal MP
+34,Taper,05/24/2027,24,28,10,5 mi w/ 3 @ goal MP,6 mi: 4x1 mi @ MP,LR 10: 4 @ goal MP
+35,Taper,05/31/2027,35.2,38.2,26.2,4 w/ 2 @ MP,—,RACE Sat Jun 5`;
+
+const PLAN_START = '2026-10-05', PLAN_END = '2027-06-06', PLAN_WEEKS = 35;
+const RACE = {
+  name: 'Utah Valley Marathon', short: 'UVM', iso: '2027-06-05', hour: 6, startTxt: '6:00 AM',
+  route: 'Wallsburg → Provo', course: 'Wallsburg → Deer Creek Reservoir → Provo Canyon → downtown Provo',
+  drop: 1444, mi: 26.2
+};
+// Last race / current marathon PR (from the runner synopsis).
+const LAST_RACE = { name: 'St. George Marathon', iso: '2026-10-03', time: '4:37:05', sec: 16625, pace: '10:28' };
+
+// From plan/Paces_&_Checkpoints.csv
+const TRACKS = {
+  '4:00': { id: '4:00', goalSec: 14400, easy: '10:00–10:45', lr: '10:00–10:30', mp: '9:09', t: '8:30–8:40', i: '7:50–8:05', half: 6900, when: 'Start here. Every floor workout.' },
+  '3:45': { id: '3:45', goalSec: 13500, easy: '9:45–10:30', lr: '9:45–10:15', mp: '8:35', t: '8:00–8:10', i: '7:20–7:35', half: 6480, when: 'If checkpoints say so.' },
+  '3:30': { id: '3:30', goalSec: 12600, easy: '9:15–10:00', lr: '9:30–10:15', mp: '8:00', t: '7:35–7:45', i: '6:55–7:10', half: 6120, when: 'Only if checkpoints say so.' }
+};
+const TRACK_IDS = ['4:00', '3:45', '3:30'];
+const BEHIND = { goal: '4:00–4:10', pace: '~9:15–9:30', note: 'Run it by feel. Still a ~30+ min PR.' };
+const CHECKPOINTS = [
+  { id: '5k', name: '5K time trial', short: '5K', iso: '2027-01-16', week: 15, mi: 3.10686, hms: false,
+    cuts: { '3:30': 1410, '3:45': 1500, '4:00': 1620 }, how: '1 mi WU + 5K all-out + 1 mi CD', note: 'Early read; fitness still building.' },
+  { id: '10k', name: '10K time trial', short: '10K', iso: '2027-03-13', week: 23, mi: 6.21371, hms: false,
+    cuts: { '3:30': 2820, '3:45': 3120, '4:00': 3360 }, how: '1.5 mi WU + 10K hard + 1.5 mi CD', note: '' },
+  { id: 'half', name: 'SLC Half Marathon', short: 'SLC Half', iso: '2027-04-24', week: 29, mi: 13.1094, hms: true,
+    cuts: { '3:30': 6120, '3:45': 6480, '4:00': 6900 }, how: 'Race it.', note: 'THIS sets your UVM race goal.' }
+];
+const CP = Object.fromEntries(CHECKPOINTS.map(c => [c.id, c]));
+
+const PHASES = [
+  { id: 'Recovery', w0: 1, w1: 2, css: '--ph-recovery', dates: 'Oct 5 – Oct 18', vol: '0 → 9 mi/wk', lr: 'Walk only, then 3×3 mi', focus: 'Let St. George heal. Walk week 1; three easy 3-milers in week 2.' },
+  { id: 'Base', w0: 3, w1: 15, css: '--ph-base', dates: 'Oct 19 – Jan 17', vol: '12 → 26 mi/wk', lr: 'Long run 5 → 12 mi', focus: 'Strides, hills, light tempo.' },
+  { id: 'Build', w0: 16, w1: 23, css: '--ph-build', dates: 'Jan 18 – Mar 14', vol: '27 → 35 mi/wk', lr: 'Long run 13 → 18 mi', focus: 'Tempo + MP work, downhill long runs.' },
+  { id: 'Peak', w0: 24, w1: 32, css: '--ph-peak', dates: 'Mar 15 – May 16', vol: '36 → 40 mi/wk', lr: 'Long run 18 – 20 mi', focus: 'MP long runs, course sim, dress rehearsal.' },
+  { id: 'Taper', w0: 33, w1: 35, css: '--ph-taper', dates: 'May 17 – Jun 5', vol: '32 → 24 → race', lr: '13 → 10 → 26.2', focus: 'Sharpen, rest, show up fresh.' }
+];
+const PHASE = Object.fromEntries(PHASES.map(p => [p.id, p]));
+const CUTBACK_WEEKS = [6, 11, 19, 27], CHECKPOINT_WEEKS = [15, 23, 29];
+
+const KEY_DAYS = {
+  '2027-01-16': { icon: '⏱️', label: '5K checkpoint', cp: '5k' },
+  '2027-03-13': { icon: '⏱️', label: '10K checkpoint', cp: '10k' },
+  '2027-03-27': { icon: '⛰️', label: 'First 20-miler' },
+  '2027-04-24': { icon: '🏅', label: 'SLC Half: sets your goal', cp: 'half' },
+  '2027-05-08': { icon: '🗺️', label: '20 mi on the UVM course (22 upgrade)' },
+  '2027-05-15': { icon: '🎽', label: 'Dress rehearsal: 16 w/ 10 @ goal MP' },
+  '2027-06-05': { icon: '🏁', label: 'RACE DAY: Utah Valley Marathon', race: true }
+};
+
+const RULES = {
+  floor: { i: '🧱', t: 'Floor every week', b: '4 runs: Tue workout, Wed easy, Fri easy + strides, Sat long run. Zero-run weeks are the #1 failure mode: the last block hit 38% of plan.' },
+  unlock: { i: '🔓', t: 'Earn the upgrades', b: 'Use upgrades regularly only after 4 straight floor weeks. Upgrade when last week’s floor got done, legs feel good and life allows.' },
+  tuesday: { i: '⚖️', t: 'Floor OR upgrade', b: 'Pick one Tuesday workout. Never both.' },
+  missed: { i: '↩️', t: 'Missed a day?', b: 'Skip it. Never make up missed miles or stack hard days.' },
+  busy: { i: '🗓️', t: 'Busy week?', b: 'Floor only. That is a successful week.' },
+  easy: { i: '🗣️', t: 'Talk test', b: 'Easy runs are governed by pace and the talk test, not HR. Yours runs high.' },
+  strength: { i: '🏋️', t: 'Strength 2×/week', b: '20 min, every week: bridges, calf raises, step-downs, lunges. Required for the 1,444 ft drop.' },
+  monthu: { i: '➕', t: 'Mon/Thu upgrades', b: 'Easy miles only. The Thursday upgrade is Peak phase only.' },
+  winterTue: { i: '❄️', t: 'Icy roads?', b: 'Do Tuesday workouts on a treadmill at 1% incline.' },
+  winterSat: { i: '❄️', t: 'Winter long run', b: 'Run it midday Saturday. Storm in the forecast? Move it to Friday.' },
+  winterFri: { i: '🌨️', t: 'Storm coming Saturday?', b: 'Then today becomes long-run day.' },
+  sunday: { i: '😴', t: 'Sunday = rest', b: 'Always.' },
+  pain: { i: '🩹', t: 'Pain rule', b: 'Sharp or localized pain = stop, 2 days off, reassess.' },
+  behind: { i: '🧭', t: 'Behind 4:00 pace', b: 'Keep training on 4:00 paces. If the half agrees, run UVM by feel.' }
+};
+
+const KIND = {
+  walk: { icon: '🚶', label: 'Rest / walk' },
+  rest: { icon: '😴', label: 'Rest' },
+  strength: { icon: '🏋️', label: 'Rest + strength' },
+  easy: { icon: '🏃', label: 'Easy run' },
+  strides: { icon: '💨', label: 'Easy + strides' },
+  quality: { icon: '⚡', label: 'Quality' },
+  long: { icon: '🛣️', label: 'Long run' },
+  checkpoint: { icon: '⏱️', label: 'Checkpoint' },
+  shakeout: { icon: '👟', label: 'Shakeout' },
+  race: { icon: '🏁', label: 'Race day' }
+};
+
+const QUOTES = [
+  'The floor is the plan. Everything else is a bonus.',
+  'Four runs. Every week. That’s the whole secret.',
+  'A mile is always better than no miles.',
+  'Run the mile you’re in.',
+  'Slow progress is still progress.',
+  'Busy week? Floor only. That is a successful week.',
+  'Trust the process. Trust the training.',
+  'You don’t have to be fast. You just have to go.',
+  'The only bad run is the one that didn’t happen.',
+  'Consistency beats intensity. Every single time.',
+  'Lace up. Show up. Never give up.',
+  'It does not matter how slowly you go, as long as you do not stop.',
+  'Easy days easy, so hard days can be hard.',
+  'The body achieves what the mind believes.',
+  'Wallsburg to Provo is 1,444 feet downhill. Earn the drop.',
+  'Every rep of strength work is a quad saved at mile 22.',
+  'Missed a day? Let it go. The next run is the one that counts.',
+  'Upgrades are earned. Floors are non-negotiable.',
+  'You are tougher than you think you are, and you can do more than you think you can.',
+  'Dead last is greater than did not finish, which trumps did not start.',
+  'One run can change your day. Many runs can change your life.',
+  'Some days you eat the run. Some days the run eats you.',
+  'The starting line is the finish line for your excuses.',
+  'Today I will do what others won’t, so tomorrow I can do what others can’t.',
+  'Every accomplishment starts with the decision to try.',
+  'If you run, you’re a runner.',
+  'Provo is waiting for you at the finish line.'
+];
+
+// St. George 2026 block, kept as an archived past race (old app's plan data, unchanged).
+// [week, phase, 'MM/DD/YYYY', day, workout, miles, minutes, pace, weeklyTotal, notes]
+const STG_PLAN_RAW = [
 [1,"Base Building","03/23/2026","Mon","Easy Run",1.5,14,"Conversational",7.0,"Ease in \u2014 steady effort"],
 [1,"Base Building","03/24/2026","Tue","Rest",0,0,"-",0,"Recovery day \u2014 walk/stretch OK"],
 [1,"Base Building","03/25/2026","Wed","Easy Run",1.5,14,"Conversational",0,"Same distance, find your rhythm"],
@@ -394,662 +1027,1279 @@ const PLAN_RAW = [
 [28,"Race Week","10/03/2026","Sat","RACE DAY",26.2,0,"10:45 \u2192 hold \u2022 HR 165 max",0,"Target window 4:40\u20135:00. Finish healthy \u2014 see Race Plan below."],
 [28,"Race Week","10/04/2026","Sun","Rest",0,0,"-",0,"Rest / celebrate \u2014 walk. Eat everything."]
 ];
+const STG = { name: 'St. George Marathon', year: 2026, start: '2026-03-23', end: '2026-10-04', race: '2026-10-03' };
 
-// Race Plan (from the "Race Plan" tab of the final 3-week schedule)
-const RACE_PLAN=[
-["\u{1F3AF} Goal","Primary: finish healthy. Target window 4:40\u20135:00. Stretch: sub-4:40 if the downhill is kind. Do NOT chase a number on a thin base."],
-["Mi 0\u20137 (Central \u2192 Veyo)","10:45\u201311:00. Feels absurdly easy. That is the point. Rolling terrain, mostly down. Bank NOTHING \u2014 banked time here is borrowed from mile 22."],
-["Mi 7\u20138 (Veyo hill)","The climb. Drop to 12:00+ or power-walk it. HR must stay under 165. Nobody's race is won here; plenty are lost."],
-["Mi 8\u201313 (rolling)","10:45. Settle. Gel at mile 9."],
-["Mi 13\u201320 (the drop into Snow Canyon)","Steep, sustained downhill. Shorten stride, quick feet, land under your hips \u2014 don't brake with your quads. 10:15\u201310:30 will feel free. Do not let it go under 10:00."],
-["Mi 20\u201326.2 (Bluff St into town)","This is where the low mileage shows up. Expect 11:30\u201312:30. Planned 30-sec walks at every aid station from mile 20. Mantra: 'just to the next station.'"],
-["\u{1F36C} Fueling","Gel every 45 min starting at 0:45 (\u2248 mi 4, 8, 12, 16, 20, 23). Practice EXACTLY this on Sep 19 & 26. Sip water every aid station; electrolytes every other. Do not experiment on race day."],
-["\u{1F6B6} Walk breaks","Pre-planned, not desperate. Veyo hill + every aid station from mile 20. A 30-sec walk costs ~15 sec net and saves your race."],
-["\u2764\ufe0f Heart rate","Cap 165 through mile 20. Your long runs sat at 160\u2013169 \u2014 anything above 170 before mile 20 means you're going too fast."],
-["\u{1F319} Night before","Gear laid out. Bib pinned. Gels taped/pocketed. Body glide everywhere. Bed by 9. You won't sleep well \u2014 that's fine, Thursday's sleep is the one that counts."],
-["\u{1F305} Race morning","Up ~3:15 AM for buses. Coffee + bagel/banana 2 hrs before start. Throwaway layers \u2014 it's 40\u00b0F at the start, 80\u00b0F+ at the finish."],
-["\u26a0\ufe0f What could go wrong","Quad shredding from the descent (mitigated by Sep 19 downhill sim + short stride). Cramping (electrolytes + not going out fast). GI (nothing new, practiced fueling). Going out too fast on the early downhill (the #1 St. George mistake)."],
-["\u{1F4AA} The honest truth","You ran 38% of planned volume since June. But you banked a 20-miler at 10:40 with HR 161 \u2014 controlled, not blown up \u2014 plus three 13-milers and a 14. You can finish this. Miles 20\u201326 will hurt more than they would with a full base. That's the trade. Respect the pacing plan and you'll cross the line."]
-];
+// ===== 2. UTILITIES =====
+const $ = (s, r = document) => r.querySelector(s);
+const pad2 = n => String(n).padStart(2, '0');
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+const DOW = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+const DOW_LONG = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+const MONTH_IDX = { jan: 1, feb: 2, mar: 3, apr: 4, may: 5, jun: 6, jul: 7, aug: 8, sep: 9, sept: 9, oct: 10, nov: 11, dec: 12,
+  january: 1, february: 2, march: 3, april: 4, june: 6, july: 7, august: 8, september: 9, october: 10, november: 11, december: 12 };
 
-const EMOJI={"Easy Run":"\u{1F3C3}","Long Run":"\u{1F6E3}\uFE0F","Tempo Run":"\u26A1","Intervals":"\u{1F525}","Recovery Run":"\u{1F6B6}","Cross-train":"\u{1F6B4}","Rest":"\u{1F634}","Shakeout":"\u{1F45F}","RACE DAY":"\u{1F3C6}","Easy Run (Travel)":"\u{2708}\uFE0F","Rest (Travel)":"\u{1F3D6}\uFE0F"};
-const PHASE_C={"Base Building":{bg:"#e8f5e9",accent:"#43a047"},"Bridge":{bg:"#e3f2fd",accent:"#1e88e5"},"Marathon Training":{bg:"#fff3e0",accent:"#fb8c00"},"Taper":{bg:"#f3e5f5",accent:"#8e24aa"},"Race Week":{bg:"#ffebee",accent:"#e53935"}};
-const RACE=new Date(2026,9,3);
-const MONTHS=["January","February","March","April","May","June","July","August","September","October","November","December"];
-const DAYS=["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
-const QUOTES=[
-"The miracle isn't that I finished. The miracle is that I had the courage to start.",
-"Every mile is a gift. Unwrap it.",
-"You don't have to be fast. You just have to go.",
-"Run the mile you're in.",
-"The body achieves what the mind believes.",
-"One run can change your day. Many runs can change your life.",
-"Slow progress is still progress.",
-"Trust the process. Trust the training.",
-"Pain is temporary. Pride is forever.",
-"Running is the greatest metaphor for life, because you get out of it what you put into it.",
-"Today I will do what others won't, so tomorrow I can do what others can't.",
-"The real purpose of running isn't to win a race. It's to test the limits of the human heart.",
-"Don't dream of winning. Train for it.",
-"Your legs are not giving out. Your head is giving up.",
-"I run because if I didn't, I'd be sluggish and I'd feel bad about myself.",
-"A mile is always better than no miles.",
-"The starting line is the finish line for your excuses.",
-"Lace up. Show up. Never give up.",
-"It does not matter how slowly you go, as long as you do not stop.",
-"Strength doesn't come from what you can do. It comes from overcoming the things you once thought you couldn't.",
-"Some days you eat the run. Some days the run eats you.",
-"Dead last is greater than did not finish, which trumps did not start.",
-"The only bad run is the one that didn't happen.",
-"Running is a road to self-awareness and reliance. You can push yourself to extremes and learn the harsh reality of your physical and mental limitations.",
-"I often hear someone say I'm not a runner. There is some distant belief that you have to go fast or far to be a runner. I say, if you run, you're a runner.",
-"The obsession with running is really an obsession with the potential for more and more life.",
-"Run when you can, walk if you have to, crawl if you must; just never give up.",
-"Every accomplishment starts with the decision to try.",
-"You are tougher than you think you are, and you can do more than you think you can.",
-"The difference between a jogger and a runner is an entry form.",
-"St. George is waiting for you at the finish line."
-];
-
-// ===== PARSE =====
-const PLAN=PLAN_RAW.map(r=>({week:r[0],phase:r[1],date:r[2],day:r[3],workout:r[4],distance:r[5],time:r[6],pace:r[7],weeklyTotal:r[8],notes:r[9]}));
-const BY_DATE={};
-PLAN.forEach(p=>{BY_DATE[toISO(p.date)]=p});
-const ALL_DATES=PLAN.map(p=>toISO(p.date));
-
-function toISO(d){const[m,dd,y]=d.split('/');return `${y}-${m.padStart(2,'0')}-${dd.padStart(2,'0')}`}
-function fromISO(iso){const[y,m,d]=iso.split('-');return new Date(+y,+m-1,+d)}
-function todayISO(){const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
-function fmtDate(iso){const d=fromISO(iso);return `${MONTHS[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`}
-function fmtPace(min,mi){if(!mi||!min)return'--';const p=min/mi;const m=Math.floor(p);const s=Math.round((p-m)*60);return `${m}:${String(s).padStart(2,'0')} /mi`}
-function fmtTime(min){if(!min)return'0m';const h=Math.floor(min/60);const m=Math.round(min%60);return h?`${h}h ${m}m`:`${m}m`}
-function daysUntil(target){const now=new Date();now.setHours(0,0,0,0);return Math.ceil((target-now)/(1000*60*60*24))}
-
-// ===== STORAGE =====
-function loadLog(){try{return JSON.parse(localStorage.getItem('stg-marathon-log'))||{entries:{}}}catch(e){return{entries:{}}}}
-function saveLog(log){try{localStorage.setItem('stg-marathon-log',JSON.stringify(log))}catch(e){}}
-function getEntry(iso){return loadLog().entries[iso]||null}
-function setEntry(iso,data){const log=loadLog();log.entries[iso]=data;saveLog(log)}
-
-// ===== STATS =====
-function calcStats(){
-  const log=loadLog().entries;
-  let totalMi=0,totalMin=0,done=0,streak=0,bestStreak=0,tempStreak=0;
-  const weeklyActual=Array(28).fill(0);
-  ALL_DATES.forEach(iso=>{
-    const e=log[iso];const p=BY_DATE[iso];
-    if(e&&e.done){
-      done++;totalMi+=e.actualDist||0;totalMin+=e.actualTime||0;
-      if(p)weeklyActual[p.week-1]+=(e.actualDist||0);
-    }
-  });
-  // streak from today backwards
-  const ti=todayISO();
-  for(let i=ALL_DATES.indexOf(ti);i>=0;i--){
-    const e=log[ALL_DATES[i]];
-    if(e&&e.done)streak++;else break;
+function isoOf(d) { return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`; }
+function dateOf(iso) { const [y, m, d] = iso.split('-').map(Number); return new Date(y, m - 1, d, 12); }
+function todayISO() { return isoOf(new Date()); }
+function addDays(iso, n) { const d = dateOf(iso); d.setDate(d.getDate() + n); return isoOf(d); }
+function daysBetween(a, b) { return Math.round((dateOf(b) - dateOf(a)) / 864e5); }
+function dowOf(iso) { return (dateOf(iso).getDay() + 6) % 7; } // Mon = 0
+function mdyToISO(s) { const [m, d, y] = s.trim().split('/'); return `${y}-${pad2(m)}-${pad2(d)}`; }
+function fmtShort(iso) { const d = dateOf(iso); return `${MON[d.getMonth()]} ${d.getDate()}`; }
+function fmtDayShort(iso) { return `${DOW[dowOf(iso)]} ${fmtShort(iso)}`; }
+function fmtLong(iso) { const d = dateOf(iso); return `${DOW_LONG[dowOf(iso)]}, ${MONTHS[d.getMonth()]} ${d.getDate()}`; }
+function fmtFull(iso) { const d = dateOf(iso); return `${MONTHS[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`; }
+function fmtRange(a, b) { const da = dateOf(a), db = dateOf(b); return da.getMonth() === db.getMonth() ? `${MON[da.getMonth()]} ${da.getDate()}–${db.getDate()}` : `${fmtShort(a)} – ${fmtShort(b)}`; }
+function fmtMi(x) { return String(Math.round((+x || 0) * 10) / 10); }
+function fmtMi2(x) { const r = Math.round((+x || 0) * 100) / 100; return String(r); }
+function fmtInt(x) { return Math.round(x).toLocaleString('en-US'); }
+function fmtDur(sec) {
+  sec = Math.round(sec || 0); const h = Math.floor(sec / 3600), m = Math.floor(sec % 3600 / 60), s = sec % 60;
+  return h ? `${h}:${pad2(m)}:${pad2(s)}` : `${m}:${pad2(s)}`;
+}
+function fmtHM(sec) { sec = Math.round(sec || 0); const h = Math.floor(sec / 3600), m = Math.round(sec % 3600 / 60); return h ? `${h}h ${m}m` : `${m}m`; }
+function fmtPace(secPerMi) { if (!isFinite(secPerMi) || secPerMi <= 0) return '–'; const s = Math.round(secPerMi); return `${Math.floor(s / 60)}:${pad2(s % 60)}`; }
+function plural(n, w) { return `${n} ${w}${n === 1 ? '' : 's'}`; }
+// "45" -> 45 min, "45:30" -> mm:ss, "1:45:30" -> h:mm:ss. With hm=true, "1:45" means 1 h 45 min.
+function parseDur(str, hm) {
+  if (str == null) return NaN; str = String(str).trim(); if (!str) return NaN;
+  if (/^\d+(\.\d+)?$/.test(str)) return parseFloat(str) * 60;
+  const p = str.split(':'); if (p.some(x => !/^\d+(\.\d+)?$/.test(x))) return NaN;
+  const n = p.map(Number);
+  if (n.length === 2) return hm ? n[0] * 3600 + n[1] * 60 : n[0] * 60 + n[1];
+  if (n.length === 3) return n[0] * 3600 + n[1] * 60 + n[2];
+  return NaN;
+}
+// Run-log time: mm:ss unless that would be an impossible pace for the distance, then h:mm.
+function parseRunTime(str, mi) {
+  const a = parseDur(str, false);
+  if (isFinite(a) && mi > 0 && a / mi < 180 && /^\d+:\d+$/.test(String(str).trim())) {
+    const b = parseDur(str, true); if (b / mi >= 180 && b / mi < 1800) return b;
   }
-  // best streak
-  ALL_DATES.forEach(iso=>{
-    const e=log[iso];
-    if(e&&e.done){tempStreak++;if(tempStreak>bestStreak)bestStreak=tempStreak}
-    else tempStreak=0;
-  });
-  const activeDays=PLAN.filter(p=>p.workout!=='Rest').length;
-  return{totalMi,totalMin,done,activeDays,streak,bestStreak,weeklyActual,
-    avgPace:totalMi?totalMin/totalMi:0,pct:activeDays?(done/activeDays*100):0};
+  return a;
 }
-
-// ===== EXPORT =====
-function exportCSV(){
-  const log=loadLog().entries;
-  const rows=[['Date','Workout','Miles Ran','Time (min)','Score']];
-  ALL_DATES.forEach(iso=>{
-    const e=log[iso];
-    if(e&&e.done){
-      const p=BY_DATE[iso];
-      rows.push([
-        fmtDate(iso),
-        p?p.workout:'',
-        (e.actualDist||0).toFixed(1),
-        e.actualTime||0,
-        e.rating||''
-      ]);
-    }
-  });
-  if(rows.length===1){alert('No completed workouts to export yet! Log some runs first.');return}
-  const csv=rows.map(r=>r.map(v=>`"${v}"`).join(',')).join('\n');
-  const blob=new Blob([csv],{type:'text/csv'});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement('a');
-  a.href=url;a.download='st-george-marathon-log.csv';
-  document.body.appendChild(a);a.click();
-  document.body.removeChild(a);URL.revokeObjectURL(url);
+// Full CSV parser: quotes, escaped quotes, commas/newlines inside quotes, CRLF, BOM.
+function parseCSV(text) {
+  text = String(text).replace(/^﻿/, '');
+  const rows = []; let row = [], cur = '', q = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (q) {
+      if (c === '"') { if (text[i + 1] === '"') { cur += '"'; i++; } else q = false; } else cur += c;
+    } else if (c === '"') q = true;
+    else if (c === ',') { row.push(cur); cur = ''; }
+    else if (c === '\n') { row.push(cur); rows.push(row); row = []; cur = ''; }
+    else if (c !== '\r') cur += c;
+  }
+  if (cur !== '' || row.length) { row.push(cur); rows.push(row); }
+  return rows;
 }
+const csvCell = v => `"${String(v == null ? '' : v).replace(/"/g, '""')}"`;
 
-// ===== IMPORT =====
-const MONTH_IDX={jan:1,feb:2,mar:3,apr:4,may:5,jun:6,jul:7,aug:8,sep:9,oct:10,nov:11,dec:12,
-  january:1,february:2,march:3,april:4,june:6,july:7,august:8,september:9,october:10,november:11,december:12};
-// Robust single-line CSV parser (handles quoted fields w/ commas & escaped quotes)
-function parseCSVLine(line){
-  const out=[];let cur='',q=false;
-  for(let i=0;i<line.length;i++){
-    const c=line[i];
-    if(q){
-      if(c==='"'){if(line[i+1]==='"'){cur+='"';i++}else q=false}else cur+=c;
-    }else{
-      if(c==='"')q=true;else if(c===','){out.push(cur);cur=''}else cur+=c;
+// ===== 3. PLAN MODEL =====
+const DAYS = {}, DAY_LIST = [], WEEKS = [];
+function cleanText(s) {
+  return String(s || '').replace(/\s*See (Checkpoints|Paces) tab\.?/gi, '').replace(/\s*\((Checkpoints|Paces) tab\)/gi, '').trim();
+}
+function classifyDay(d) {
+  const t = d.floorTitle;
+  let kind;
+  if (/^RACE DAY/i.test(t)) kind = 'race';
+  else if (/^CHECKPOINT/i.test(t)) kind = 'checkpoint';
+  else if (/^Rest \/ walk/i.test(t)) kind = 'walk';
+  else if (/Strength/i.test(t)) kind = 'strength';
+  else if (/^Rest/i.test(t)) kind = /strength/i.test(d.notes) ? 'strength' : 'rest';
+  else if (/^Long Run/i.test(t)) kind = 'long';
+  else if (/^Quality/i.test(t)) kind = 'quality';
+  else if (/Strides/i.test(t)) kind = 'strides';
+  else if (/^Shakeout/i.test(t)) kind = 'shakeout';
+  else kind = 'easy';
+  d.kind = kind;
+  d.strength = kind === 'strength';
+  d.cp = kind === 'checkpoint' ? (/10K/i.test(t) ? '10k' : /5K/i.test(t) ? '5k' : 'half') : null;
+  const notes = cleanText(d.notes);
+  // On Tuesdays (quality / strides) and long-run / checkpoint days the Notes column *is* the workout.
+  const notesAreWorkout = (d.dow === 1 && (kind === 'quality' || kind === 'strides')) || kind === 'long' || kind === 'checkpoint';
+  let title = KIND[kind].label;
+  if (kind === 'checkpoint') title = t.replace(/^CHECKPOINT:\s*/i, '').replace(/SLC HALF MARATHON/i, 'SLC Half Marathon');
+  if (kind === 'race') title = RACE.name;
+  d.floor = { mi: d.floorMi, run: d.floorMi > 0, kind, title, desc: notesAreWorkout && notes !== 'Easy' ? notes : '' };
+  d.note = notesAreWorkout ? '' : notes;
+  d.up = null;
+  if (d.upTitle) {
+    if (d.dow === 0 || d.dow === 3) {
+      d.up = { mi: d.upMi, run: true, kind: 'easy', title: KIND.easy.label,
+        desc: d.dow === 3 ? `Easy ${fmtMi(d.upMi)}: Peak-phase bonus run` : `Easy ${fmtMi(d.upMi)}: the 5th run of the week` };
+    } else if (d.dow === 5) {
+      const total = d.floorMi + d.upMi;
+      d.up = { mi: total, run: true, kind: 'long', title: KIND.long.label, desc: `${d.floor.desc ? d.floor.desc + ' ' : ''}(upgrade: ${fmtMi(total)} mi)` };
+    } else {
+      let desc = d.upTitle, extra = '';
+      const lr = desc.match(/^Upgrade LR to (\d+(?:\.\d+)?) \+ (.*)$/i);
+      if (lr) { desc = lr[2]; extra = `Upgrade week: Saturday’s long run can go to ${lr[1]} mi.`; }
+      const add = desc.match(/^Add (\d+(?:\.\d+)?) mi/i);
+      const mm = desc.match(/(\d+(?:\.\d+)?)\s*mi\b/);
+      const mi = add ? d.floorMi + parseFloat(add[1]) : mm ? parseFloat(mm[1]) : d.floorMi;
+      d.up = { mi, run: true, kind: add ? 'strides' : 'quality', title: add ? KIND.strides.label : KIND.quality.label, desc, extra };
     }
   }
-  out.push(cur);return out;
 }
-// Parse "Jun 8, 2026, 12:58:57 PM" OR "March 23, 2026" -> "2026-06-08"
-function parseDateToISO(s){
-  if(!s)return null;s=s.trim().replace(/^"|"$/g,'');
-  const parts=s.split(',');
-  const md=parts[0].trim().split(/\s+/);
-  const mon=MONTH_IDX[(md[0]||'').toLowerCase()];
-  const day=parseInt(md[1],10);
-  const year=parseInt((parts[1]||'').trim(),10);
-  if(!mon||!day||!year)return null;
-  return `${year}-${String(mon).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+(function buildPlan() {
+  const rows = parseCSV(DAILY_CSV.trim());
+  let week = 0, phase = '';
+  for (const r of rows.slice(1)) {
+    if (!r[2]) continue;
+    if (r[0]) { week = +r[0]; phase = r[1]; }
+    const d = { iso: mdyToISO(r[2]), week, phase, dow: DOW.indexOf(r[3]), floorTitle: r[4] || '', floorMi: parseFloat(r[5]) || 0,
+      upTitle: (r[6] || '').trim(), upMi: parseFloat(r[7]) || 0, csvPace: (r[8] || '').trim(), notes: (r[9] || '').trim() };
+    classifyDay(d);
+    DAYS[d.iso] = d; DAY_LIST.push(d);
+  }
+  for (const r of parseCSV(WEEKLY_CSV.trim()).slice(1)) {
+    if (!r[0]) continue;
+    const w = +r[0], start = mdyToISO(r[2]);
+    WEEKS[w] = { w, phase: r[1], start, end: addDays(start, 6), floorMi: parseFloat(r[3]) || 0, upMi: parseFloat(r[4]) || 0,
+      lr: r[5] === '' ? null : parseFloat(r[5]), tueFloor: r[6], tueUp: r[7], sat: r[8], days: [], floorRuns: 0, strengthDays: 0,
+      cutback: CUTBACK_WEEKS.includes(w), checkpoint: CHECKPOINT_WEEKS.includes(w) };
+  }
+  for (const d of DAY_LIST) {
+    const W = WEEKS[d.week]; W.days.push(d);
+    if (d.floor.run) W.floorRuns++;
+    if (d.strength) W.strengthDays++;
+  }
+})();
+const STG_DAYS = {}, STG_WEEKS = [];
+for (const r of STG_PLAN_RAW) {
+  const iso = mdyToISO(r[2]);
+  const s = { iso, week: r[0], phase: r[1], day: r[3], workout: r[4], mi: +r[5] || 0, min: +r[6] || 0, pace: r[7], notes: r[9] };
+  STG_DAYS[iso] = s;
+  (STG_WEEKS[s.week] = STG_WEEKS[s.week] || { w: s.week, planMi: 0, start: iso }).planMi += s.mi;
 }
-function handleImport(input){
-  const file=input.files&&input.files[0];
-  if(!file)return;
-  const reader=new FileReader();
-  reader.onload=function(ev){
-    try{processImport(ev.target.result)}
-    catch(e){alert('Sorry, could not read that file.\n\n'+e.message)}
-    input.value='';
-  };
-  reader.onerror=function(){alert('Could not read the file.')};
+const STG_PLAN_MI = STG_PLAN_RAW.reduce((a, r) => a + (+r[5] || 0), 0);
+const PLAN_FLOOR_MI = WEEKS.reduce((a, W) => a + (W ? W.floorMi : 0), 0);
+const PLAN_UP_MI = WEEKS.reduce((a, W) => a + (W ? W.upMi : 0), 0);
+const RANGE_START = STG.start, RANGE_END = '2027-07-31';
+
+function weekNumFor(iso) { const n = daysBetween(PLAN_START, iso); if (n < 0) return 0; const w = Math.floor(n / 7) + 1; return w > PLAN_WEEKS ? PLAN_WEEKS + 1 : w; }
+function phaseVar(phase) { return PHASE[phase] ? `var(${PHASE[phase].css})` : 'var(--ph-stg)'; }
+function isWinter(iso) { const m = dateOf(iso).getMonth(); return m >= 10 || m <= 2; } // Nov through Mar
+function daysToRace(from) { return daysBetween(from || todayISO(), RACE.iso); }
+
+// ===== 4. STORAGE (+ safe migration from the St. George app) =====
+const STORE_KEY = 'uvm27-tracker-v1';
+const LEGACY_KEY = 'stg-marathon-log';            // St. George app: { entries: { iso: {done,rating,actualDist,actualTime} } }
+const LEGACY_BACKUP_KEY = 'stg-marathon-log:backup'; // one-time copy; the legacy key itself is never modified
+let STORAGE_OK = true, BOOT_NOTE = null;
+function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { STORAGE_OK = false; return null; } }
+function lsSet(k, v) { try { localStorage.setItem(k, v); return true; } catch (e) { STORAGE_OK = false; return false; } }
+function freshDB() { return { v: 1, created: new Date().toISOString(), entries: {}, checkpoints: {}, settings: { track: 'auto', theme: 'auto' }, meta: {} }; }
+function normEntry(e) {
+  if (!e || typeof e !== 'object') return null;
+  const o = { done: !!e.done, rating: Math.max(0, Math.min(10, parseInt(e.rating, 10) || 0)),
+    actualDist: Math.max(0, +e.actualDist || 0), actualTime: Math.max(0, +e.actualTime || 0) };
+  if (e.upgrade) o.upgrade = true;
+  if (e.strength) o.strength = true;
+  if (e.pain) o.pain = true;
+  if (typeof e.note === 'string' && e.note.trim()) o.note = e.note.trim().slice(0, 500);
+  if (e.src) o.src = String(e.src).slice(0, 20);
+  return o;
+}
+function upgradeDB(db) {
+  db.v = db.v || 1;
+  db.entries = db.entries && typeof db.entries === 'object' ? db.entries : {};
+  db.checkpoints = db.checkpoints && typeof db.checkpoints === 'object' ? db.checkpoints : {};
+  db.settings = Object.assign({ track: 'auto', theme: 'auto' }, db.settings || {});
+  db.meta = db.meta || {};
+  return db;
+}
+function loadDB() {
+  let db = null, dirty = false;
+  const raw = lsGet(STORE_KEY);
+  if (raw) {
+    try {
+      db = JSON.parse(raw);
+      if (!db || typeof db !== 'object' || !db.entries) throw new Error('unexpected shape');
+      db = upgradeDB(db);
+    } catch (err) {
+      lsSet(`${STORE_KEY}:corrupt-${Date.now()}`, raw); // never silently drop data
+      BOOT_NOTE = 'Saved data could not be read. A copy was set aside and a fresh log started.';
+      db = null;
+    }
+  }
+  if (!db) { db = freshDB(); dirty = true; }
+  // Bring over the St. George app's log once per store. Only days missing here are filled; nothing is overwritten,
+  // and the legacy key itself is never modified (a one-time backup copy is also kept).
+  const legacyRaw = !db.meta.migrated && lsGet(LEGACY_KEY);
+  if (legacyRaw) {
+    try {
+      const ents = (JSON.parse(legacyRaw) || {}).entries || {};
+      let n = 0;
+      for (const [iso, e] of Object.entries(ents)) {
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(iso) || db.entries[iso]) continue;
+        const ne = normEntry(e); if (ne) { db.entries[iso] = ne; n++; }
+      }
+      db.meta.migrated = { from: LEGACY_KEY, at: new Date().toISOString(), count: n };
+      if (!lsGet(LEGACY_BACKUP_KEY)) lsSet(LEGACY_BACKUP_KEY, legacyRaw);
+      if (n) BOOT_NOTE = `Brought over ${n} St. George log ${n === 1 ? 'entry' : 'entries'}. They live in Stats → Past races, and the original St. George data is untouched.`;
+    } catch (err) {
+      db.meta.migrated = { from: LEGACY_KEY, at: new Date().toISOString(), count: 0, error: String(err && err.message || err) };
+    }
+    dirty = true;
+  }
+  if (dirty) lsSet(STORE_KEY, JSON.stringify(db));
+  return db;
+}
+let DB = loadDB();
+function saveDB() { if (!lsSet(STORE_KEY, JSON.stringify(DB))) toast('⚠️ Couldn’t save. Storage is full or blocked.'); }
+function getE(iso) { return DB.entries[iso] || null; }
+function putE(iso, patch) {
+  const e = Object.assign({ done: false, rating: 0, actualDist: 0, actualTime: 0 }, DB.entries[iso] || {}, patch);
+  for (const k of ['upgrade', 'strength', 'pain']) if (!e[k]) delete e[k];
+  if (!e.note) delete e.note;
+  if (!e.done && !e.strength && !e.pain && !e.note && !e.rating && !e.actualDist && !e.actualTime) delete DB.entries[iso];
+  else DB.entries[iso] = e;
+  saveDB();
+}
+const isRun = e => !!(e && e.done && e.actualDist > 0);
+
+// ===== 5. DERIVED: pace track, goal, weekly stats =====
+function trackForResult(cp, sec) { for (const id of ['3:30', '3:45', '4:00']) if (sec <= cp.cuts[id]) return id; return 'behind'; }
+// Latest checkpoint result picks the track (5K -> 10K -> Half), unless the user pinned one.
+function trackInfo() {
+  let auto = { id: '4:00', from: null, behind: false };
+  for (const cp of CHECKPOINTS) {
+    const r = DB.checkpoints[cp.id];
+    if (r && r.sec > 0) { const t = trackForResult(cp, r.sec); auto = { id: t === 'behind' ? '4:00' : t, from: cp, behind: t === 'behind' }; }
+  }
+  const pin = DB.settings.track;
+  if (pin && pin !== 'auto' && TRACKS[pin]) return Object.assign({}, auto, { id: pin, manual: true, auto });
+  return Object.assign({}, auto, { manual: false, auto });
+}
+function curTrack() { return TRACKS[trackInfo().id]; }
+function halfPace(T) { return fmtPace(T.half / 13.1); }
+function raceGoal() {
+  const ti = trackInfo(), half = DB.checkpoints.half;
+  if (!ti.manual && half && half.sec > 0) {
+    const t = trackForResult(CP.half, half.sec);
+    if (t === 'behind') return { goal: BEHIND.goal, pace: BEHIND.pace, byFeel: true, final: true };
+    return { goal: t, pace: TRACKS[t].mp, final: true, track: t };
+  }
+  const T = TRACKS[ti.id];
+  return { goal: T.id, pace: T.mp, final: false, track: T.id, behind: ti.behind, manual: ti.manual };
+}
+
+function computeStats() {
+  const t = todayISO(), cur = weekNumFor(t);
+  const weeks = [];
+  const tot = { runs: 0, mi: 0, sec: 0, timedMi: 0, strength: 0, ups: 0, longest: 0, longestIso: null, feel: [], hits: 0, judged: 0, zero: 0 };
+  let cum = 0, cumFloor = 0, cumUp = 0;
+  for (let w = 1; w <= PLAN_WEEKS; w++) {
+    const W = WEEKS[w];
+    const s = { w, W, runs: 0, mi: 0, sec: 0, timedMi: 0, strength: 0, ups: 0, longest: 0 };
+    for (const d of W.days) {
+      const e = DB.entries[d.iso]; if (!e) continue;
+      if (isRun(e)) {
+        s.runs++; s.mi += e.actualDist;
+        if (e.actualTime > 0) { s.sec += e.actualTime * 60; s.timedMi += e.actualDist; }
+        if (e.upgrade) s.ups++;
+        if (e.actualDist > s.longest) s.longest = e.actualDist;
+        if (e.actualDist > tot.longest) { tot.longest = e.actualDist; tot.longestIso = d.iso; }
+      }
+      if (e.strength) s.strength++;
+      if (e.rating) tot.feel.push({ iso: d.iso, v: e.rating, phase: d.phase });
+    }
+    s.started = W.start <= t; s.over = W.end < t;
+    s.hit = s.runs >= W.floorRuns;
+    s.status = !s.started ? 'future' : s.hit ? 'hit' : s.over ? 'miss' : 'open';
+    s.strOk = W.strengthDays === 0 || s.strength >= W.strengthDays;
+    cum += s.mi; cumFloor += W.floorMi; cumUp += W.upMi;
+    s.cum = cum; s.cumFloor = cumFloor; s.cumUp = cumUp;
+    if (s.over || s.status === 'hit') { tot.judged++; if (s.hit) tot.hits++; }
+    if (s.over && W.floorRuns > 0 && s.runs === 0) tot.zero++;
+    tot.runs += s.runs; tot.mi += s.mi; tot.sec += s.sec; tot.timedMi += s.timedMi; tot.strength += s.strength; tot.ups += s.ups;
+    weeks[w] = s;
+  }
+  // Floor streak: count back from now; an unfinished current week neither counts nor breaks it.
+  let streak = 0;
+  for (let w = Math.min(cur, PLAN_WEEKS); w >= 1; w--) {
+    const st = weeks[w].status;
+    if (st === 'open') continue;
+    if (st === 'hit') streak++; else break;
+  }
+  let best = 0, run = 0;
+  for (let w = 1; w <= PLAN_WEEKS; w++) {
+    const st = weeks[w].status;
+    if (st === 'hit') { run++; best = Math.max(best, run); } else if (st === 'miss') run = 0; else if (st === 'future') break;
+  }
+  // Strength streak (weeks that schedule strength): 2x done.
+  let strStreak = 0;
+  for (let w = Math.min(cur, PLAN_WEEKS); w >= 1; w--) {
+    const s = weeks[w];
+    if (s.W.strengthDays === 0) continue;
+    if (!s.over && !s.strOk) continue;
+    if (s.strOk) strStreak++; else break;
+  }
+  const lastWeek = cur >= 2 && cur <= PLAN_WEEKS + 1 ? weeks[Math.min(cur - 1, PLAN_WEEKS)] : null;
+  return { t, cur, weeks, tot, streak, best, strStreak, unlocked: streak >= 4, lastWeek,
+    lastWeekHit: !!(lastWeek && lastWeek.status === 'hit') };
+}
+
+// Which version (floor/upgrade) is shown for a day: session choice, else what was logged.
+const STATE = { tab: 'today', view: null, modes: {}, calY: 0, calM: 0, sheet: null, openWeeks: {} };
+function modeFor(iso) {
+  const d = DAYS[iso]; if (!d || !d.up) return 'floor';
+  if (STATE.modes[iso]) return STATE.modes[iso];
+  const e = getE(iso); return e && e.upgrade ? 'upgrade' : 'floor';
+}
+function versionFor(d, mode) { return mode === 'upgrade' && d.up ? d.up : d.floor; }
+
+// Pace guidance from the active track (so a checkpoint result updates every workout).
+function paceChips(d, mode, T) {
+  const v = versionFor(d, mode), kind = v.kind, desc = `${v.desc || ''} ${kind === 'long' ? d.floor.desc : ''}`;
+  const chips = [], add = (k, val, hint) => { if (!chips.some(c => c.k === k)) chips.push({ k, v: val, hint }); };
+  const genericCsv = !d.csvPace || /^\d{1,2}:\d{2}[–-]\d{1,2}:\d{2}$/.test(d.csvPace) || /^(See Paces tab|Easy \+ MP segments|—|-)$/i.test(d.csvPace);
+  if (kind === 'race') { const g = raceGoal(); add('Goal pace', g.pace, `${g.goal} finish`); return chips; }
+  if (kind === 'checkpoint') {
+    const cp = CP[d.cp]; add('Race effort', `≤ ${fmtDur(cp.cuts[T.id])}`, `${T.id} track target`);
+    add('Pace', fmtPace(cp.cuts[T.id] / cp.mi), 'per mile'); return chips;
+  }
+  if (!v.run) return chips;
+  if (!genericCsv && mode === 'floor' && d.csvPace !== 'Goal MP') add('Pace', d.csvPace, kind === 'shakeout' ? 'very easy' : 'no faster');
+  if (/@\s*(goal\s*)?MP\b|goal MP/i.test(desc) || d.csvPace === 'Goal MP') add('MP', T.mp, 'marathon pace');
+  if (/@\s*T\b|tempo/i.test(desc)) add('Tempo', T.t);
+  if (/@\s*I\b|\bI pace/i.test(desc)) add('Interval', T.i);
+  if (/5K effort/i.test(desc)) add('5K effort', T.i, '≈ interval pace');
+  if (/half (effort|pace)/i.test(desc)) add('Half pace', halfPace(T), `${fmtDur(T.half)} half`);
+  if (kind === 'long') add('Long run', T.lr);
+  if ((kind === 'easy' || kind === 'strides') && (genericCsv || mode === 'upgrade')) add('Easy', T.easy, 'talk test');
+  if (kind === 'quality') add('Easy', T.easy, 'WU / CD / recoveries');
+  if (/strides/i.test(desc) || kind === 'strides') add('Strides', '20 s', 'quick + relaxed');
+  if (/hill/i.test(desc)) add('Hills', 'Hard up', 'jog down');
+  if (/pickups|surges|1 on/i.test(desc)) add('Pickups', T.t, '≈ tempo feel');
+  return chips;
+}
+
+function contextRules(d, mode, S) {
+  const out = [], v = versionFor(d, mode), winter = isWinter(d.iso);
+  if (d.up && d.dow === 1) out.push(['tuesday']);
+  if (mode === 'upgrade' && !S.unlocked) out.push(['unlock', 'warn', `Not unlocked yet: ${S.streak}/4 straight floor weeks. Fine now and then, not regularly.`]);
+  if (mode === 'upgrade' && S.unlocked && S.lastWeek && !S.lastWeekHit) out.push(['unlock', 'warn', 'Last week’s floor wasn’t done. The rule says floor first this week.']);
+  if (v.kind === 'easy' || v.kind === 'strides') out.push(['easy']);
+  if (d.strength) out.push(['strength']);
+  if (d.up && (d.dow === 0 || d.dow === 3)) out.push(['monthu']);
+  if (winter && d.dow === 1 && (d.kind === 'quality' || d.kind === 'strides')) out.push(['winterTue']);
+  if (winter && d.dow === 5 && d.kind === 'long') out.push(['winterSat']);
+  if (winter && d.dow === 4 && DAYS[addDays(d.iso, 1)] && DAYS[addDays(d.iso, 1)].kind === 'long') out.push(['winterFri']);
+  if (d.dow === 6) out.push(['sunday']);
+  return out;
+}
+function ruleHTML(key, cls, text) {
+  const r = RULES[key];
+  const t = /[.?!]$/.test(r.t) ? r.t : `${r.t}.`;
+  return `<div class="rule ${cls || ''}"><span class="ri" aria-hidden="true">${r.i}</span><div><b>${esc(t)}</b> ${esc(text || r.b)}</div></div>`;
+}
+
+// ===== 6. RENDER HELPERS =====
+const STRENGTH_TXT = 'bridges, calf raises, step-downs, lunges';
+// Render named sections into a panel; a section holding the focused input is left alone (mobile keyboard safety).
+let PENDING_FULL = false;
+function renderSections(panel, sections, soft) {
+  const el = document.getElementById(`panel-${panel}`);
+  if (!el.dataset.built || el.dataset.built !== sections.map(s => s[0]).join(',')) {
+    el.innerHTML = sections.map(([id]) => `<div id="${id}"></div>`).join('');
+    el.dataset.built = sections.map(s => s[0]).join(',');
+  }
+  const active = document.activeElement;
+  for (const [id, fn] of sections) {
+    const box = document.getElementById(id);
+    if (soft && active && box.contains(active) && active.matches('input,textarea,select')) { syncInline(box); PENDING_FULL = true; continue; }
+    box.innerHTML = fn();
+  }
+}
+// In-place updates for a section we must not re-render (it holds the focused input).
+function syncInline(box) {
+  box.querySelectorAll('.log[data-iso]').forEach(card => {
+    const iso = card.dataset.iso, st = card.querySelector('.logstat');
+    if (st) st.innerHTML = logStatusHTML(iso, DAYS[iso] || null);
+    updatePacePreview(card);
+  });
+  box.querySelectorAll('[data-cpres]').forEach(n => { n.innerHTML = cpResultHTML(CP[n.dataset.cpres]); });
+}
+function paceVarStyle(phase) { return `--phase:${phaseVar(phase)}`; }
+function goalLine() {
+  const g = raceGoal();
+  return g.byFeel ? `${g.goal} by feel · ${g.pace}/mi` : `${g.goal} · ${g.pace}/mi`;
+}
+
+// ===== 7. TODAY =====
+function renderToday(soft) {
+  const S = computeStats();
+  if (!STATE.view) STATE.view = clampView(todayISO());
+  renderSections('today', [
+    ['t-hero', () => heroHTML(S)],
+    ['t-alerts', () => alertsHTML(S)],
+    ['t-nav', () => dayNavHTML(STATE.view)],
+    ['t-day', () => dayDetailHTML(STATE.view, S)],
+    ['t-week', () => { const d = DAYS[STATE.view]; const w = d ? d.week : (S.cur >= 1 && S.cur <= PLAN_WEEKS ? S.cur : 0); return w ? weekCardHTML(w, S, STATE.view) : ''; }],
+    ['t-next', () => nextUpHTML(S) + quoteHTML()]
+  ], soft);
+}
+function clampView(iso) { return iso < RANGE_START ? RANGE_START : iso > RANGE_END ? RANGE_END : iso; }
+
+function heroHTML(S) {
+  const t = S.t, dl = daysToRace(t), w = S.cur, g = raceGoal();
+  const eyebrow = w === 0 ? `Plan starts ${fmtLong(PLAN_START)}` : w <= PLAN_WEEKS ? `Week ${w} of ${PLAN_WEEKS} · ${WEEKS[w].phase}` : 'Block complete';
+  let num, lbl;
+  if (dl > 0) { num = dl; lbl = `${dl === 1 ? 'day' : 'days'} to Utah Valley<small>Sat Jun 5, 2027 · ${RACE.startTxt} start</small>`; }
+  else if (dl === 0) { num = '🏁'; lbl = `Race day!<small>${RACE.startTxt} · ${RACE.route}</small>`; }
+  else {
+    const e = getE(RACE.iso);
+    num = '🎉'; lbl = `Race complete<small>${isRun(e) && e.actualTime ? `Finished in ${fmtDur(e.actualTime * 60)}` : 'Log your finish time on Jun 5'}</small>`;
+  }
+  const total = daysBetween(PLAN_START, PLAN_END) + 1, done = Math.max(0, Math.min(total, daysBetween(PLAN_START, t) + 0.5));
+  const segs = PHASES.map(p => `<span style="flex:${p.w1 - p.w0 + 1};background:var(${p.css})"></span>`).join('');
+  const lbls = PHASES.map(p => `<span style="flex:${p.w1 - p.w0 + 1}">${p.id === 'Recovery' ? '' : p.id}</span>`).join('');
+  return `<section class="hero" aria-label="Race countdown">
+    <div class="glow"></div>
+    <svg class="mtn" viewBox="0 0 400 110" preserveAspectRatio="none" aria-hidden="true">
+      <path d="M0 70 L48 38 L80 58 L132 14 L170 46 L205 30 L250 62 L300 22 L344 52 L372 40 L400 56 V110 H0Z" fill="rgba(255,255,255,.08)"/>
+      <path d="M0 88 L60 60 L104 78 L150 52 L214 84 L262 64 L318 86 L360 70 L400 80 V110 H0Z" fill="rgba(255,255,255,.10)"/>
+    </svg>
+    <div class="eyebrow">${esc(eyebrow)}</div>
+    <div class="hero-main"><div class="hero-num">${num}</div><div class="hero-lbl">${lbl}</div></div>
+    <div class="hero-meta">
+      <span class="chip">🎯 Goal ${esc(goalLine())}${g.final ? '' : ' (provisional)'}</span>
+      <span class="chip">🏅 PR ${LAST_RACE.time}</span>
+      <span class="chip">⛰️ ${RACE.route} · −${fmtInt(RACE.drop)} ft</span>
+    </div>
+    <div class="phasebar-wrap" role="img" aria-label="Block progress: ${Math.round(done / total * 100)}% of ${PLAN_WEEKS} weeks">
+      <div class="phasebar">${segs}</div>
+      ${w >= 1 && w <= PLAN_WEEKS ? `<div class="phasebar-pin" style="left:${(done / total * 100).toFixed(2)}%"></div>` : ''}
+    </div>
+    <div class="phasebar-lbls" aria-hidden="true">${lbls}</div>
+  </section>`;
+}
+
+function alertsHTML(S) {
+  const out = [], t = S.t;
+  if (!STORAGE_OK) out.push(`<div class="rule bad"><span class="ri">⚠️</span><div><b>Storage is blocked.</b> Logs won’t be saved on this device (private browsing?).</div></div>`);
+  if (BOOT_NOTE && !STATE.bootSeen) out.push(`<div class="rule good"><span class="ri">📦</span><div><b>Welcome to the new block.</b> ${esc(BOOT_NOTE)} <button class="link" data-act="dismiss-boot">Got it</button></div></div>`);
+  // Pain rule: flagged in the last 2 days.
+  for (let i = 0; i <= 2; i++) {
+    const iso = addDays(t, -i), e = getE(iso);
+    if (e && e.pain) {
+      const back = addDays(iso, 3);
+      out.push(ruleHTML('pain', 'bad', `You flagged sharp pain ${i === 0 ? 'today' : i === 1 ? 'yesterday' : 'on ' + DOW_LONG[dowOf(iso)]}. Stop, take 2 days off, reassess ${back <= t ? 'today' : 'on ' + DOW_LONG[dowOf(back)]}.`));
+      break;
+    }
+  }
+  const w = S.cur;
+  if (w >= 1 && w <= PLAN_WEEKS) {
+    const s = S.weeks[w], dow = dowOf(t);
+    if (s.W.floorRuns > 0 && s.runs === 0 && dow >= 3) out.push(ruleHTML('floor', 'bad', `Zero runs so far this week, and zero-run weeks are the #1 failure mode. Even one run today keeps the block alive.`));
+    const y = addDays(t, -1), yd = DAYS[y];
+    if (yd && yd.week === w && yd.floor.run && !isRun(getE(y)) && !s.hit) out.push(ruleHTML('missed', 'warn', `Missed ${DOW_LONG[yd.dow]}’s run? Skip it. Never make up missed miles or stack hard days.`));
+    if (s.status === 'hit' && S.streak === 4 && s.runs === s.W.floorRuns) out.push(ruleHTML('unlock', 'good', '4 straight floor weeks: upgrades are unlocked. Use them when legs feel good and life allows.'));
+  }
+  return out.length ? `<div class="alert">${out.join('')}</div>` : '';
+}
+
+function dayNavHTML(iso) {
+  const d = DAYS[iso], s = STG_DAYS[iso], isToday = iso === todayISO();
+  const sub = d ? `Week ${d.week} · ${d.phase}${WEEKS[d.week].cutback ? ' · cutback' : ''}` : s ? `St. George block · week ${s.week} (archived)` : iso > PLAN_END ? 'After the race' : 'Before the plan';
+  return `<div class="daynav">
+    <button class="arrow" data-act="nav" data-dir="-1" aria-label="Previous day" ${iso <= RANGE_START ? 'disabled' : ''}>◀</button>
+    <div class="mid"><div class="d1">${isToday ? 'Today · ' : ''}${esc(fmtLong(iso))}</div><div class="d2">${esc(sub)}</div>
+      ${isToday ? '' : '<button class="today-pill" data-act="today">Back to today</button>'}</div>
+    <button class="arrow" data-act="nav" data-dir="1" aria-label="Next day" ${iso >= RANGE_END ? 'disabled' : ''}>▶</button>
+  </div>`;
+}
+
+function dayDetailHTML(iso, S) {
+  const d = DAYS[iso];
+  if (d) return workoutCardHTML(d, S) + logCardHTML(iso, d);
+  const s = STG_DAYS[iso];
+  if (s) return stgCardHTML(s) + logCardHTML(iso, null);
+  return `<div class="card wo" style="--phase:var(--muted)"><div class="eyebrow">${esc(fmtLong(iso))}</div>
+    <div class="wo-title" style="margin-top:6px">${iso > PLAN_END ? 'Recovery: you earned it 🎉' : 'Nothing scheduled'}</div>
+    <div class="wo-notes">${iso > PLAN_END ? 'Easy walks, sleep, and celebrate. Extra runs can still be logged below.' : 'Outside both training blocks.'}</div></div>` + logCardHTML(iso, null);
+}
+
+function workoutCardHTML(d, S) {
+  const mode = modeFor(d.iso), v = versionFor(d, mode), T = curTrack(), K = KIND[v.kind], key = KEY_DAYS[d.iso], W = WEEKS[d.week];
+  let badges = `<span class="badge phase">${esc(d.phase)}</span>`;
+  if (key) badges += `<span class="badge key">${key.icon} ${esc(key.label)}</span>`;
+  if (W.cutback) badges += '<span class="badge">↘ Cutback week</span>';
+  if (W.checkpoint && !d.cp) badges += '<span class="badge">⏱️ Checkpoint week</span>';
+  if (mode === 'upgrade') badges += '<span class="badge up">⚡ Upgrade</span>';
+  let big = '';
+  if (v.run) big = `<div class="wo-dist"><b class="num">${fmtMi(v.mi)}</b><span>mi${v.kind === 'race' ? ' · 26.2' : ''}</span></div>`;
+  else if (d.kind === 'strength') big = '<div class="wo-dist"><b>20</b><span>min strength</span></div>';
+  else if (d.kind === 'walk') big = '<div class="wo-dist"><b>20–40</b><span>min walk</span></div>';
+  const seg = d.up ? `<div class="seg" role="group" aria-label="Floor or upgrade">
+      <button data-act="mode" data-iso="${d.iso}" data-mode="floor" aria-pressed="${mode === 'floor'}">Floor</button>
+      <button class="upbtn" data-act="mode" data-iso="${d.iso}" data-mode="upgrade" aria-pressed="${mode === 'upgrade'}">⚡ Upgrade</button></div>` : '';
+  const other = d.up ? (mode === 'floor'
+    ? `Upgrade option: ${d.up.desc ? esc(d.up.desc) : `${fmtMi(d.up.mi)} mi`}${S.unlocked ? '' : ' · 🔒 earn it first'}`
+    : `Floor version: ${d.floor.run ? `${fmtMi(d.floor.mi)} mi${d.floor.desc ? ' · ' + esc(d.floor.desc) : ''}` : esc(KIND[d.kind].label)}`) : '';
+  const chips = paceChips(d, mode, T).map(c => `<div class="pace"><i>${esc(c.k)}</i><b>${esc(c.v)}</b>${c.hint ? `<s>${esc(c.hint)}</s>` : ''}</div>`).join('');
+  let extra = '';
+  if (d.strength) extra += `<div class="strength-line"><span aria-hidden="true">🏋️</span><div><b>${mode === 'upgrade' ? 'Plus 20 min strength' : '20 min strength'}</b>: ${STRENGTH_TXT}.</div></div>`;
+  if (d.cp) extra += `<div style="margin-top:12px">${cpBlockHTML(CP[d.cp], true)}</div>`;
+  if (d.kind === 'race') extra += raceDayExtraHTML();
+  const rules = contextRules(d, mode, S).map(r => ruleHTML(r[0], r[1], r[2])).join('');
+  return `<article class="card wo" style="${paceVarStyle(d.phase)}">
+    <div class="wo-head"><div class="wo-icon" aria-hidden="true">${K.icon}</div>
+      <div style="min-width:0"><div class="eyebrow">${DOW_LONG[d.dow]} · ${fmtShort(d.iso)} · week ${d.week}</div>
+      <div class="wo-title">${esc(v.title)}</div><div class="badges">${badges}</div></div></div>
+    ${seg}${big}
+    ${v.desc ? `<div class="wo-desc">${esc(v.desc)}</div>` : ''}
+    ${d.note ? `<div class="wo-notes">${esc(d.note)}</div>` : ''}
+    ${v.extra ? `<div class="wo-notes">⚡ ${esc(v.extra)}</div>` : ''}
+    ${chips ? `<div class="paces">${chips}</div>` : ''}
+    ${other ? `<div class="wo-alt">${other}</div>` : ''}
+    ${extra}${rules}
+  </article>`;
+}
+
+function raceDayExtraHTML() {
+  const g = raceGoal(), e = getE(RACE.iso);
+  const res = isRun(e) && e.actualTime ? e.actualTime * 60 : 0;
+  return `<div class="rule good" style="margin-top:12px"><span class="ri">🏁</span><div><b>${RACE.startTxt} start, ${RACE.course}.</b> Net −${fmtInt(RACE.drop)} ft. Goal ${esc(goalLine())}.
+    ${res ? ` Finish ${fmtDur(res)}${res < LAST_RACE.sec ? `: a ${fmtDur(LAST_RACE.sec - res)} PR over St. George 🎉` : ''}.` : ` St. George PR to beat: ${LAST_RACE.time}.`}</div></div>`;
+}
+
+function stgCardHTML(s) {
+  const run = s.mi > 0;
+  return `<article class="card wo" style="--phase:var(--ph-stg)">
+    <div class="wo-head"><div class="wo-icon" aria-hidden="true">${s.workout === 'RACE DAY' ? '🏆' : run ? '🏃' : '😴'}</div>
+    <div><div class="eyebrow">${DOW_LONG[dowOf(s.iso)]} · ${fmtShort(s.iso)} · St. George week ${s.week}</div>
+    <div class="wo-title">${esc(s.workout === 'RACE DAY' ? 'St. George Marathon' : s.workout)}</div>
+    <div class="badges"><span class="badge">Archived · ${esc(s.phase)}</span>${s.workout === 'RACE DAY' ? `<span class="badge key">🏅 ${LAST_RACE.time}</span>` : ''}</div></div></div>
+    ${run ? `<div class="wo-dist"><b class="num">${fmtMi(s.mi)}</b><span>mi planned</span></div>` : ''}
+    ${s.pace && s.pace !== '-' ? `<div class="wo-desc">${esc(s.pace)}</div>` : ''}
+    ${s.notes ? `<div class="wo-notes">${esc(s.notes)}</div>` : ''}
+  </article>`;
+}
+
+// ===== Log card =====
+function plannedFor(iso) {
+  const d = DAYS[iso]; if (!d) { const s = STG_DAYS[iso]; return s ? s.mi : 0; }
+  const v = versionFor(d, modeFor(iso)); return v.run ? v.mi : 0;
+}
+function logStatusHTML(iso, d) {
+  const e = getE(iso) || {}, mode = d ? modeFor(iso) : 'floor', planned = plannedFor(iso);
+  if (isRun(e)) {
+    const p = e.actualTime > 0 ? ` · ${fmtDur(e.actualTime * 60)} · ${fmtPace(e.actualTime * 60 / e.actualDist)}/mi` : '';
+    return `<div class="logged"><span>✓ ${fmtMi2(e.actualDist)} mi${p}${e.upgrade ? ' · ⚡' : ''}</span><span class="spacer"></span><button data-act="undo" data-iso="${iso}">Undo</button></div>`;
+  }
+  if (d && d.kind === 'walk') return e.done
+    ? `<div class="logged"><span>✓ Walked</span><span class="spacer"></span><button data-act="undo" data-iso="${iso}">Undo</button></div>`
+    : `<button class="donebtn" data-act="walked" data-iso="${iso}">✓ Walked today</button>`;
+  if (d && d.kind === 'strength' && mode === 'floor') return e.strength
+    ? `<div class="logged"><span>✓ Strength done</span><span class="spacer"></span><button data-act="strength" data-iso="${iso}">Undo</button></div>`
+    : `<button class="donebtn" data-act="strength" data-iso="${iso}">🏋️ Strength done · 20 min</button>`;
+  if (planned > 0) {
+    const label = d && d.kind === 'race' ? `🏁 Finished! · 26.2 mi` : `✓ Done · ${fmtMi(planned)} mi${mode === 'upgrade' ? ' ⚡' : ''}`;
+    return `<button class="donebtn ${mode === 'upgrade' ? 'up' : ''}" data-act="done" data-iso="${iso}">${label}</button>`;
+  }
+  return '';
+}
+function logCardHTML(iso, d) {
+  const e = getE(iso) || {}, planned = plannedFor(iso), mode = d ? modeFor(iso) : 'floor';
+  const runDay = planned > 0 && !(d && d.kind === 'strength' && mode === 'floor');
+  const isRace = d && d.kind === 'race';
+  const fields = `<div class="fields" style="grid-template-columns:1fr 1.2fr">
+      <div class="field"><label for="dist-${iso}">Distance (mi)</label>
+        <input id="dist-${iso}" type="number" inputmode="decimal" step="0.01" min="0" max="60" placeholder="${planned ? fmtMi(planned) : '0'}" value="${e.actualDist ? fmtMi2(e.actualDist) : ''}" data-field="dist" data-iso="${iso}"></div>
+      <div class="field"><label for="time-${iso}">${isRace ? 'Finish time' : 'Time'}</label>
+        <input id="time-${iso}" type="text" inputmode="numeric" autocomplete="off" maxlength="8" placeholder="${isRace ? '4:00:00' : 'mm:ss'}" value="${e.actualTime ? fmtDur(e.actualTime * 60) : ''}" data-field="time" data-iso="${iso}"></div>
+    </div><div class="paceout" aria-live="polite"></div>`;
+  const future = iso > todayISO();
+  let h = `<section class="card log" data-iso="${iso}" aria-label="Log for ${esc(fmtLong(iso))}">
+    <h3>📝 Log it${future ? ' <span class="chip">ahead of time</span>' : ''}</h3>
+    <div class="logstat">${logStatusHTML(iso, d)}</div>`;
+  if (runDay || isRun(e)) h += fields;
+  else h += `<details class="more"${e.actualDist ? ' open' : ''}><summary>＋ Ran anyway? Log a run</summary>${fields}</details>`;
+  h += `<div class="flabel" style="margin-top:14px">How did it feel? <span class="muted" style="text-transform:none;letter-spacing:0">1 = rough · 10 = amazing</span></div>
+    <div class="feel" role="group" aria-label="Feel rating">${Array.from({ length: 10 }, (_, i) => i + 1).map(i => `<button data-act="feel" data-iso="${iso}" data-v="${i}" aria-pressed="${e.rating === i}">${i}</button>`).join('')}</div>
+    <div class="toggles">
+      <button class="tgl" data-act="strength" data-iso="${iso}" aria-pressed="${!!e.strength}">🏋️ Strength 20 min</button>
+      <button class="tgl pain" data-act="pain" data-iso="${iso}" aria-pressed="${!!e.pain}">🩹 Sharp pain</button>
+    </div>
+    <div class="field full" style="margin-top:12px"><label for="note-${iso}">Note</label>
+      <textarea id="note-${iso}" rows="1" maxlength="500" placeholder="Route, weather, how the legs felt…" data-field="note" data-iso="${iso}">${esc(e.note || '')}</textarea></div>
+    ${DB.entries[iso] ? `<div style="text-align:right;margin-top:6px"><button class="link" data-act="clear" data-iso="${iso}">Clear this day</button></div>` : ''}
+  </section>`;
+  return h;
+}
+function updatePacePreview(card) {
+  const out = card.querySelector('.paceout'); if (!out) return;
+  const di = card.querySelector('[data-field="dist"]'), ti = card.querySelector('[data-field="time"]');
+  const mi = parseFloat(di && di.value), sec = parseDur(ti && ti.value);
+  out.textContent = mi > 0 && sec > 0 ? `Pace ${fmtPace(sec / mi)}/mi${sec / mi < 300 ? ' — double-check the time?' : ''}` : '';
+}
+
+// ===== Week card =====
+function weekCardHTML(w, S, selIso) {
+  const W = WEEKS[w], s = S.weeks[w], t = S.t;
+  const st = { hit: '✓ Floor hit', open: '• In progress', miss: '✕ Floor missed', future: 'Upcoming' }[s.status];
+  const strip = W.days.map(d => {
+    const e = getE(d.iso), mode = modeFor(d.iso), v = versionFor(d, mode), ran = isRun(e);
+    const walked = d.kind === 'walk' && e && e.done;
+    const miss = d.floor.run && !ran && d.iso < t && !s.hit;
+    const cls = ['sd', d.iso === selIso ? 'sel' : '', d.iso === t ? 'today' : '', ran || walked ? 'done' : '', miss ? 'miss' : ''].join(' ');
+    const lbl = `${DOW_LONG[d.dow]} ${fmtShort(d.iso)}: ${v.title}${v.run ? ' ' + fmtMi(v.mi) + ' mi' : ''}${ran ? ', done' : miss ? ', missed' : ''}`;
+    return `<button class="${cls}" data-act="view" data-iso="${d.iso}" aria-label="${esc(lbl)}" style="${paceVarStyle(d.phase)}">
+      <span class="dn">${DOW[d.dow]}</span><span class="dd">${dateOf(d.iso).getDate()}</span>
+      <span class="di" aria-hidden="true">${KEY_DAYS[d.iso] ? KEY_DAYS[d.iso].icon : KIND[v.kind].icon}</span>
+      <span class="dm">${ran ? fmtMi(e.actualDist) : v.run ? fmtMi(v.mi) : d.strength ? '20′' : ''}</span>
+      ${e && e.strength ? '<span class="str" aria-hidden="true">💪</span>' : ''}</button>`;
+  }).join('');
+  const max = Math.max(W.upMi, s.mi, 1);
+  const tags = [W.cutback ? '↘ Cutback week: lighter by design' : '', W.checkpoint ? '⏱️ Checkpoint week' : ''].filter(Boolean).join(' · ');
+  const strTarget = W.strengthDays;
+  const unlockTxt = S.unlocked ? '🔓 Upgrades unlocked' : `🔒 ${4 - Math.min(4, S.streak)} more floor ${4 - S.streak === 1 ? 'week' : 'weeks'} to unlock upgrades`;
+  const walks = W.days.filter(d => d.kind === 'walk' && getE(d.iso) && getE(d.iso).done).length;
+  const body = W.floorRuns === 0 ? `<div class="wkstats">
+      <div class="wkstat"><div class="v">${walks}<small> / ${W.days.filter(d => d.kind === 'walk').length}</small></div><div class="l">Walk days</div></div>
+      <div class="wkstat"><div class="v">${s.runs}</div><div class="l">Runs (none planned)</div></div>
+      <div class="wkstat"><div class="v">0<small> mi</small></div><div class="l">Floor this week</div></div>
+    </div>${ruleHTML('floor', 'good', 'Recovery week: the floor is rest. Walk 20–40 min a day and let St. George heal.')}` : null;
+  return `<section class="card" aria-label="Week ${w}">
+    <div class="card-h">This week · ${fmtRange(W.start, W.end)}<span class="status ${s.status}">${st}</span></div>
+    <div class="sub" style="margin:-6px 0 10px">Week ${w} · ${esc(W.phase)}${tags ? ' · ' + tags : ''}</div>
+    <div class="strip">${strip}</div>
+    ${body !== null ? body : `<div class="wkstats">
+      <div class="wkstat"><div class="v">${s.runs}<small> / ${W.floorRuns}</small></div><div class="l">Floor runs</div><div class="dots">${Array.from({ length: Math.max(W.floorRuns, s.runs) }, (_, i) => `<i class="${i < s.runs ? 'on' : ''}"></i>`).join('')}</div></div>
+      <div class="wkstat"><div class="v">${fmtMi(s.mi)}<small> mi</small></div><div class="l">of ${fmtMi(W.floorMi)} floor</div></div>
+      <div class="wkstat"><div class="v">${s.strength}<small> / ${strTarget || '–'}</small></div><div class="l">Strength</div>${strTarget ? `<div class="dots">${Array.from({ length: Math.max(strTarget, s.strength) }, (_, i) => `<i class="${i < s.strength ? 'on' : ''}"></i>`).join('')}</div>` : ''}</div>
+    </div>
+    <div class="meter" role="img" aria-label="${fmtMi(s.mi)} of ${fmtMi(W.floorMi)} floor miles, ${fmtMi(W.upMi)} with upgrades">
+      <div class="fill" style="width:${Math.min(100, s.mi / max * 100).toFixed(1)}%"></div>
+      ${W.floorMi ? `<div class="tick" style="left:${(W.floorMi / max * 100).toFixed(1)}%"></div>` : ''}
+    </div>
+    <div class="meter-lbls"><span>0</span><span>Floor ${fmtMi(W.floorMi)} │ Upgrade ${fmtMi(W.upMi)} mi</span></div>`}
+    <div class="streaks">
+      <div class="streak"><div class="sv">🔥 ${S.streak}</div><div class="sl">floor-week streak<br><span class="muted">best ${S.best}</span></div></div>
+      <div class="streak"><div class="sl">${unlockTxt}${S.unlocked && S.lastWeek && !S.lastWeekHit ? '<br><span class="muted">but floor first this week</span>' : ''}</div></div>
+    </div>
+    ${dowOf(S.t) === 0 && w === S.cur ? ruleHTML('busy') : ''}
+  </section>`;
+}
+
+function nextUpHTML(S) {
+  const t = S.t;
+  const items = Object.entries(KEY_DAYS).filter(([iso]) => iso >= t).slice(0, 3);
+  if (!items.length) return '';
+  return `<section class="card"><h3>🗓️ Coming up</h3><div class="list">${items.map(([iso, k]) => {
+    const n = daysBetween(t, iso), cp = k.cp ? DB.checkpoints[k.cp] : null;
+    return `<div class="li btnlike" role="button" tabindex="0" data-act="view" data-iso="${iso}"><div class="lic" aria-hidden="true">${k.icon}</div><div class="lim"><div class="lt">${esc(k.label)}</div>
+      <div class="ls">${esc(fmtLong(iso))}${cp && cp.sec ? ` · result ${fmtDur(cp.sec)}` : ''}</div></div><div class="lr">${n === 0 ? 'Today' : n === 1 ? 'Tomorrow' : `in ${n} days`}</div></div>`;
+  }).join('')}</div></section>`;
+}
+function quoteHTML() {
+  const n = daysBetween('2026-01-01', todayISO());
+  return `<div class="card quote">“${esc(QUOTES[((n % QUOTES.length) + QUOTES.length) % QUOTES.length])}”<b>Daily motivation</b></div>`;
+}
+
+// ===== 8. CALENDAR =====
+function renderCalendar() {
+  const S = computeStats(), t = S.t, y = STATE.calY, m = STATE.calM;
+  const first = new Date(y, m, 1, 12), days = new Date(y, m + 1, 0).getDate(), lead = (first.getDay() + 6) % 7;
+  const minYM = 2026 * 12 + 2, maxYM = 2027 * 12 + 5, ym = y * 12 + m;
+  let cells = DOW.map(d => `<div class="calhd">${d[0]}${d[1]}</div>`).join('');
+  for (let i = 0; i < lead; i++) cells += '<div class="cc empty" aria-hidden="true"></div>';
+  let runs = 0, mi = 0, planMi = 0;
+  for (let n = 1; n <= days; n++) {
+    const iso = `${y}-${pad2(m + 1)}-${pad2(n)}`, d = DAYS[iso], s = STG_DAYS[iso], e = getE(iso), ran = isRun(e);
+    if (ran) { runs++; mi += e.actualDist; }
+    let tint = 'transparent', icon = '', pm = '', key = false, miss = false, lbl = fmtLong(iso);
+    if (d) {
+      const v = versionFor(d, modeFor(iso)); planMi += d.floor.mi;
+      tint = phaseVar(d.phase); icon = KEY_DAYS[iso] ? KEY_DAYS[iso].icon : KIND[v.kind].icon; pm = v.run ? fmtMi(v.mi) : '';
+      key = !!KEY_DAYS[iso];
+      miss = d.floor.run && !ran && iso < t && !S.weeks[d.week].hit;
+      lbl += `: ${v.title}${v.run ? ' ' + fmtMi(v.mi) + ' mi' : ''}`;
+    } else if (s) {
+      tint = 'var(--ph-stg)'; icon = s.workout === 'RACE DAY' ? '🏆' : s.mi > 0 ? '🏃' : ''; pm = s.mi ? fmtMi(s.mi) : '';
+      lbl += `: St. George plan, ${s.workout}`;
+    }
+    const walked = d && d.kind === 'walk' && e && e.done;
+    const cls = ['cc', iso === t ? 'today' : '', ran || walked ? 'done' : '', miss ? 'miss' : '', key ? 'key' : '', !d && !s ? 'off' : ''].join(' ');
+    cells += `<button class="${cls}" style="--tint:${tint}" data-act="open" data-iso="${iso}" aria-label="${esc(lbl)}${ran ? ', done ' + fmtMi(e.actualDist) + ' mi' : ''}">
+      <span class="cn">${n}</span><span class="ci" aria-hidden="true">${icon}</span><span class="cm">${ran ? fmtMi(e.actualDist) : pm}</span></button>`;
+  }
+  const legend = PHASES.map(p => `<span><i style="background:var(${p.css})"></i>${p.id}</span>`).join('') +
+    '<span><i style="background:var(--ph-stg)"></i>St. George (archived)</span><span><i style="box-shadow:inset 0 0 0 2px var(--ph-race)"></i>Key day</span>';
+  document.getElementById('panel-calendar').innerHTML = `
+    <div class="calnav"><button data-act="cal" data-dir="-1" aria-label="Previous month" ${ym <= minYM ? 'disabled' : ''}>◀</button>
+      <h2>${MONTHS[m]} ${y}</h2><button data-act="cal" data-dir="1" aria-label="Next month" ${ym >= maxYM ? 'disabled' : ''}>▶</button></div>
+    <div class="card" style="padding:10px"><div class="calgrid">${cells}</div>
+      <div class="legend">${legend}</div></div>
+    <div class="card"><div class="row"><div><div class="eyebrow">${MONTHS[m]} logged</div><div style="font-size:1.4rem;font-weight:800">${fmtMi(mi)} mi <span class="sub">· ${plural(runs, 'run')}</span></div></div>
+      ${planMi ? `<div class="spacer"></div><div style="text-align:right"><div class="eyebrow">Floor plan</div><div style="font-size:1.4rem;font-weight:800">${fmtMi(planMi)} mi</div></div>` : ''}</div>
+      <div class="sub" style="margin-top:8px">Tap any day to see the workout and log it. ✓ = done · ○ = missed floor run.</div></div>`;
+}
+
+// ===== 9. DAY SHEET =====
+function openSheet(iso) { STATE.sheet = iso; renderSheet(); const sh = $('#sheet'); sh.classList.add('open'); sh.setAttribute('aria-hidden', 'false'); document.body.style.overflow = 'hidden'; setTimeout(() => { const x = $('#sheet .x'); if (x) x.focus(); }, 30); }
+function closeSheet() { STATE.sheet = null; const sh = $('#sheet'); sh.classList.remove('open'); sh.setAttribute('aria-hidden', 'true'); document.body.style.overflow = ''; refresh(); }
+function renderSheet(soft) {
+  if (!STATE.sheet) return;
+  const body = $('#sheet-body'), iso = STATE.sheet, S = computeStats();
+  if (soft && body.contains(document.activeElement) && document.activeElement.matches('input,textarea,select')) { syncInline(body); PENDING_FULL = true; return; }
+  body.innerHTML = `<div class="grabber" aria-hidden="true"></div><div class="sheet-top"><div><div class="eyebrow">${DAYS[iso] ? 'Week ' + DAYS[iso].week + ' · ' + DAYS[iso].phase : STG_DAYS[iso] ? 'St. George (archived)' : ''}</div>
+    <div id="sheet-title" style="font-weight:800;font-size:1.1rem">${esc(fmtLong(iso))}, ${dateOf(iso).getFullYear()}</div></div>
+    <button class="x" data-act="close" aria-label="Close">✕</button></div>` + dayDetailHTML(iso, S) +
+    `<div style="text-align:center;margin:4px 0 8px"><button class="link" data-act="goto" data-iso="${iso}">Open in Today view →</button></div>`;
+}
+
+// ===== 10. PLAN TAB =====
+function renderPlan(soft) {
+  const S = computeStats();
+  renderSections('plan', [
+    ['p-title', () => '<h1 class="page-title">The plan</h1>'],
+    ['p-time', () => timelineHTML(S)],
+    ['p-goal', () => goalCardHTML()],
+    ['p-cps', () => `<section class="card"><h3>⏱️ Checkpoints</h3><div class="sub" style="margin-top:-4px">Saturday time trials pick your pace track: 3:30, 3:45 or 4:00. The latest result wins, and the SLC Half sets your UVM goal.</div>${CHECKPOINTS.map(cp => cpBlockHTML(cp, false)).join('')}</section>`],
+    ['p-keys', () => keyDaysHTML(S)],
+    ['p-weeks', () => weeksListHTML(S)],
+    ['p-rules', () => rulesCardHTML()],
+    ['p-race', () => raceCardHTML()]
+  ], soft);
+}
+function stagger(marks) {
+  const last = [-99, -99];
+  return marks.sort((a, b) => a[0] < b[0] ? -1 : 1).map(m => {
+    const x = posPct(m[0]); const row = x - last[0] >= 5 ? 0 : x - last[1] >= 5 ? 1 : 0;
+    last[row] = x; return m.concat(row);
+  });
+}
+function posPct(iso) { const total = PLAN_WEEKS * 7; return Math.max(0, Math.min(100, (daysBetween(PLAN_START, iso) + 0.5) / total * 100)); }
+function timelineHTML(S) {
+  const segs = PHASES.map(p => `<div class="seg-ph" style="flex:${p.w1 - p.w0 + 1};background:var(${p.css})" title="${p.id}">${p.id === 'Recovery' ? '' : p.id}</div>`).join('');
+  const marks = [];
+  CUTBACK_WEEKS.forEach(w => marks.push([addDays(WEEKS[w].start, 3), '↘', `Cutback week ${w}`]));
+  Object.entries(KEY_DAYS).forEach(([iso, k]) => marks.push([iso, k.icon, k.label]));
+  const now = S.cur >= 1 && S.cur <= PLAN_WEEKS ? `<div class="tl-now" style="left:${posPct(S.t).toFixed(2)}%" title="Today"></div>` : '';
+  const rows = PHASES.map(p => {
+    const isNow = S.cur >= p.w0 && S.cur <= p.w1;
+    const hits = []; for (let w = p.w0; w <= p.w1; w++) if (S.weeks[w].status === 'hit') hits.push(w);
+    return `<div class="li"><div class="lic" style="background:var(${p.css})">${p.w0}–${p.w1}</div><div class="lim">
+      <div class="lt">${p.id}${isNow ? ' <span class="chip" style="margin-left:4px">now</span>' : ''}</div>
+      <div class="ls">${p.dates} · ${p.vol} · ${p.lr}</div><div class="ls">${esc(p.focus)}</div></div>
+      <div class="lr">${hits.length}/${p.w1 - p.w0 + 1}<br><span class="muted" style="font-weight:600">floor wks</span></div></div>`;
+  }).join('');
+  return `<section class="card"><h3>🗺️ 35 weeks to Provo</h3>
+    <div class="tl-wrap"><div class="tl" role="img" aria-label="Phases: Recovery weeks 1-2, Base 3-15, Build 16-23, Peak 24-32, Taper 33-35">${segs}</div>${now}</div>
+    <div class="tl-marks" aria-hidden="true">${stagger(marks).map(([iso, ic, l, row]) => `<span class="tl-mark" style="left:${posPct(iso).toFixed(2)}%;top:${row * 17}px" title="${esc(l)}">${ic}</span>`).join('')}</div>
+    <div class="legend" style="margin-top:4px"><span>↘ cutback</span><span>⏱️ checkpoint</span><span>⛰️ first 20</span><span>🗺️ course run</span><span>🎽 dress rehearsal</span><span>🏁 race</span></div>
+    <div class="list phase-rows" style="margin-top:8px">${rows}</div>
+    <div class="sub" style="margin-top:6px">Floor ${fmtInt(PLAN_FLOOR_MI)} mi total (peak 40/wk) · with upgrades ${fmtInt(PLAN_UP_MI)} mi (peak 53/wk).</div></section>`;
+}
+function goalCardHTML() {
+  const ti = trackInfo(), g = raceGoal(), T = TRACKS[ti.id];
+  let src;
+  if (ti.manual) src = `Pinned to the ${ti.id} track. Auto would pick ${ti.auto.id}${ti.auto.from ? ` (from your ${ti.auto.from.short})` : ''}.`;
+  else if (ti.from) src = `Auto: set by your ${ti.from.short} (${fmtDur(DB.checkpoints[ti.from.id].sec)}).`;
+  else src = `Default 4:00 track until your first checkpoint (5K, ${fmtLong(CP['5k'].iso)}).`;
+  const goalSec = g.byFeel ? 14700 : TRACKS[g.track].goalSec;
+  const rows = [['Easy', 'easy'], ['Long run', 'lr'], ['Goal MP', 'mp'], ['Tempo (T)', 't'], ['Intervals (I)', 'i']]
+    .map(([l, k]) => `<tr><td>${l}</td>${TRACK_IDS.map(id => `<td class="${id === ti.id ? 'hl' : ''}">${TRACKS[id][k]}</td>`).join('')}</tr>`).join('') +
+    `<tr><td>Half pace</td>${TRACK_IDS.map(id => `<td class="${id === ti.id ? 'hl' : ''}">${halfPace(TRACKS[id])}</td>`).join('')}</tr>`;
+  return `<section class="card"><div class="card-h">🎯 Race goal &amp; paces
+      <label class="sr" for="track-sel">Pace track</label>
+      <select id="track-sel" class="select" data-field="track" style="margin-left:auto">
+        <option value="auto"${!ti.manual ? ' selected' : ''}>Auto${!ti.manual ? ` (${ti.id})` : ''}</option>
+        ${TRACK_IDS.map(id => `<option value="${id}"${ti.manual && ti.id === id ? ' selected' : ''}>${id} track</option>`).join('')}
+      </select></div>
+    <div class="goal"><div class="gv">${esc(g.goal)}</div><div><div style="font-weight:800">${esc(g.pace)}/mi${g.byFeel ? ', by feel' : ''}</div>
+      <div class="sub">${g.final ? 'Set by the SLC Half.' : 'Provisional until the SLC Half (Apr 24).'}</div>
+      <div class="sub">vs St. George ${LAST_RACE.time}: ${g.byFeel ? '~30+ min PR' : fmtDur(LAST_RACE.sec - goalSec) + ' faster'}</div></div></div>
+    <div class="sub" style="margin-top:10px">${esc(src)}</div>
+    ${ti.behind && !ti.manual ? ruleHTML('behind', 'warn', `Behind 4:00 pace at the ${ti.from.short}. Keep training on 4:00 paces; if the half says so too, run UVM by feel (${BEHIND.goal}).`) : ''}
+    <div class="tblwrap" style="margin-top:12px"><table class="tbl"><thead><tr><th>Pace /mi</th>${TRACK_IDS.map(id => `<th class="${id === ti.id ? 'hl' : ''}">${id}${id === ti.id ? ' ●' : ''}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table></div>
+    <div class="sub" style="margin-top:8px">${esc(T.when)} Easy runs: talk test, not HR.</div></section>`;
+}
+function cpBlockHTML(cp, inline) {
+  const r = DB.checkpoints[cp.id], sec = r && r.sec, res = sec ? trackForResult(cp, sec) : null, n = daysBetween(todayISO(), cp.iso);
+  const cell = (id, lbl, val, sub) => `<div class="cut${res === id ? ' on' : ''}"><i>${lbl}</i><b>${val}</b>${sub ? `<i>${sub}</i>` : ''}</div>`;
+  const isHalf = cp.id === 'half';
+  const cuts = cell('3:30', '3:30', `≤ ${fmtDur(cp.cuts['3:30'])}`, isHalf ? '8:00/mi' : '') + cell('3:45', '3:45', `≤ ${fmtDur(cp.cuts['3:45'])}`, isHalf ? '8:35/mi' : '') +
+    cell('4:00', '4:00', `≤ ${fmtDur(cp.cuts['4:00'])}`, isHalf ? '9:09/mi' : '') + cell('behind', 'Behind', `> ${fmtDur(cp.cuts['4:00'])}`, isHalf ? 'by feel' : '');
+  const head = inline ? `<div class="flabel" style="margin-bottom:0">Your ${esc(cp.short)} result picks the pace track</div>` : `
+    <div class="cp-head"><div class="lic" style="width:36px;height:36px;border-radius:11px;background:var(--surface-2);display:flex;align-items:center;justify-content:center;flex:none">⏱️</div>
+      <div style="flex:1;min-width:0"><div style="font-weight:800">${esc(cp.name)}${inline ? '' : ` <span class="muted" style="font-weight:600">· week ${cp.week}</span>`}</div>
+      <div class="sub">${esc(fmtLong(cp.iso))}${n > 0 ? ` · in ${n} days` : n === 0 ? ' · today' : ''} · ${esc(cp.how)}</div>
+      ${cp.note ? `<div class="sub" style="font-weight:700">${esc(cp.note)}</div>` : ''}</div></div>`;
+  return `<div class="cp"${inline ? ' style="border-top:0;padding:0"' : ''}>${head}
+    ${inline && cp.note ? `<div class="sub" style="font-weight:700;margin-top:2px">${esc(cp.note)}</div>` : ''}
+    <div class="cuts">${cuts}</div>
+    <div class="cp-input"><label class="sr" for="cp-${cp.id}${inline ? '-i' : ''}">${esc(cp.name)} result</label>
+      <input class="input" id="cp-${cp.id}${inline ? '-i' : ''}" type="text" inputmode="numeric" autocomplete="off" maxlength="8" placeholder="${cp.hms ? 'h:mm:ss' : 'mm:ss'}" value="${sec ? fmtDur(sec) : ''}" data-field="cp" data-cp="${cp.id}">
+      <div data-cpres="${cp.id}" class="sub" style="flex:1">${cpResultHTML(cp)}</div></div></div>`;
+}
+function cpResultHTML(cp) {
+  const r = DB.checkpoints[cp.id];
+  if (!r || !r.sec) return 'Type your time to set the track.';
+  const t = trackForResult(cp, r.sec), p = `${fmtPace(r.sec / cp.mi)}/mi`;
+  if (t === 'behind') return `<span class="status miss">✕ Behind 4:00</span> ${p}${cp.id === 'half' ? ` · race by feel (${BEHIND.goal})` : ' · stay on 4:00 paces'}`;
+  return `<span class="status hit">✓ ${t} track</span> ${p}`;
+}
+function keyDaysHTML(S) {
+  const rows = Object.entries(KEY_DAYS).map(([iso, k]) => {
+    const e = getE(iso), n = daysBetween(S.t, iso), cp = k.cp ? DB.checkpoints[k.cp] : null;
+    const right = isRun(e) ? `<span style="color:var(--good-ink)">✓ ${fmtMi(e.actualDist)} mi</span>` : cp && cp.sec ? fmtDur(cp.sec) : n > 0 ? `in ${n}d` : n === 0 ? 'Today' : '<span class="muted">past</span>';
+    return `<div class="li btnlike" role="button" tabindex="0" data-act="open" data-iso="${iso}"><div class="lic" aria-hidden="true">${k.icon}</div><div class="lim"><div class="lt">${esc(k.label)}</div>
+      <div class="ls">${esc(fmtLong(iso))} · week ${DAYS[iso].week}</div></div><div class="lr">${right}</div></div>`;
+  }).join('');
+  return `<section class="card"><h3>⭐ Key Saturdays</h3><div class="list">${rows}</div></section>`;
+}
+function weeksListHTML(S) {
+  const icon = { hit: '✅', miss: '❌', open: '⏳', future: '' };
+  const rows = WEEKS.filter(Boolean).map(W => {
+    const s = S.weeks[W.w], open = STATE.openWeeks[W.w] != null ? STATE.openWeeks[W.w] : W.w === S.cur;
+    const days = W.days.map(d => {
+      const e = getE(d.iso), ran = isRun(e);
+      const f = d.floor.run ? `${fmtMi(d.floor.mi)} mi ${esc(d.floor.desc || d.floor.title)}` : esc(d.floor.title);
+      return `<div class="wkday" role="button" tabindex="0" data-act="open" data-iso="${d.iso}"><div class="wdn">${DOW[d.dow]}<br>${dateOf(d.iso).getDate()}</div>
+        <div>${KEY_DAYS[d.iso] ? KEY_DAYS[d.iso].icon + ' ' : ''}${f}${d.up ? `<div class="wup">⚡ ${esc(d.up.desc || fmtMi(d.up.mi) + ' mi')}${d.dow === 1 ? '' : ` · ${fmtMi(d.up.mi)} mi`}</div>` : ''}</div>
+        <div class="wck">${ran ? '✓ ' + fmtMi(e.actualDist) : e && e.strength ? '💪' : ''}</div></div>`;
+    }).join('');
+    const tags = (W.cutback ? ' · cutback' : '') + (W.checkpoint ? ' · checkpoint' : '');
+    return `<details class="wkrow" data-week="${W.w}"${open ? ' open' : ''} style="${paceVarStyle(W.phase)}"><summary>
+      <div class="wn">${W.w}</div><div class="wm"><div class="wt">${fmtRange(W.start, W.end)} · ${fmtMi(W.floorMi)}<span class="muted" style="font-weight:600"> / ${fmtMi(W.upMi)} mi</span></div>
+      <div class="ws">${esc(W.phase)}${tags} · ${esc(W.sat)}</div></div>
+      <div class="wr" aria-label="${s.status}">${s.status === 'future' ? '' : `<span class="muted" style="font-size:.72rem;font-weight:800">${fmtMi(s.mi)} </span>`}${icon[s.status]}</div></summary>
+      <div class="wkdays">${days}</div></details>`;
+  }).join('');
+  return `<section class="card"><h3>📋 All 35 weeks <span class="chip">floor / upgrade mi</span></h3><div>${rows}</div></section>`;
+}
+function rulesCardHTML() {
+  return `<section class="card"><h3>📏 The rules</h3>
+    ${['floor', 'unlock', 'tuesday', 'missed', 'busy', 'easy', 'strength', 'monthu', 'sunday', 'pain'].map(k => ruleHTML(k)).join('')}
+    ${ruleHTML('winterTue', '', 'Winter: treadmill at 1% for Tuesday workouts on ice. Long run midday Saturday; storm = move it to Friday.')}
+  </section>`;
+}
+function raceCardHTML() {
+  const g = raceGoal(), paceSec = parseDur(g.byFeel ? '9:15' : g.pace);
+  const splits = [];
+  for (let m = 1; m <= 26; m++) splits.push(`<div><span>Mile ${m}</span><b>${fmtDur(m * paceSec)}</b></div>`);
+  splits.push(`<div><span>Finish 26.2</span><b>${fmtDur(26.2188 * paceSec)}</b></div>`);
+  const prep = DAY_LIST.filter(d => /downhill|UVM course|course sim|DRESS REHEARSAL/i.test(`${d.floor.desc} ${d.note}`))
+    .map(d => `<div class="li btnlike" role="button" tabindex="0" data-act="open" data-iso="${d.iso}"><div class="lic" aria-hidden="true">${/DRESS/i.test(d.floor.desc) ? '🎽' : /course/i.test(d.floor.desc) ? '🗺️' : '⛰️'}</div>
+      <div class="lim"><div class="lt">${esc(d.floor.desc || d.note)}</div><div class="ls">${esc(fmtLong(d.iso))} · ${d.floor.run ? fmtMi(d.floor.mi) + ' mi' : ''}</div></div>
+      <div class="lr">${isRun(getE(d.iso)) ? '<span style="color:var(--good-ink)">✓</span>' : ''}</div></div>`).join('');
+  return `<section class="card"><h3>🏁 Race day</h3>
+    <div class="list">
+      <div class="li"><div class="lic">🕕</div><div class="lim"><div class="lt">Sat Jun 5, 2027 · ${RACE.startTxt} start</div><div class="ls">Bib pickup Friday. Carb-load from Thursday.</div></div></div>
+      <div class="li"><div class="lic">⛰️</div><div class="lim"><div class="lt">${RACE.route} · −${fmtInt(RACE.drop)} ft net</div><div class="ls">${RACE.course}</div></div></div>
+      <div class="li"><div class="lic">🎯</div><div class="lim"><div class="lt">Goal ${esc(goalLine())}</div><div class="ls">${g.final ? 'Locked in by the SLC Half.' : 'Provisional: the SLC Half sets it.'}</div></div></div>
+    </div>
+    <div class="eyebrow" style="margin-top:14px">Downhill prep in the plan</div>
+    <div class="list">${prep}</div>
+    <details class="more"><summary>Pace band at ${esc(g.byFeel ? '9:15' : g.pace)}/mi</summary><div class="splits">${splits.join('')}</div>
+      <div class="sub" style="margin-top:8px">Even splits on paper. On a net-downhill course, expect the canyon miles to run a touch quicker at the same effort.</div></details>
+  </section>`;
+}
+
+// ===== 11. STATS TAB =====
+function renderStats(soft) {
+  const S = computeStats();
+  renderSections('stats', [
+    ['s-title', () => '<h1 class="page-title">Stats</h1>'],
+    ['s-tiles', () => tilesHTML(S)],
+    ['s-charts', () => statsChartsHTML(S)],
+    ['s-past', () => pastRacesHTML()],
+    ['s-data', () => dataCardHTML()]
+  ], soft);
+}
+function tilesHTML(S) {
+  const T = S.tot, cw = Math.min(Math.max(S.cur, 1), PLAN_WEEKS), floorToDate = S.cur >= 1 ? S.weeks[cw].cumFloor : 0;
+  const dl = daysToRace(S.t);
+  const tile = (l, v, s, extra) => `<div class="tile"${extra || ''}><div class="tl">${l}</div><div class="tv">${v}</div><div class="ts">${s}</div></div>`;
+  return `<div class="tiles">
+    ${tile('Miles logged', `${fmtMi(T.mi)}<small> mi</small>`, `${S.cur >= 1 ? `${fmtMi(floorToDate)} floor plan to date` : 'block starts Oct 5'}`)}
+    ${tile('Floor weeks', `${T.hits}<small> / ${T.judged}</small>`, `streak ${S.streak} · best ${S.best}`)}
+    ${tile('Zero-run weeks', `${T.zero === 0 ? '✓ 0' : '✕ ' + T.zero}`, 'the #1 failure mode')}
+    ${tile('Runs', `${T.runs}`, `${plural(T.ups, 'upgrade')} used`)}
+    ${tile('Strength', `${T.strength}<small> sessions</small>`, `2×/week · streak ${S.strStreak} wk${S.strStreak === 1 ? '' : 's'}`)}
+    ${tile('Longest run', `${fmtMi(T.longest)}<small> mi</small>`, T.longestIso ? esc(fmtLong(T.longestIso)) : 'first 20 on Mar 27')}
+    ${tile('Avg pace', T.timedMi ? `${fmtPace(T.sec / T.timedMi)}<small>/mi</small>` : '–', T.sec ? `${fmtHM(T.sec)} on feet` : 'log times to see pace')}
+    ${tile('Pace track', `${trackInfo().id}`, `goal ${esc(goalLine())}`)}
+    ${tile('Race day', dl > 0 ? `${dl}<small> days</small>` : dl === 0 ? 'Today!' : 'Done', 'Sat Jun 5 · 6:00 AM')}
+  </div>`;
+}
+function statsChartsHTML() { return ''; }
+function stgStats() {
+  const s = { runs: 0, mi: 0, sec: 0, timedMi: 0, longest: 0, weeks: [] };
+  for (const [iso, e] of Object.entries(DB.entries)) {
+    if (iso < STG.start || iso > STG.end || !isRun(e)) continue;
+    s.runs++; s.mi += e.actualDist; s.longest = Math.max(s.longest, e.actualDist);
+    if (e.actualTime > 0) { s.sec += e.actualTime * 60; s.timedMi += e.actualDist; }
+    const w = Math.floor(daysBetween(STG.start, iso) / 7) + 1; s.weeks[w] = (s.weeks[w] || 0) + e.actualDist;
+  }
+  return s;
+}
+function pastRacesHTML() {
+  const s = stgStats(), pct = STG_PLAN_MI ? Math.round(s.mi / STG_PLAN_MI * 100) : 0, mig = DB.meta.migrated;
+  return `<section class="card"><h3>🏅 Past races</h3>
+    <div class="li" style="padding-top:0"><div class="lic" style="background:var(--surface-2)">🏜️</div><div class="lim">
+      <div class="lt">${STG.name} · ${esc(fmtFull(LAST_RACE.iso))}</div>
+      <div class="ls">${LAST_RACE.time} · ${LAST_RACE.pace}/mi · current marathon PR</div></div><span class="chip">PR</span></div>
+    ${stgChartHTML(s)}
+    <div class="tiles" style="margin:10px 0 0;grid-template-columns:repeat(3,1fr)">
+      <div class="tile" style="box-shadow:none;background:var(--surface-2)"><div class="tl">Logged</div><div class="tv">${fmtMi(s.mi)}<small> mi</small></div><div class="ts">of ${fmtMi(STG_PLAN_MI)} planned</div></div>
+      <div class="tile" style="box-shadow:none;background:var(--surface-2)"><div class="tl">Of plan</div><div class="tv">${pct}<small>%</small></div><div class="ts">${plural(s.runs, 'run')}</div></div>
+      <div class="tile" style="box-shadow:none;background:var(--surface-2)"><div class="tl">Longest</div><div class="tv">${fmtMi(s.longest)}<small> mi</small></div><div class="ts">${s.timedMi ? fmtPace(s.sec / s.timedMi) + '/mi avg' : 'no times'}</div></div>
+    </div>
+    <div class="sub" style="margin-top:10px">${mig && mig.count ? `Brought over ${mig.count} entries from the St. George app on ${esc(fmtFull(isoOf(new Date(mig.at))))}. ` : ''}The St. George log stays on this device under its original key, untouched. Tap any March–October 2026 day in the calendar to see it.</div>
+    <button class="btn small" style="margin-top:10px" data-act="export" data-scope="stg">⬇️ Export St. George log (CSV)</button>
+  </section>`;
+}
+function stgChartHTML() { return ''; }
+function dataCardHTML() {
+  const n = Object.keys(DB.entries).length, theme = DB.settings.theme || 'auto';
+  return `<section class="card"><h3>💾 Your data</h3>
+    <button class="btn primary block" data-act="export" data-scope="all">⬇️ Export training log (CSV)</button>
+    <button class="btn block" style="margin-top:8px" data-act="import">⬆️ Import / restore from CSV</button>
+    <div class="sub" style="margin-top:10px"><b>Export</b> saves a backup spreadsheet of both blocks. <b>Import</b> takes your Strava <em>activities.csv</em> (runs fill matching days; Weight Training workouts count as strength) or a tracker backup file.</div>
+    <div class="sub" style="margin-top:8px">${STORAGE_OK ? `Saved on this device · ${plural(n, 'logged day')}.` : '⚠️ Storage is blocked on this device.'}</div>
+    <div class="flabel" style="margin-top:14px">Appearance</div>
+    <div class="seg wide" role="group" aria-label="Theme" style="margin-top:0">${['auto', 'light', 'dark'].map(t => `<button data-act="theme" data-v="${t}" aria-pressed="${theme === t}">${t === 'auto' ? 'Auto' : t === 'light' ? 'Light' : 'Dark'}</button>`).join('')}</div>
+  </section>
+  <div class="foot">Road to Utah Valley · plan: Floor + Upgrade hybrid · single file, no network calls</div>`;
+}
+
+// ===== 12. EXPORT =====
+function exportCSV(scope) {
+  const rows = [['Date', 'Plan', 'Week', 'Phase', 'Planned Workout', 'Mode', 'Done', 'Miles Ran', 'Time (min)', 'Pace (/mi)', 'Score', 'Strength', 'Pain', 'Notes', 'Checkpoint']];
+  const isos = new Set(Object.keys(DB.entries));
+  if (scope !== 'stg') for (const cp of CHECKPOINTS) if (DB.checkpoints[cp.id] && DB.checkpoints[cp.id].sec) isos.add(cp.iso);
+  for (const iso of [...isos].sort()) {
+    const d = DAYS[iso], s = STG_DAYS[iso], inStg = iso >= STG.start && iso <= STG.end;
+    if (scope === 'stg' && !inStg) continue;
+    const e = DB.entries[iso] || {};
+    let planned = '';
+    if (d) { const v = versionFor(d, e.upgrade ? 'upgrade' : 'floor'); planned = `${v.title}${v.run ? ' ' + fmtMi(v.mi) + ' mi' : ''}${v.desc ? ': ' + v.desc : ''}`; }
+    else if (s) planned = `${s.workout}${s.mi ? ' ' + fmtMi(s.mi) + ' mi' : ''}`;
+    const cpr = d && d.cp && DB.checkpoints[d.cp] && DB.checkpoints[d.cp].sec ? fmtDur(DB.checkpoints[d.cp].sec) : '';
+    rows.push([fmtFull(iso), d ? 'UVM 2027' : inStg ? 'St George 2026' : '', d ? d.week : s ? s.week : '', d ? d.phase : s ? s.phase : '',
+      planned, d && d.up ? (e.upgrade ? 'Upgrade' : 'Floor') : '', e.done ? 'Y' : 'N', (e.actualDist || 0).toFixed(2),
+      e.actualTime ? Math.round(e.actualTime * 100) / 100 : 0, isRun(e) && e.actualTime ? fmtPace(e.actualTime * 60 / e.actualDist) : '',
+      e.rating || '', e.strength ? 'Y' : '', e.pain ? 'Y' : '', e.note || '', cpr]);
+  }
+  if (rows.length === 1) { alert('Nothing to export yet. Log some runs first!'); return; }
+  const csv = '﻿' + rows.map(r => r.map(csvCell).join(',')).join('\r\n');
+  download(csv, scope === 'stg' ? 'st-george-2026-training-log.csv' : `uvm-2027-training-log-${todayISO()}.csv`);
+  toast(`⬇️ Exported ${plural(rows.length - 1, 'day')}`);
+}
+function download(text, name) {
+  const url = URL.createObjectURL(new Blob([text], { type: 'text/csv;charset=utf-8' }));
+  const a = document.createElement('a'); a.href = url; a.download = name;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+}
+
+// ===== 13. IMPORT (Strava activities.csv or tracker backup) =====
+function parseAnyDate(s) {
+  s = String(s || '').trim().replace(/^"|"$/g, ''); let m;
+  if ((m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/))) return `${m[1]}-${pad2(m[2])}-${pad2(m[3])}`;
+  if ((m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/))) return `${m[3]}-${pad2(m[1])}-${pad2(m[2])}`;
+  if ((m = s.match(/^([A-Za-z]{3,9})\.?\s+(\d{1,2}),?\s+(\d{4})/))) { const mon = MONTH_IDX[m[1].toLowerCase()]; if (mon) return `${m[3]}-${pad2(mon)}-${pad2(m[2])}`; }
+  return null;
+}
+// Strava's "Activity Date" is UTC ("Jun 8, 2026, 12:58:57 PM"); file runs under the local calendar day.
+function parseStravaDate(s) {
+  s = String(s || '').trim(); let m, y, mo, d, h, mi, se;
+  if ((m = s.match(/^([A-Za-z]{3,9})\.?\s+(\d{1,2}),?\s+(\d{4}),?\s+(\d{1,2}):(\d{2})(?::(\d{2}))?\s*([AaPp]\.?\s?[Mm]\.?)?/))) {
+    mo = MONTH_IDX[m[1].toLowerCase()]; d = +m[2]; y = +m[3]; h = +m[4]; mi = +m[5]; se = +(m[6] || 0);
+    if (m[7]) { const pm = /p/i.test(m[7]); if (pm && h < 12) h += 12; if (!pm && h === 12) h = 0; }
+  } else if ((m = s.match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{1,2}):(\d{2})(?::(\d{2}))?/))) {
+    y = +m[1]; mo = +m[2]; d = +m[3]; h = +m[4]; mi = +m[5]; se = +(m[6] || 0);
+  } else { const iso = parseAnyDate(s); return iso ? { iso, utcIso: iso, ts: dateOf(iso).getTime() } : null; }
+  if (!mo || !d || !y) return null;
+  const ts = Date.UTC(y, mo - 1, d, h, mi, se);
+  return { iso: isoOf(new Date(ts)), utcIso: `${y}-${pad2(mo)}-${pad2(d)}`, ts };
+}
+function handleImportFile(input) {
+  const file = input.files && input.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => { try { processImport(String(ev.target.result)); } catch (err) { alert('Sorry, could not read that file.\n\n' + err.message); } input.value = ''; };
+  reader.onerror = () => { alert('Could not read the file.'); input.value = ''; };
   reader.readAsText(file);
 }
-function processImport(text){
-  const lines=text.split(/\r?\n/).filter(l=>l.trim().length);
-  if(lines.length<2){alert('That file looks empty.');return}
-  const header=parseCSVLine(lines[0]).map(h=>h.trim().replace(/^"|"$/g,''));
-  const isStrava=header.indexOf('Activity Date')>-1&&header.indexOf('Activity Type')>-1;
-  const dayRuns={}; // iso -> {dist,time,rating?}
-  if(isStrava){
-    const di=header.indexOf('Activity Date');
-    const ti=header.indexOf('Activity Type');
-    const distI=header.indexOf('Distance');     // first = kilometers
-    const movI=header.indexOf('Moving Time');   // seconds
-    for(let i=1;i<lines.length;i++){
-      const f=parseCSVLine(lines[i]);
-      if((f[ti]||'').trim()!=='Run')continue;   // runs only
-      const iso=parseDateToISO(f[di]);
-      if(!iso||!BY_DATE[iso])continue;
-      const km=parseFloat(f[distI])||0;
-      const mi=Math.round(km*0.621371*10)/10;
-      const min=Math.round((parseFloat(f[movI])||0)/60);
-      // de-dupe double recordings: keep the longest run per day
-      if(!dayRuns[iso]||mi>dayRuns[iso].dist)dayRuns[iso]={dist:mi,time:min};
+function processImport(text) {
+  const rows = parseCSV(text).filter(r => r.some(c => String(c).trim()));
+  if (rows.length < 2) { alert('That file looks empty.'); return; }
+  const H = rows[0].map(h => String(h).trim().replace(/^"|"$/g, ''));
+  if (H.includes('Activity Date') && H.includes('Activity Type')) importStrava(H, rows.slice(1));
+  else importBackup(H, rows.slice(1));
+}
+function importStrava(H, rows) {
+  const all = n => H.reduce((a, h, i) => (h === n ? a.concat(i) : a), []);
+  const di = H.indexOf('Activity Date'), ti = H.indexOf('Activity Type'), dists = all('Distance'), movI = H.indexOf('Moving Time'), els = all('Elapsed Time');
+  const runs = {}, strengthDays = new Set();
+  for (const f of rows) {
+    const type = String(f[ti] || '').trim(), when = parseStravaDate(f[di]);
+    if (!when || when.iso < RANGE_START || when.iso > RANGE_END) continue;
+    if (/\brun\b/i.test(type)) {
+      // 1st "Distance" column is km; a 2nd one (meters) is more precise when present and consistent.
+      const k1 = parseFloat(f[dists[0]]), m2 = dists.length > 1 ? parseFloat(f[dists[1]]) : NaN;
+      let km = k1 > 0 ? k1 : 0;
+      if (m2 > 0) { const kmM = m2 / 1000, miM = m2 / 1609.344; if (!(k1 > 0) || Math.abs(kmM - k1) / kmM < 0.05 || Math.abs(miM - k1) / miM < 0.05) km = kmM; }
+      const moving = parseFloat(f[movI]), elapsed = parseFloat(f[els[0]]), sec = moving > 0 ? moving : elapsed > 0 ? elapsed : 0;
+      if (!(km > 0)) continue;
+      (runs[when.iso] = runs[when.iso] || []).push({ ts: when.ts, end: when.ts + (elapsed > 0 ? elapsed : sec) * 1000, mi: km * 0.621371, sec, utcIso: when.utcIso });
+    } else if (/weight|strength|crossfit|workout/i.test(type)) strengthDays.add(when.iso);
+  }
+  // Same day: overlapping recordings (watch + phone) keep the longest; separate runs add up.
+  const days = {};
+  for (const [iso, list] of Object.entries(runs)) {
+    list.sort((a, b) => a.ts - b.ts);
+    let mi = 0, sec = 0, end = -Infinity, best = null;
+    for (const r of list) {
+      if (best && r.ts < end) { if (r.mi > best.mi) best = r; end = Math.max(end, r.end); }
+      else { if (best) { mi += best.mi; sec += best.sec; } best = r; end = r.end; }
     }
-  }else{
-    // tracker's own backup format: Date, Workout, Miles Ran, Time (min), Score
-    const di=header.indexOf('Date');
-    const mdi=header.findIndex(h=>/mile/i.test(h));
-    const tmi=header.findIndex(h=>/time/i.test(h));
-    const sci=header.findIndex(h=>/score/i.test(h));
-    if(di<0||mdi<0){alert('Unrecognized file. Use your Strava activities.csv or a tracker backup export.');return}
-    for(let i=1;i<lines.length;i++){
-      const f=parseCSVLine(lines[i]);
-      const iso=parseDateToISO(f[di]);
-      if(!iso||!BY_DATE[iso])continue;
-      dayRuns[iso]={dist:Math.round((parseFloat(f[mdi])||0)*10)/10,
-        time:Math.round(parseFloat(f[tmi])||0),
-        rating:sci>-1?(parseInt(f[sci],10)||0):undefined};
-    }
+    mi += best.mi; sec += best.sec;
+    days[iso] = { mi: Math.round(mi * 100) / 100, min: Math.round(sec / 60 * 100) / 100, n: list.length, utcIso: list[0].utcIso };
   }
-  const isos=Object.keys(dayRuns);
-  if(!isos.length){alert('No matching runs found.\n\nMake sure you picked your Strava "activities.csv" or a tracker backup file.');return}
-  const log=loadLog();
-  const existingCount=Object.keys(log.entries).length;
-  if(existingCount>0&&!confirm('Import '+isos.length+' workouts? This will fill in matching days (your existing ratings are kept).'))return;
-  isos.forEach(iso=>{
-    const r=dayRuns[iso];
-    const ex=log.entries[iso]||{};
-    log.entries[iso]={
-      done:true,
-      rating:(r.rating!==undefined)?r.rating:(ex.rating||0),
-      actualDist:r.dist,
-      actualTime:r.time
-    };
-  });
-  saveLog(log);
-  renderToday();renderStats();
-  alert('✅ Imported '+isos.length+' workouts!\nYour training log is restored.');
-}
-
-// ===== CURRENT STATE =====
-let viewDate=todayISO();
-let calMonth,calYear;
-(function(){const d=new Date();calMonth=d.getMonth();calYear=d.getFullYear()})();
-
-// ===== COUNTDOWN =====
-function updateCountdown(){
-  const d=daysUntil(RACE);
-  document.getElementById('countdown-chip').textContent=d>0?`${d} days to race day!`:d===0?'RACE DAY!':'Race complete!';
-}
-
-// ===== RENDER TODAY =====
-function renderToday(){
-  const panel=document.getElementById('panel-today');
-  const p=BY_DATE[viewDate];
-  const entry=getEntry(viewDate);
-  const isToday=viewDate===todayISO();
-  const pc=p?PHASE_C[p.phase]:{bg:'#f5f5f5',accent:'#999'};
-  const stats=calcStats();
-
-  let html=`<div class="day-nav">
-    <button class="nav-arrow" onclick="navDay(-1)">\u25C0</button>
-    <div class="date-display">
-      <div class="date-big">${fmtDate(viewDate)}</div>
-      <div class="date-small">${p?'Week '+p.week+' \u2022 '+p.phase:'Outside training plan'}</div>
-      ${!isToday?'<button class="today-btn" onclick="goToday()">Jump to Today</button>':''}
-    </div>
-    <button class="nav-arrow" onclick="navDay(1)">\u25B6</button>
-  </div>`;
-
-  if(!p){
-    html+=`<div class="card rest-card"><div class="rest-emoji">\u{1F3C3}</div><p>No workout scheduled for this day</p></div>`;
-  } else if(p.workout==='RACE DAY'){
-    html+=`<div class="card race-card">
-      <div class="trophy">\u{1F3C6}</div>
-      <h2>RACE DAY!</h2>
-      <p>St. George Marathon \u2022 26.2 miles</p>
-      <p style="margin-top:8px;font-size:.85rem;color:#795548">${p.notes}</p>
-      <p style="margin-top:8px;font-size:.85rem;color:#795548">You've trained for this. Trust your legs. Enjoy every mile.</p>
-    </div>`;
-    html+=renderRacePlan(true);
-    html+=renderLogForm(p,entry,viewDate);
-  } else if(p.workout==='Rest'){
-    html+=`<div class="card"><div class="phase-bar" style="background:${pc.accent}"></div>
-      <div style="text-align:center;padding:10px">
-        <div style="font-size:2.5rem">\u{1F634}</div>
-        <div class="workout-type" style="margin:8px 0">Rest Day</div>
-        <p style="font-size:.85rem;color:var(--text2)">${p.notes||'Recovery day \u2014 walk/stretch OK'}</p>
-      </div>
-    </div>`;
-    html+=renderLogForm(p,entry,viewDate);
-  } else {
-    html+=`<div class="card"><div class="phase-bar" style="background:${pc.accent}"></div>
-      <div class="workout-header">
-        <span class="workout-emoji">${EMOJI[p.workout]||'\u{1F3C3}'}</span>
-        <div><div class="workout-type">${p.workout}</div>
-          <div style="font-size:.75rem;color:var(--text2)">${p.pace}</div></div>
-      </div>
-      <div class="workout-meta">
-        ${p.distance?`<div class="meta-item"><div class="meta-label">Distance</div><div class="meta-value">${p.distance} mi</div></div>`:''}
-        ${p.time?`<div class="meta-item"><div class="meta-label">Time</div><div class="meta-value">${fmtTime(p.time)}</div></div>`:''}
-      </div>
-      ${p.notes?`<div class="workout-notes">${p.notes}</div>`:''}
-    </div>`;
-    html+=renderLogForm(p,entry,viewDate);
-  }
-  if(p&&p.week>=26&&p.workout!=='RACE DAY')html+=renderRacePlan(false);
-
-  // Streak
-  html+=`<div class="streak-row">
-    <div class="streak-card"><div class="streak-num" style="color:var(--orange)">${stats.streak}</div><div class="streak-label">Current Streak</div></div>
-    <div class="streak-card"><div class="streak-num" style="color:var(--green)">${stats.bestStreak}</div><div class="streak-label">Best Streak</div></div>
-  </div>`;
-
-  // Week summary
-  if(p){
-    const weekPlan=PLAN.filter(x=>x.week===p.week);
-    const weekActive=weekPlan.filter(x=>x.workout!=='Rest');
-    const log=loadLog().entries;
-    const weekDone=weekPlan.filter(x=>{const e=log[toISO(x.date)];return e&&e.done}).length;
-    const weekMiActual=weekPlan.reduce((s,x)=>{const e=log[toISO(x.date)];return s+(e&&e.done?e.actualDist||0:0)},0);
-    const weekMiPlan=weekPlan.reduce((s,x)=>s+x.distance,0);
-    const pct=weekActive.length?Math.round(weekDone/weekActive.length*100):0;
-    html+=`<div class="card week-summary"><h3>Week ${p.week} Progress</h3>
-      <div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${pc.accent}"></div></div>
-      <div class="week-stats"><span>${weekDone}/${weekActive.length} workouts</span><span>${weekMiActual.toFixed(1)} / ${weekMiPlan.toFixed(1)} mi</span></div>
-    </div>`;
-  }
-
-  // Quote
-  const dayOfYear=Math.floor((new Date()-new Date(new Date().getFullYear(),0,0))/(1000*60*60*24));
-  const q=QUOTES[dayOfYear%QUOTES.length];
-  html+=`<div class="card quote-card">"${q}"<div class="attr">\u{1F3C3} Daily Motivation</div></div>`;
-
-  panel.innerHTML=html;
-}
-
-function renderRacePlan(open){
-  let h=`<details class="card race-plan"${open?' open':''}><summary>\u{1F5FA}️ Race Plan • St. George</summary>`;
-  for(const[title,body]of RACE_PLAN){
-    h+=`<div class="rp-item"><div class="rp-title">${title}</div><div class="rp-body">${body}</div></div>`;
-  }
-  h+=`</details>`;
-  return h;
-}
-
-function renderLogForm(p,entry,iso){
-  const done=entry?entry.done:false;
-  const rating=entry?entry.rating:0;
-  const dist=entry?entry.actualDist:p.distance||0;
-  const time=entry?entry.actualTime:p.time||0;
-  const isRun=p.workout!=='Rest'&&p.workout!=='Cross-train';
-  let h=`<div class="card log-section"><h3 style="font-size:.9rem;font-weight:700;margin-bottom:12px">\u{1F4DD} Log This Workout</h3>`;
-  h+=`<div class="log-row"><span class="log-label">Done?</span>
-    <label class="toggle"><input type="checkbox" ${done?'checked':''} onchange="toggleDone('${iso}',this.checked)"><span class="slider"></span></label>
-    ${done?'<span style="color:var(--green);font-weight:700">\u2713 Completed!</span>':''}</div>`;
-  h+=`<div class="log-row"><span class="log-label">Rating</span><div class="rating-row">`;
-  for(let i=1;i<=10;i++){
-    h+=`<div class="rating-dot${rating===i?' selected':''}" onclick="setRating('${iso}',${i})">${i}</div>`;
-  }
-  h+=`</div></div>`;
-  if(isRun||p.workout==='RACE DAY'){
-    h+=`<div class="log-row"><span class="log-label">Distance</span>
-      <div class="num-input"><button onclick="adjNum('${iso}','dist',-0.1)">\u2212</button>
-      <span class="val" id="dist-${iso}">${dist.toFixed(1)}</span><span class="unit">mi</span>
-      <button onclick="adjNum('${iso}','dist',0.1)">+</button></div></div>`;
-  }
-  h+=`<div class="log-row"><span class="log-label">Time</span>
-    <div class="num-input"><button onclick="adjNum('${iso}','time',-1)">\u2212</button>
-    <span class="val" id="time-${iso}">${time}</span><span class="unit">min</span>
-    <button onclick="adjNum('${iso}','time',1)">+</button></div></div>`;
-  h+=`</div>`;
-  return h;
-}
-
-function toggleDone(iso,checked){
-  const entry=getEntry(iso)||{done:false,rating:0,actualDist:0,actualTime:0};
-  const p=BY_DATE[iso];
-  if(!entry.actualDist&&p)entry.actualDist=p.distance||0;
-  if(!entry.actualTime&&p)entry.actualTime=p.time||0;
-  entry.done=checked;
-  setEntry(iso,entry);
-  renderToday();
-  renderStats();
-}
-function setRating(iso,r){
-  const entry=getEntry(iso)||{done:false,rating:0,actualDist:0,actualTime:0};
-  const p=BY_DATE[iso];
-  if(!entry.actualDist&&p)entry.actualDist=p.distance||0;
-  if(!entry.actualTime&&p)entry.actualTime=p.time||0;
-  entry.rating=(entry.rating===r)?0:r;
-  if(entry.rating&&!entry.done)entry.done=true;
-  setEntry(iso,entry);
-  renderToday();
-}
-function adjNum(iso,field,delta){
-  const entry=getEntry(iso)||{done:false,rating:0,actualDist:0,actualTime:0};
-  const p=BY_DATE[iso];
-  if(field==='dist'){entry.actualDist=Math.max(0,Math.round(((entry.actualDist||p?.distance||0)+delta)*10)/10)}
-  else{entry.actualTime=Math.max(0,Math.round((entry.actualTime||p?.time||0)+delta))}
-  setEntry(iso,entry);
-  const el=document.getElementById(`${field}-${iso}`);
-  if(el)el.textContent=field==='dist'?(entry.actualDist).toFixed(1):entry.actualTime;
-}
-function navDay(dir){
-  const idx=ALL_DATES.indexOf(viewDate);
-  const next=idx+dir;
-  if(next>=0&&next<ALL_DATES.length){viewDate=ALL_DATES[next];renderToday()}
-}
-function goToday(){viewDate=todayISO();renderToday()}
-
-// ===== RENDER CALENDAR =====
-function renderCalendar(){
-  const panel=document.getElementById('panel-calendar');
-  const log=loadLog().entries;
-  const ti=todayISO();
-  const firstDay=new Date(calYear,calMonth,1);
-  const lastDay=new Date(calYear,calMonth+1,0);
-  let startDow=(firstDay.getDay()+6)%7; // Mon=0
-
-  let html=`<div class="cal-nav">
-    <button onclick="calNav(-1)">\u25C0</button>
-    <h2>${MONTHS[calMonth]} ${calYear}</h2>
-    <button onclick="calNav(1)">\u25B6</button>
-  </div>`;
-
-  html+=`<div class="cal-grid">`;
-  DAYS.forEach(d=>{html+=`<div class="cal-head">${d}</div>`});
-
-  // Empty cells before first day
-  for(let i=0;i<startDow;i++)html+=`<div class="cal-cell empty"></div>`;
-
-  for(let d=1;d<=lastDay.getDate();d++){
-    const iso=`${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-    const p=BY_DATE[iso];
-    const e=log[iso];
-    const isDone=e&&e.done;
-    const isT=iso===ti;
-    const bg=p?PHASE_C[p.phase]?.bg:'transparent';
-    const classes=['cal-cell',isT?'today':'',isDone?'done':'',!p?'outside':''].filter(Boolean).join(' ');
-    html+=`<div class="${classes}" style="background:${bg}" onclick="openModal('${iso}')">
-      <span class="day-num">${d}</span>
-      ${p?`<span class="day-emoji">${EMOJI[p.workout]||''}</span>`:''}
-    </div>`;
-  }
-  html+=`</div>`;
-
-  // Legend
-  html+=`<div class="legend">`;
-  for(const[name,c]of Object.entries(PHASE_C)){
-    html+=`<div class="legend-item"><div class="legend-dot" style="background:${c.accent}"></div>${name}</div>`;
-  }
-  html+=`</div>`;
-
-  panel.innerHTML=html;
-}
-function calNav(dir){
-  calMonth+=dir;
-  if(calMonth>11){calMonth=0;calYear++}
-  if(calMonth<0){calMonth=11;calYear--}
-  renderCalendar();
-}
-
-// ===== MODAL =====
-function openModal(iso){
-  const p=BY_DATE[iso];
-  if(!p)return;
-  const entry=getEntry(iso);
-  const pc=PHASE_C[p.phase]||{bg:'#f5f5f5',accent:'#999'};
-  let html=`<div class="modal-close"><button onclick="closeModal()">\u2715</button></div>`;
-  html+=`<div style="text-align:center;margin-bottom:8px">
-    <div style="font-size:.8rem;color:var(--text2)">${fmtDate(iso)}</div>
-    <div style="font-size:.75rem;color:${pc.accent};font-weight:600">Week ${p.week} \u2022 ${p.phase}</div>
-  </div>`;
-  if(p.workout==='Rest'){
-    html+=`<div style="text-align:center;padding:10px"><div style="font-size:2rem">\u{1F634}</div><div style="font-weight:700;margin:6px 0">Rest Day</div>
-      <div style="font-size:.85rem;color:var(--text2)">${p.notes}</div></div>`;
-  } else if(p.workout==='RACE DAY'){
-    html+=`<div class="race-card"><div class="trophy">\u{1F3C6}</div><h2>RACE DAY!</h2><p>26.2 mi \u2022 ${p.notes}</p></div>`;
-  } else {
-    html+=`<div style="text-align:center"><span style="font-size:2rem">${EMOJI[p.workout]||''}</span>
-      <div style="font-weight:700;font-size:1.1rem;margin:4px 0">${p.workout}</div>
-      <div style="font-size:.85rem;color:var(--text2)">${p.pace}</div></div>`;
-    html+=`<div class="workout-meta" style="margin:12px 0">
-      ${p.distance?`<div class="meta-item"><div class="meta-label">Distance</div><div class="meta-value">${p.distance} mi</div></div>`:''}
-      ${p.time?`<div class="meta-item"><div class="meta-label">Time</div><div class="meta-value">${fmtTime(p.time)}</div></div>`:''}
-    </div>`;
-    if(p.notes)html+=`<div class="workout-notes">${p.notes}</div>`;
-  }
-  html+=renderLogForm(p,entry,iso);
-  document.getElementById('modal-body').innerHTML=html;
-  document.getElementById('modal').classList.add('open');
-}
-function closeModal(){document.getElementById('modal').classList.remove('open')}
-document.getElementById('modal').addEventListener('click',function(e){if(e.target===this)closeModal()});
-
-// ===== RENDER STATS =====
-function renderStats(){
-  const panel=document.getElementById('panel-stats');
-  const s=calcStats();
-  const d=daysUntil(RACE);
-  const p=BY_DATE[todayISO()];
-  const phase=p?p.phase:'--';
-  const week=p?p.week:'--';
-
-  let html=`<div class="stats-grid">
-    <div class="stat-card"><div class="stat-emoji">\u{1F4C5}</div><div class="stat-value">${d>0?d:d===0?'TODAY':'Done!'}</div><div class="stat-label">Days to Race</div></div>
-    <div class="stat-card"><div class="stat-emoji">\u{1F45F}</div><div class="stat-value">${s.totalMi.toFixed(1)}</div><div class="stat-label">Miles Logged</div></div>
-    <div class="stat-card"><div class="stat-emoji">\u23F1\uFE0F</div><div class="stat-value">${fmtTime(s.totalMin)}</div><div class="stat-label">Total Time</div></div>
-    <div class="stat-card"><div class="stat-emoji">\u{1F4A8}</div><div class="stat-value">${s.avgPace?fmtPace(s.totalMin,s.totalMi):'--'}</div><div class="stat-label">Avg Pace</div></div>
-    <div class="stat-card"><div class="stat-emoji">\u2705</div><div class="stat-value">${s.pct.toFixed(0)}%</div><div class="stat-label">Completion</div></div>
-    <div class="stat-card"><div class="stat-emoji">\u{1F3AF}</div><div class="stat-value">${phase}</div><div class="stat-label" style="font-size:.6rem">Current Phase</div></div>
-    <div class="stat-card"><div class="stat-emoji">\u{1F4CA}</div><div class="stat-value">${week}</div><div class="stat-label">Week</div></div>
-    <div class="stat-card"><div class="stat-emoji">\u{1F525}</div><div class="stat-value">${s.streak}</div><div class="stat-label">Streak</div></div>
-  </div>`;
-
-  // Weekly mileage chart
-  const weeklyPlan=[];
-  for(let w=1;w<=28;w++){
-    const wp=PLAN.filter(x=>x.week===w);
-    const tot=wp.reduce((a,x)=>a+x.distance,0);
-    weeklyPlan.push(tot);
-  }
-  const maxMi=Math.max(...weeklyPlan,1);
-  const chartH=200,chartW=700,barW=20,gap=5,leftPad=35,botPad=25;
-  const totalW=leftPad+28*(barW+gap);
-  let svg=`<svg viewBox="0 0 ${totalW} ${chartH+botPad}" xmlns="http://www.w3.org/2000/svg">`;
-  // Grid lines
-  for(let m=0;m<=maxMi;m+=10){
-    const y=chartH-(m/maxMi)*chartH;
-    svg+=`<line x1="${leftPad}" y1="${y}" x2="${totalW}" y2="${y}" stroke="#e0e0e0" stroke-width="1"/>`;
-    svg+=`<text x="${leftPad-4}" y="${y+4}" font-size="9" fill="#999" text-anchor="end">${m}</text>`;
-  }
-  const curWeek=p?p.week:0;
-  for(let w=0;w<28;w++){
-    const x=leftPad+w*(barW+gap);
-    const planH=(weeklyPlan[w]/maxMi)*chartH;
-    const actH=(s.weeklyActual[w]/maxMi)*chartH;
-    const wp=PLAN.find(x=>x.week===w+1);
-    const color=wp?PHASE_C[wp.phase]?.accent:'#ccc';
-    svg+=`<rect x="${x}" y="${chartH-planH}" width="${barW}" height="${planH}" fill="${color}" opacity=".2" rx="3"/>`;
-    svg+=`<rect x="${x}" y="${chartH-actH}" width="${barW}" height="${actH}" fill="${color}" rx="3"/>`;
-    if(w+1===curWeek)svg+=`<rect x="${x-1}" y="${chartH-planH-1}" width="${barW+2}" height="${planH+2}" fill="none" stroke="#ff9800" stroke-width="2" rx="4"/>`;
-    svg+=`<text x="${x+barW/2}" y="${chartH+14}" font-size="8" fill="#999" text-anchor="middle">${w+1}</text>`;
-  }
-  svg+=`</svg>`;
-  html+=`<div class="chart-card"><h3>\u{1F4CA} Weekly Mileage (Planned vs Actual)</h3>${svg}</div>`;
-
-  // Rating over time chart
-  const log=loadLog().entries;
-  const ratingPoints=[];
-  ALL_DATES.forEach(iso=>{
-    const e=log[iso];const pl=BY_DATE[iso];
-    if(e&&e.rating&&pl){ratingPoints.push({iso,rating:e.rating,week:pl.week,phase:pl.phase})}
-  });
-  if(ratingPoints.length>0){
-    const rChartH=160,rLeftPad=30,rBotPad=25,rTopPad=10;
-    const rPointGap=Math.max(12,Math.min(24,(totalW-rLeftPad)/ratingPoints.length));
-    const rTotalW=rLeftPad+ratingPoints.length*rPointGap+10;
-    let rsvg=`<svg viewBox="0 0 ${rTotalW} ${rChartH+rBotPad+rTopPad}" xmlns="http://www.w3.org/2000/svg">`;
-    // Grid lines for ratings 2,4,6,8,10
-    for(let r=2;r<=10;r+=2){
-      const y=rTopPad+rChartH-(r/10)*rChartH;
-      rsvg+=`<line x1="${rLeftPad}" y1="${y}" x2="${rTotalW}" y2="${y}" stroke="#e0e0e0" stroke-width="1"/>`;
-      rsvg+=`<text x="${rLeftPad-4}" y="${y+3}" font-size="9" fill="#999" text-anchor="end">${r}</text>`;
-    }
-    // Moving average line (3-point)
-    const avgPoints=[];
-    for(let i=0;i<ratingPoints.length;i++){
-      const window=ratingPoints.slice(Math.max(0,i-1),Math.min(ratingPoints.length,i+2));
-      const avg=window.reduce((a,p)=>a+p.rating,0)/window.length;
-      avgPoints.push(avg);
-    }
-    // Area fill under the moving average
-    let areaPath=`M ${rLeftPad} ${rTopPad+rChartH}`;
-    avgPoints.forEach((avg,i)=>{
-      const x=rLeftPad+i*rPointGap;
-      const y=rTopPad+rChartH-(avg/10)*rChartH;
-      areaPath+=` L ${x} ${y}`;
-    });
-    areaPath+=` L ${rLeftPad+(avgPoints.length-1)*rPointGap} ${rTopPad+rChartH} Z`;
-    rsvg+=`<path d="${areaPath}" fill="url(#ratingGrad)" opacity=".3"/>`;
-    rsvg+=`<defs><linearGradient id="ratingGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#ff9800"/><stop offset="100%" stop-color="#fff3e0"/></linearGradient></defs>`;
-    // Line
-    let linePath='';
-    ratingPoints.forEach((pt,i)=>{
-      const x=rLeftPad+i*rPointGap;
-      const y=rTopPad+rChartH-(avgPoints[i]/10)*rChartH;
-      linePath+=(i===0?'M ':' L ')+`${x} ${y}`;
-    });
-    rsvg+=`<path d="${linePath}" fill="none" stroke="#ff9800" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>`;
-    // Dots colored by phase
-    ratingPoints.forEach((pt,i)=>{
-      const x=rLeftPad+i*rPointGap;
-      const y=rTopPad+rChartH-(pt.rating/10)*rChartH;
-      const color=PHASE_C[pt.phase]?.accent||'#999';
-      rsvg+=`<circle cx="${x}" cy="${y}" r="4.5" fill="${color}" stroke="#fff" stroke-width="1.5"/>`;
-      // Show week label every few points
-      if(i===0||ratingPoints[i-1]?.week!==pt.week){
-        rsvg+=`<text x="${x}" y="${rTopPad+rChartH+14}" font-size="7" fill="#999" text-anchor="middle">W${pt.week}</text>`;
+  const isos = Object.keys(days).sort();
+  if (!isos.length && !strengthDays.size) { alert('No runs found between March 2026 and July 2027.\n\nMake sure you picked your Strava "activities.csv".'); return; }
+  const nU = isos.filter(i => i >= PLAN_START).length, nS = isos.length - nU;
+  const msg = `Import ${plural(isos.length, 'day')} of runs${nS ? ` (${nU} Utah Valley, ${nS} St. George)` : ''}${strengthDays.size ? ` and ${plural(strengthDays.size, 'strength session')}` : ''}?\n\nMatching days get Strava’s distance and time. Your ratings, notes and flags are kept.`;
+  if (Object.keys(DB.entries).length && !confirm(msg)) return;
+  let moved = 0;
+  for (const iso of isos) {
+    const r = days[iso], ex = DB.entries[iso] || {};
+    let carry = {};
+    // The St. George app filed Strava runs under their UTC date; move such a copy back to its local day.
+    if (r.n === 1 && r.utcIso !== iso && r.utcIso <= STG.end && !days[r.utcIso]) {
+      const old = DB.entries[r.utcIso];
+      if (old && !old.src && isRun(old) && Math.abs(old.actualDist - r.mi) <= 0.06 && Math.abs(old.actualTime - r.min) <= 1.01) {
+        carry = old; delete DB.entries[r.utcIso]; moved++;
       }
-    });
-    rsvg+=`</svg>`;
-    const avgRating=ratingPoints.reduce((a,p)=>a+p.rating,0)/ratingPoints.length;
-    html+=`<div class="chart-card"><h3>\u2B50 Workout Rating Over Time</h3>
-      <div style="font-size:.75rem;color:var(--text2);margin-bottom:8px">Avg: <strong>${avgRating.toFixed(1)}</strong>/10 across ${ratingPoints.length} workouts \u2022 Dots colored by phase \u2022 Line = smoothed trend</div>
-      ${rsvg}</div>`;
+    }
+    DB.entries[iso] = normEntry({ done: true, actualDist: r.mi, actualTime: r.min, src: 'strava',
+      rating: ex.rating || carry.rating || 0, note: ex.note || carry.note, upgrade: ex.upgrade || carry.upgrade,
+      strength: ex.strength || carry.strength || strengthDays.has(iso), pain: ex.pain || carry.pain });
   }
-
-  // Phase timeline
-  const phaseLengths={"Base Building":6,"Bridge":4,"Marathon Training":15,"Taper":2,"Race Week":1};
-  html+=`<div class="card phase-timeline"><h3>\u{1F3C1} Training Progress</h3><div class="timeline-bar">`;
-  for(const[name,weeks]of Object.entries(phaseLengths)){
-    const pct=(weeks/28*100).toFixed(1);
-    html+=`<div class="timeline-seg" style="width:${pct}%;background:${PHASE_C[name].accent}">${name.replace('Marathon ','M.')}</div>`;
+  let nStr = 0;
+  for (const iso of strengthDays) { const ex = DB.entries[iso]; if (!ex || !ex.strength) nStr++; DB.entries[iso] = normEntry(Object.assign({}, ex || {}, { strength: true })); }
+  saveDB(); refresh();
+  toast(`✅ Imported ${plural(isos.length, 'run day')}${nStr ? ` + ${plural(nStr, 'strength session')}` : ''}${moved ? ` (re-dated ${moved})` : ''}`, 4200);
+}
+function importBackup(H, rows) {
+  const find = re => H.findIndex(h => re.test(h));
+  const di = find(/^date$/i), mi = find(/mile/i), tmi = find(/^time \(min\)$/i) >= 0 ? find(/^time \(min\)$/i) : find(/time/i);
+  const sc = find(/^(score|rating|feel)/i), mo = find(/^mode$/i), dn = find(/^done$/i), st = find(/^strength$/i), pa = find(/^pain$/i), no = find(/^notes?$/i), cpI = find(/^checkpoint$/i);
+  if (di < 0 || mi < 0) { alert('Unrecognized file. Use your Strava activities.csv or a tracker backup export.'); return; }
+  const yes = (f, i) => i >= 0 && /^(y|yes|true|1|✓)$/i.test(String(f[i] || '').trim());
+  const recs = [], cps = {};
+  for (const f of rows) {
+    const iso = parseAnyDate(f[di]); if (!iso || iso < RANGE_START || iso > RANGE_END) continue;
+    recs.push({ iso, done: dn >= 0 ? yes(f, dn) : true, dist: Math.round((parseFloat(f[mi]) || 0) * 100) / 100,
+      min: tmi >= 0 ? Math.round((parseFloat(f[tmi]) || 0) * 100) / 100 : 0, rating: sc >= 0 ? parseInt(f[sc], 10) || 0 : 0,
+      upgrade: mo >= 0 ? /upgrade/i.test(f[mo] || '') : null, strength: st >= 0 ? yes(f, st) : null, pain: pa >= 0 ? yes(f, pa) : null,
+      note: no >= 0 ? String(f[no] || '').trim() : '' });
+    const d = DAYS[iso], cpv = cpI >= 0 ? String(f[cpI] || '').trim() : '';
+    if (d && d.cp && cpv) { const sec = parseDur(cpv); if (sec > 0) cps[d.cp] = Math.round(sec); }
   }
-  html+=`</div>`;
-  if(p){
-    const weeksBefore=p.week-1;
-    const pct=(weeksBefore/28*100).toFixed(1);
-    html+=`<div class="timeline-marker"><div class="timeline-arrow" style="left:${pct}%">\u{1F3C3}</div></div>`;
+  if (!recs.length) { alert('No matching days found in that file.'); return; }
+  if (Object.keys(DB.entries).length && !confirm(`Restore ${plural(recs.length, 'day')} from this backup? Matching days are overwritten with the backup’s values.`)) return;
+  for (const r of recs) {
+    const ex = DB.entries[r.iso] || {};
+    DB.entries[r.iso] = normEntry({ done: r.done, actualDist: r.dist, actualTime: r.min, rating: r.rating || ex.rating || 0,
+      upgrade: r.upgrade == null ? ex.upgrade : r.upgrade, strength: r.strength == null ? ex.strength : r.strength,
+      pain: r.pain == null ? ex.pain : r.pain, note: r.note || ex.note, src: ex.src });
   }
-  html+=`</div>`;
-
-  // Planned vs actual summary
-  const totalPlanned=681.3;
-  html+=`<div class="card"><h3 style="font-size:.9rem;font-weight:700;margin-bottom:8px">\u{1F4CF} Distance Progress</h3>
-    <div class="progress-bar" style="height:14px"><div class="progress-fill" style="width:${Math.min(100,s.totalMi/totalPlanned*100).toFixed(1)}%;background:linear-gradient(90deg,var(--green),var(--orange))"></div></div>
-    <div class="week-stats"><span>${s.totalMi.toFixed(1)} mi logged</span><span>${totalPlanned} mi planned</span></div>
-  </div>`;
-
-  // Export / Import buttons
-  html+=`<div class="card">
-    <button class="export-btn" onclick="exportCSV()">
-      \u{1F4E5} Export Training Log (CSV)
-    </button>
-    <input type="file" id="import-file" accept=".csv,text/csv,text/comma-separated-values" style="display:none" onchange="handleImport(this)">
-    <button class="import-btn" onclick="document.getElementById('import-file').click()">
-      \u{1F4E4} Import / Restore from CSV
-    </button>
-    <div style="text-align:center;font-size:.72rem;color:var(--text2);margin-top:8px">
-      <strong>Export</strong> saves a backup spreadsheet. <strong>Import</strong> accepts your Strava
-      <em>activities.csv</em> or a tracker backup file.
-    </div>
-  </div>`;
-
-  panel.innerHTML=html;
+  for (const [id, sec] of Object.entries(cps)) DB.checkpoints[id] = { sec, at: new Date().toISOString() };
+  saveDB(); refresh();
+  toast(`✅ Restored ${plural(recs.length, 'day')}${Object.keys(cps).length ? ` + ${plural(Object.keys(cps).length, 'checkpoint')}` : ''}`, 4200);
 }
 
-// ===== TABS =====
-document.querySelectorAll('.tab').forEach(btn=>{
-  btn.addEventListener('click',function(){
-    document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
-    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
-    this.classList.add('active');
-    const tab=this.dataset.tab;
-    document.getElementById('panel-'+tab).classList.add('active');
-    if(tab==='calendar')renderCalendar();
-    if(tab==='stats')renderStats();
-    if(tab==='today')renderToday();
-  });
-});
+// ===== 14. ACTIONS =====
+function commitField(el) {
+  const iso = el.dataset.iso, f = el.dataset.field; if (!iso) return;
+  if (f === 'dist') {
+    const v = parseFloat(el.value), mi = isFinite(v) && v > 0 ? Math.round(v * 100) / 100 : 0, d = DAYS[iso];
+    const patch = { actualDist: mi, done: mi > 0 };
+    if (mi > 0 && d && d.up) patch.upgrade = modeFor(iso) === 'upgrade';
+    if (!mi && d && d.kind === 'walk') delete patch.done;
+    putE(iso, patch);
+  } else if (f === 'time') { const sec = parseDur(el.value); putE(iso, { actualTime: sec > 0 ? Math.round(sec) / 60 : 0 }); }
+  else if (f === 'note') putE(iso, { note: el.value.trim().slice(0, 500) });
+}
+function flushCard(card) { if (card) card.querySelectorAll('[data-field][data-iso]').forEach(commitField); }
+function markDone(iso, btn) {
+  flushCard(btn && btn.closest('.log'));
+  const d = DAYS[iso], e = getE(iso) || {}, mi = e.actualDist > 0 ? e.actualDist : plannedFor(iso);
+  if (!(mi > 0)) { toast('Enter your distance first'); return; }
+  const patch = { done: true, actualDist: mi };
+  if (d && d.up) patch.upgrade = modeFor(iso) === 'upgrade';
+  putE(iso, patch);
+  toast(d && d.kind === 'race' ? '🏁 Finished! Add your finish time.' : `✓ ${fmtMi(mi)} mi logged${patch.upgrade ? ' (upgrade)' : ''}`);
+  refresh();
+}
+function toggleFlag(iso, k, btn) {
+  flushCard(btn && btn.closest('.log'));
+  const e = getE(iso) || {}; putE(iso, { [k]: !e[k] });
+  if (!e[k]) toast(k === 'pain' ? '🩹 Sharp pain: stop, 2 days off, reassess.' : '🏋️ Strength logged');
+  refresh();
+}
+function setMode(iso, m) { STATE.modes[iso] = m; if (isRun(getE(iso))) putE(iso, { upgrade: m === 'upgrade' }); refresh(); }
+const CP_RANGE = { '5k': [600, 3600], '10k': [1200, 7200], half: [3000, 14400] };
+function setCheckpoint(id, str) {
+  const cp = CP[id]; str = String(str || '').trim();
+  const before = trackInfo().id;
+  if (!str) { if (DB.checkpoints[id]) { delete DB.checkpoints[id]; saveDB(); toast(`${cp.short} result cleared`); } refresh(true); return; }
+  const sec = parseDur(str, cp.hms && str.split(':').length === 2), [lo, hi] = CP_RANGE[id];
+  if (!(sec >= lo && sec <= hi)) { toast(`That doesn’t look like a ${cp.short} time. Try ${cp.hms ? '1:49:30' : '24:30'}.`); return; }
+  DB.checkpoints[id] = { sec: Math.round(sec), at: new Date().toISOString() };
+  saveDB();
+  const ti = trackInfo(), res = trackForResult(cp, sec);
+  toast(res === 'behind' ? `${cp.short} ${fmtDur(sec)}: behind 4:00 pace. Staying on 4:00 paces.`
+    : `${cp.short} ${fmtDur(sec)} → ${res} track${ti.manual ? ` (pinned to ${ti.id})` : before !== ti.id ? '. All paces updated.' : ''}`, 3600);
+  refresh(true);
+}
+// "Microwave" time entry: digits fill from the right (5430 -> 54:30, 15430 -> 1:54:30).
+function formatTimeInput(el) {
+  const digits = el.value.replace(/\D/g, '').replace(/^0+(?=\d)/, '').slice(0, 6);
+  if (!digits) { el.value = ''; return; }
+  const s = digits.slice(-2).padStart(2, '0'), m = digits.slice(-4, -2), h = digits.slice(0, -4);
+  el.value = h ? `${+h}:${m.padStart(2, '0')}:${s}` : `${+(m || 0)}:${s}`;
+}
+function navDay(dir) { STATE.view = clampView(addDays(STATE.view, dir)); renderToday(); }
+function calNav(dir) {
+  let m = STATE.calM + dir, y = STATE.calY;
+  if (m > 11) { m = 0; y++; } if (m < 0) { m = 11; y--; }
+  const ym = y * 12 + m; if (ym < 2026 * 12 + 2 || ym > 2027 * 12 + 5) return;
+  STATE.calM = m; STATE.calY = y; renderCalendar();
+}
+function showTab(tab) {
+  STATE.tab = tab;
+  document.querySelectorAll('.tab').forEach(b => b.setAttribute('aria-selected', String(b.dataset.tab === tab)));
+  document.querySelectorAll('.panel').forEach(p => p.classList.toggle('active', p.id === `panel-${tab}`));
+  hideTip(); refresh(); window.scrollTo(0, 0);
+}
+function applyTheme() {
+  const t = DB.settings.theme;
+  if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t; else delete document.documentElement.dataset.theme;
+}
+function updateChip() {
+  const dl = daysToRace();
+  $('#countdown-chip').textContent = dl > 1 ? `🏁 ${dl} days` : dl === 1 ? '🏁 Tomorrow!' : dl === 0 ? '🏁 Race day!' : '🎉 Done';
+}
+function refresh(soft) {
+  PENDING_FULL = false;
+  updateChip();
+  if (STATE.tab === 'today') renderToday(soft);
+  else if (STATE.tab === 'calendar') renderCalendar();
+  else if (STATE.tab === 'plan') renderPlan(soft);
+  else if (STATE.tab === 'stats') renderStats(soft);
+  if (STATE.sheet) renderSheet(soft);
+}
+let softTimer = 0;
+function softRefresh() { clearTimeout(softTimer); softTimer = setTimeout(() => refresh(true), 250); }
+let toastTimer = 0;
+function toast(msg, ms) {
+  const el = $('#toast'); el.textContent = msg; el.classList.add('show');
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => el.classList.remove('show'), ms || 2400);
+}
 
-// ===== INIT =====
-updateCountdown();
-renderToday();
+// ===== 15. EVENTS =====
+document.addEventListener('click', ev => {
+  const el = ev.target.closest('[data-act]'); if (!el) return;
+  const a = el.dataset.act, iso = el.dataset.iso;
+  switch (a) {
+    case 'tab': showTab(el.dataset.tab); break;
+    case 'view': STATE.view = iso; if (STATE.tab !== 'today') showTab('today'); else { renderToday(); const n = $('#t-nav'); if (n) n.scrollIntoView({ behavior: 'smooth', block: 'start' }); } break;
+    case 'nav': navDay(+el.dataset.dir); break;
+    case 'today': STATE.view = clampView(todayISO()); renderToday(); break;
+    case 'mode': setMode(iso, el.dataset.mode); break;
+    case 'done': markDone(iso, el); break;
+    case 'walked': flushCard(el.closest('.log')); putE(iso, { done: true }); toast('✓ Walk logged'); refresh(); break;
+    case 'undo': putE(iso, { done: false }); refresh(); break;
+    case 'feel': { flushCard(el.closest('.log')); const e = getE(iso) || {}, v = +el.dataset.v; putE(iso, { rating: e.rating === v ? 0 : v }); refresh(); break; }
+    case 'strength': case 'pain': toggleFlag(iso, a, el); break;
+    case 'clear': if (confirm(`Clear everything logged on ${fmtLong(iso)}?`)) { delete DB.entries[iso]; saveDB(); refresh(); } break;
+    case 'open': openSheet(iso); break;
+    case 'close': closeSheet(); break;
+    case 'goto': STATE.view = iso; closeSheet(); showTab('today'); break;
+    case 'cal': calNav(+el.dataset.dir); break;
+    case 'export': exportCSV(el.dataset.scope); break;
+    case 'import': $('#import-file').click(); break;
+    case 'theme': DB.settings.theme = el.dataset.v; saveDB(); applyTheme(); refresh(); break;
+    case 'dismiss-boot': STATE.bootSeen = true; refresh(); break;
+  }
+});
+document.addEventListener('change', ev => {
+  const el = ev.target, f = el.dataset && el.dataset.field; if (!f) return;
+  if (f === 'track') { DB.settings.track = el.value; saveDB(); const ti = trackInfo(); toast(ti.manual ? `Pinned to the ${ti.id} track` : `Auto track: ${ti.id}`); refresh(); return; }
+  if (f === 'cp') { setCheckpoint(el.dataset.cp, el.value); return; }
+  commitField(el); softRefresh();
+});
+document.addEventListener('input', ev => {
+  const el = ev.target, f = el.dataset && el.dataset.field; if (!f) return;
+  if (f === 'time' || f === 'cp') formatTimeInput(el);
+  const card = el.closest('.log'); if (card) updatePacePreview(card);
+  if (f === 'dist' || f === 'time' || f === 'note') { clearTimeout(el._t); el._t = setTimeout(() => commitField(el), 700); }
+});
+document.addEventListener('keydown', ev => {
+  if (ev.key === 'Escape' && STATE.sheet) closeSheet();
+  const el = ev.target;
+  if ((ev.key === 'Enter' || ev.key === ' ') && el.matches && el.matches('[data-act][role="button"]')) { ev.preventDefault(); el.click(); }
+  if (ev.key === 'Enter' && el.matches && el.matches('input[data-field]')) el.blur();
+});
+// A soft refresh skipped the section holding the focused input; re-render once focus has left the inputs
+// (after a beat, so a tap on a button still lands on the element the user saw).
+document.addEventListener('focusout', ev => {
+  if (!ev.target.matches || !ev.target.matches('input,textarea,select')) return;
+  setTimeout(() => {
+    const a = document.activeElement;
+    if (PENDING_FULL && !(a && a.matches && a.matches('input,textarea,select'))) refresh(true);
+  }, 320);
+});
+document.addEventListener('toggle', ev => { const d = ev.target; if (d.matches && d.matches('details.wkrow')) STATE.openWeeks[d.dataset.week] = d.open; }, true);
+
+// Tooltips for chart marks: hover, tap, or keyboard focus. Text is set with textContent.
+const TIP = $('#tip');
+function showTipFor(el, x, y) {
+  TIP.textContent = el.getAttribute('data-tip'); TIP.hidden = false;
+  const r = TIP.getBoundingClientRect(), vw = window.innerWidth;
+  let left = Math.min(Math.max(8, x - r.width / 2), vw - r.width - 8), top = y - r.height - 14;
+  if (top < 8) top = y + 18;
+  TIP.style.left = `${left}px`; TIP.style.top = `${top}px`;
+}
+function hideTip() { if (TIP) TIP.hidden = true; }
+document.addEventListener('pointermove', ev => { const el = ev.target.closest && ev.target.closest('[data-tip]'); if (el) showTipFor(el, ev.clientX, ev.clientY); else if (ev.pointerType !== 'touch') hideTip(); });
+document.addEventListener('pointerdown', ev => { const el = ev.target.closest && ev.target.closest('[data-tip]'); if (el) showTipFor(el, ev.clientX, ev.clientY); else hideTip(); });
+document.addEventListener('focusin', ev => { const el = ev.target.closest && ev.target.closest('[data-tip]'); if (el) { const r = el.getBoundingClientRect(); showTipFor(el, r.left + r.width / 2, r.top); } });
+document.addEventListener('focusout', ev => { if (ev.target.closest && ev.target.closest('[data-tip]')) hideTip(); });
+window.addEventListener('scroll', hideTip, { passive: true });
+
+// ===== 16. INIT =====
+(function init() {
+  applyTheme();
+  const t = todayISO();
+  STATE.view = clampView(t); STATE.lastDay = t;
+  const cd = dateOf(t >= RANGE_START && t <= '2027-06-30' ? t : t < RANGE_START ? RANGE_START : '2027-06-05');
+  STATE.calY = cd.getFullYear(); STATE.calM = cd.getMonth();
+  $('#import-file').addEventListener('change', e => handleImportFile(e.target));
+  $('#sheet').addEventListener('click', e => { if (e.target.id === 'sheet') closeSheet(); });
+  window.addEventListener('storage', e => { if (e.key === STORE_KEY) { DB = loadDB(); applyTheme(); refresh(); } });
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) return;
+    const now = todayISO();
+    if (now !== STATE.lastDay) { if (STATE.view === STATE.lastDay) STATE.view = clampView(now); STATE.lastDay = now; }
+    refresh(true);
+  });
+  refresh();
+})();
 </script>
 </body>
 </html>
