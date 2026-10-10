@@ -1197,7 +1197,8 @@ function daysToRace(from) { return daysBetween(from || todayISO(), RACE.iso); }
 const STORE_KEY = 'uvm27-tracker-v1';
 const LEGACY_KEY = 'stg-marathon-log';            // St. George app: { entries: { iso: {done,rating,actualDist,actualTime} } }
 const LEGACY_BACKUP_KEY = 'stg-marathon-log:backup'; // one-time copy; the legacy key itself is never modified
-let STORAGE_OK = true, BOOT_NOTE = null;
+let STORAGE_OK = true, SAVE_FAIL = false;
+const BOOT_NOTES = [];
 function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { STORAGE_OK = false; return null; } }
 function lsSet(k, v) { try { localStorage.setItem(k, v); return true; } catch (e) { STORAGE_OK = false; return false; } }
 function freshDB() { return { v: 1, created: new Date().toISOString(), entries: {}, checkpoints: {}, settings: { track: 'auto', theme: 'auto' }, meta: {} }; }
@@ -1230,7 +1231,7 @@ function loadDB() {
       db = upgradeDB(db);
     } catch (err) {
       lsSet(`${STORE_KEY}:corrupt-${Date.now()}`, raw); // never silently drop data
-      BOOT_NOTE = 'Saved data could not be read. A copy was set aside and a fresh log started.';
+      BOOT_NOTES.push('Saved data could not be read, so a copy was set aside under a backup key and a fresh log started.');
       db = null;
     }
   }
@@ -1248,7 +1249,7 @@ function loadDB() {
       }
       db.meta.migrated = { from: LEGACY_KEY, at: new Date().toISOString(), count: n };
       if (!lsGet(LEGACY_BACKUP_KEY)) lsSet(LEGACY_BACKUP_KEY, legacyRaw);
-      if (n) BOOT_NOTE = `Brought over ${n} St. George log ${n === 1 ? 'entry' : 'entries'}. They live in Stats → Past races, and the original St. George data is untouched.`;
+      if (n) BOOT_NOTES.push(`Brought over ${n} St. George log ${n === 1 ? 'entry' : 'entries'}. They live in Stats → Past races, and the original St. George data is untouched.`);
     } catch (err) {
       db.meta.migrated = { from: LEGACY_KEY, at: new Date().toISOString(), count: 0, error: String(err && err.message || err) };
     }
@@ -1258,7 +1259,8 @@ function loadDB() {
   return db;
 }
 let DB = loadDB();
-function saveDB() { if (!lsSet(STORE_KEY, JSON.stringify(DB))) toast('⚠️ Couldn’t save. Storage is full or blocked.'); }
+// On failure the next toast shows a warning instead of a success message (or a fallback toast fires).
+function saveDB() { if (!lsSet(STORE_KEY, JSON.stringify(DB))) { SAVE_FAIL = true; setTimeout(() => { if (SAVE_FAIL) toast(''); }, 0); } }
 function getE(iso) { return DB.entries[iso] || null; }
 function putE(iso, patch) {
   const e = Object.assign({ done: false, rating: 0, actualDist: 0, actualTime: 0 }, DB.entries[iso] || {}, patch);
@@ -1491,7 +1493,7 @@ function heroHTML(S) {
 function alertsHTML(S) {
   const out = [], t = S.t;
   if (!STORAGE_OK) out.push(`<div class="rule bad"><span class="ri">⚠️</span><div><b>Storage is blocked.</b> Logs won’t be saved on this device (private browsing?).</div></div>`);
-  if (BOOT_NOTE && !STATE.bootSeen) out.push(`<div class="rule good"><span class="ri">📦</span><div><b>Welcome to the new block.</b> ${esc(BOOT_NOTE)} <button class="link" data-act="dismiss-boot">Got it</button></div></div>`);
+  if (BOOT_NOTES.length && !STATE.bootSeen) out.push(`<div class="rule good"><span class="ri">📦</span><div><b>Welcome to the new block.</b> ${BOOT_NOTES.map(esc).join(' ')} <button class="link" data-act="dismiss-boot">Got it</button></div></div>`);
   // Pain rule: flagged in the last 2 days.
   for (let i = 0; i <= 2; i++) {
     const iso = addDays(t, -i), e = getE(iso);
@@ -1541,7 +1543,7 @@ function workoutCardHTML(d, S) {
   if (W.checkpoint && !d.cp) badges += '<span class="badge">⏱️ Checkpoint week</span>';
   if (mode === 'upgrade') badges += '<span class="badge up">⚡ Upgrade</span>';
   let big = '';
-  if (v.run) big = `<div class="wo-dist"><b class="num">${fmtMi(v.mi)}</b><span>mi${v.kind === 'race' ? ' · 26.2' : ''}</span></div>`;
+  if (v.run) big = `<div class="wo-dist"><b class="num">${fmtMi(v.mi)}</b><span>mi</span></div>`;
   else if (d.kind === 'strength') big = '<div class="wo-dist"><b>20</b><span>min strength</span></div>';
   else if (d.kind === 'walk') big = '<div class="wo-dist"><b>20–40</b><span>min walk</span></div>';
   const seg = d.up ? `<div class="seg" role="group" aria-label="Floor or upgrade">
@@ -1573,7 +1575,7 @@ function workoutCardHTML(d, S) {
 function raceDayExtraHTML() {
   const g = raceGoal(), e = getE(RACE.iso);
   const res = isRun(e) && e.actualTime ? e.actualTime * 60 : 0;
-  return `<div class="rule good" style="margin-top:12px"><span class="ri">🏁</span><div><b>${RACE.startTxt} start, ${RACE.course}.</b> Net −${fmtInt(RACE.drop)} ft. Goal ${esc(goalLine())}.
+  return `<div class="rule good" style="margin-top:12px"><span class="ri">🏁</span><div><b>Goal ${esc(goalLine())}.</b> Net −${fmtInt(RACE.drop)} ft via Deer Creek Reservoir and Provo Canyon to downtown Provo.
     ${res ? ` Finish ${fmtDur(res)}${res < LAST_RACE.sec ? `: a ${fmtDur(LAST_RACE.sec - res)} PR over St. George 🎉` : ''}.` : ` St. George PR to beat: ${LAST_RACE.time}.`}</div></div>`;
 }
 
@@ -1826,7 +1828,7 @@ function goalCardHTML() {
       <div class="sub">${g.final ? 'Set by the SLC Half.' : 'Provisional until the SLC Half (Apr 24).'}</div>
       <div class="sub">vs St. George ${LAST_RACE.time}: ${g.byFeel ? '~30+ min PR' : fmtDur(LAST_RACE.sec - goalSec) + ' faster'}</div></div></div>
     <div class="sub" style="margin-top:10px">${esc(src)}</div>
-    ${ti.behind && !ti.manual ? ruleHTML('behind', 'warn', `Behind 4:00 pace at the ${ti.from.short}. Keep training on 4:00 paces; if the half says so too, run UVM by feel (${BEHIND.goal}).`) : ''}
+    ${ti.behind && !ti.manual ? ruleHTML('behind', 'warn', `Your ${ti.from.short} was slower than the 4:00 cutoff. Keep training on 4:00 paces; if the half agrees, run UVM by feel (${BEHIND.goal}).`) : ''}
     <div class="tblwrap" style="margin-top:12px"><table class="tbl"><thead><tr><th>Pace /mi</th>${TRACK_IDS.map(id => `<th class="${id === ti.id ? 'hl' : ''}">${id}${id === ti.id ? ' ●' : ''}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table></div>
     <div class="sub" style="margin-top:8px">${esc(T.when)} Easy runs: talk test, not HR.</div></section>`;
 }
@@ -1870,9 +1872,11 @@ function weeksListHTML(S) {
     const s = S.weeks[W.w], open = STATE.openWeeks[W.w] != null ? STATE.openWeeks[W.w] : W.w === S.cur;
     const days = W.days.map(d => {
       const e = getE(d.iso), ran = isRun(e);
-      const f = d.floor.run ? `${fmtMi(d.floor.mi)} mi ${esc(d.floor.desc || d.floor.title)}` : esc(d.floor.title);
+      const hasMi = s => /^\d+(\.\d+)?\s*mi\b/.test(s || '');
+      const f = d.floor.run ? (hasMi(d.floor.desc) ? esc(d.floor.desc) : `${fmtMi(d.floor.mi)} mi ${esc(d.floor.desc || d.floor.title)}`) : esc(d.floor.title);
+      const u = !d.up ? '' : d.dow === 1 ? (hasMi(d.up.desc) ? esc(d.up.desc) : `${fmtMi(d.up.mi)} mi: ${esc(d.up.desc)}`) : d.dow === 5 ? `${fmtMi(d.up.mi)} mi long run` : `Easy ${fmtMi(d.up.mi)} mi${d.dow === 3 ? ' (Peak only)' : ''}`;
       return `<div class="wkday" role="button" tabindex="0" data-act="open" data-iso="${d.iso}"><div class="wdn">${DOW[d.dow]}<br>${dateOf(d.iso).getDate()}</div>
-        <div>${KEY_DAYS[d.iso] ? KEY_DAYS[d.iso].icon + ' ' : ''}${f}${d.up ? `<div class="wup">⚡ ${esc(d.up.desc || fmtMi(d.up.mi) + ' mi')}${d.dow === 1 ? '' : ` · ${fmtMi(d.up.mi)} mi`}</div>` : ''}</div>
+        <div>${KEY_DAYS[d.iso] ? KEY_DAYS[d.iso].icon + ' ' : ''}${f}${u ? `<div class="wup">⚡ ${u}</div>` : ''}</div>
         <div class="wck">${ran ? '✓ ' + fmtMi(e.actualDist) : e && e.strength ? '💪' : ''}</div></div>`;
     }).join('');
     const tags = (W.cutback ? ' · cutback' : '') + (W.checkpoint ? ' · checkpoint' : '');
@@ -2048,7 +2052,7 @@ function floorGridHTML(S) {
   return `<section class="card"><h3>🧱 Floor &amp; strength, week by week</h3>
     <div class="lg"><span>✓ floor hit</span><span>✕ missed</span><span>• this week</span><span>● strength session</span></div>
     <div class="grid35">${cells}</div>
-    <div class="sub" style="margin-top:10px">Floor = every planned run that week (4 from week 3). ${S.unlocked ? '🔓 Upgrades unlocked.' : `🔒 ${4 - Math.min(4, S.streak)} more straight floor week${4 - S.streak === 1 ? '' : 's'} to unlock upgrades.`}</div></section>`;
+    <div class="sub" style="margin-top:10px">Floor = 4 runs that week on any day (3 in week 2), so moved runs still count. ${S.unlocked ? '🔓 Upgrades unlocked.' : `🔒 ${4 - Math.min(4, S.streak)} more straight floor week${4 - S.streak === 1 ? '' : 's'} to unlock upgrades.`}</div></section>`;
 }
 function weekTableHTML(S) {
   const rows = S.weeks.filter(Boolean).map(s => `<tr class="${s.w === S.cur ? 'hl' : ''}"><td>${s.w}</td><td>${fmtShort(s.W.start)}</td><td>${s.W.phase}</td><td class="r">${fmtMi(s.W.floorMi)}</td><td class="r">${fmtMi(s.W.upMi)}</td><td class="r">${s.started ? fmtMi(s.mi) : '–'}</td><td class="r">${s.started ? `${s.runs}/${s.W.floorRuns}` : '–'}</td><td class="r">${s.started ? s.strength : '–'}</td><td>${{ hit: '✓', miss: '✕', open: '•', future: '' }[s.status]}</td></tr>`).join('');
@@ -2256,6 +2260,7 @@ function importBackup(H, rows) {
   if (Object.keys(DB.entries).length && !confirm(`Restore ${plural(recs.length, 'day')} from this backup? Matching days are overwritten with the backup’s values.`)) return;
   for (const r of recs) {
     const ex = DB.entries[r.iso] || {};
+    if (!r.done && !r.dist && !r.min && !r.rating && !r.strength && !r.pain && !r.note && !DB.entries[r.iso]) continue; // e.g. checkpoint-only rows
     DB.entries[r.iso] = normEntry({ done: r.done, actualDist: r.dist, actualTime: r.min, rating: r.rating || ex.rating || 0,
       upgrade: r.upgrade == null ? ex.upgrade : r.upgrade, strength: r.strength == null ? ex.strength : r.strength,
       pain: r.pain == null ? ex.pain : r.pain, note: r.note || ex.note, src: ex.src });
@@ -2350,6 +2355,7 @@ let softTimer = 0;
 function softRefresh() { clearTimeout(softTimer); softTimer = setTimeout(() => refresh(true), 250); }
 let toastTimer = 0;
 function toast(msg, ms) {
+  if (SAVE_FAIL) { msg = '⚠️ Not saved: storage is full or blocked on this device.'; ms = 3600; SAVE_FAIL = false; }
   const el = $('#toast'); el.textContent = msg; el.classList.add('show');
   clearTimeout(toastTimer); toastTimer = setTimeout(() => el.classList.remove('show'), ms || 2400);
 }
