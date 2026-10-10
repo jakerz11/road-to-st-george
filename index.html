@@ -285,6 +285,8 @@ details.more>summary::-webkit-details-marker{display:none}
 .tile .tv{font-size:1.55rem;font-weight:800;letter-spacing:-.6px;margin-top:2px;line-height:1.15}
 .tile .tv small{font-size:.8rem;color:var(--muted);font-weight:700;letter-spacing:0}
 .tile .ts{font-size:.7rem;color:var(--muted);margin-top:3px;font-weight:600}
+.tiles.mini .tile{padding:10px 11px}
+.tiles.mini .tv{font-size:1.2rem;white-space:nowrap}
 /* ===== Tables ===== */
 .tbl{width:100%;border-collapse:collapse;font-size:.8rem}
 .tbl th,.tbl td{padding:7px 6px;text-align:left;border-top:1px solid var(--line);font-variant-numeric:tabular-nums;white-space:nowrap}
@@ -323,6 +325,7 @@ details.more>summary::-webkit-details-marker{display:none}
 .chart{width:100%;height:auto;display:block;overflow:visible;touch-action:pan-y}
 .chart text{font-size:9px;fill:var(--muted);font-family:inherit;font-weight:600}
 .chart .t-ink{fill:var(--text-2);font-weight:800}
+.chart .halo{paint-order:stroke;stroke:var(--surface);stroke-width:3px;stroke-linejoin:round}
 .chart .grid{stroke:var(--line);stroke-width:1}
 .chart .base{stroke:var(--axis);stroke-width:1}
 .chart .hit{fill:transparent}
@@ -330,7 +333,11 @@ details.more>summary::-webkit-details-marker{display:none}
 .chart g.mk .hair{stroke:var(--text-2);stroke-width:1;opacity:0}
 .chart g.mk:hover .hair,.chart g.mk:focus .hair{opacity:.55}
 .chart g.mk:hover .lift,.chart g.mk:focus .lift{filter:brightness(1.12) saturate(1.1)}
-.chart g.mk:focus .hit{stroke:var(--focus);stroke-width:1.5}
+.chart g.mk.hl .hair{opacity:.55}
+.chart g.mk.hl .lift{filter:brightness(1.15) saturate(1.1)}
+.chart g.mk.hl .hit{fill:color-mix(in srgb,var(--text) 5%,transparent)}
+.chart:focus{outline:none}
+.chart:focus-visible{outline:2px solid var(--focus);outline-offset:4px;border-radius:6px}
 .lg{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.72rem;color:var(--text-2);font-weight:700;margin:2px 0 10px}
 .lg span{display:inline-flex;align-items:center;gap:6px}
 .lg .sw{width:12px;height:12px;border-radius:3px;display:inline-block}
@@ -1933,7 +1940,144 @@ function tilesHTML(S) {
     ${tile('Race day', dl > 0 ? `${dl}<small> days</small>` : dl === 0 ? 'Today!' : 'Done', 'Sat Jun 5 · 6:00 AM')}
   </div>`;
 }
-function statsChartsHTML() { return ''; }
+// ----- Charts (inline SVG). Hover/tap snaps to the nearest week; arrow keys move; every chart has a table twin. -----
+const CHART_META = {};
+const SVGW = 360;
+function barPath(x, y, w, h, r) {
+  if (h <= 0.4) return '';
+  r = Math.min(r, w / 2, h);
+  return `M${x.toFixed(2)},${(y + h).toFixed(2)}V${(y + r).toFixed(2)}Q${x.toFixed(2)},${y.toFixed(2)} ${(x + r).toFixed(2)},${y.toFixed(2)}H${(x + w - r).toFixed(2)}Q${(x + w).toFixed(2)},${y.toFixed(2)} ${(x + w).toFixed(2)},${(y + r).toFixed(2)}V${(y + h).toFixed(2)}Z`;
+}
+function niceMax(v, step) { return Math.max(step, Math.ceil(v / step) * step); }
+function weekTip(S, w) {
+  const s = S.weeks[w], W = s.W, st = { hit: '✓ floor hit', open: '• in progress', miss: '✕ floor missed', future: 'upcoming' }[s.status];
+  return `${fmtMi(s.mi)} mi logged\nWeek ${w} · ${fmtRange(W.start, W.end)} · ${W.phase}\nFloor ${fmtMi(W.floorMi)} · upgrade ${fmtMi(W.upMi)} mi\n${s.runs}/${W.floorRuns} floor runs · ${st}`;
+}
+function weeklyChartHTML(S) {
+  const padL = 26, padR = 4, padT = 14, plotH = 132, slot = (SVGW - padL - padR) / PLAN_WEEKS, bw = 6;
+  const maxV = niceMax(Math.max(PLAN_UP_MI ? Math.max(...WEEKS.filter(Boolean).map(W => W.upMi)) : 0, ...S.weeks.filter(Boolean).map(s => s.mi)), 10);
+  const yMax = maxV <= 60 ? 60 : niceMax(maxV, 20);
+  const y = v => padT + plotH - v / yMax * plotH, base = padT + plotH;
+  let g = '';
+  for (let v = 0; v <= yMax; v += 20) g += `<line class="${v ? 'grid' : 'base'}" x1="${padL}" x2="${SVGW - padR}" y1="${y(v)}" y2="${y(v)}"/><text x="${padL - 5}" y="${y(v) + 3}" text-anchor="end">${v}</text>`;
+  let marks = '';
+  for (let w = 1; w <= PLAN_WEEKS; w++) {
+    const s = S.weeks[w], W = s.W, cx = padL + (w - 0.5) * slot, x = cx - bw / 2;
+    const ghost = barPath(x, y(W.upMi), bw, base - y(W.upMi), 3), act = barPath(x, y(s.mi), bw, base - y(s.mi), 3);
+    marks += `<g class="mk" data-i="${w - 1}"><rect class="hit" x="${(cx - slot / 2).toFixed(2)}" y="${padT}" width="${slot.toFixed(2)}" height="${plotH}"/>
+      <line class="hair" x1="${cx.toFixed(2)}" x2="${cx.toFixed(2)}" y1="${padT}" y2="${base}"/>
+      ${ghost ? `<path d="${ghost}" fill="var(--ghost)"/>` : ''}${act ? `<path class="lift" d="${act}" fill="${phaseVar(W.phase)}"/>` : ''}
+      ${W.floorMi ? `<rect x="${(cx - 4.5).toFixed(2)}" y="${(y(W.floorMi) - 1).toFixed(2)}" width="9" height="2" rx="1" fill="var(--ink-target)"/>` : ''}
+      ${w === S.cur ? `<path d="M${(cx - 3.5).toFixed(2)},${(y(Math.max(W.upMi, s.mi)) - 9).toFixed(2)}h7l-3.5,5z" fill="var(--text)"/>` : ''}</g>`;
+  }
+  let axis = '';
+  for (const w of [1, 5, 10, 15, 20, 25, 30, 35]) axis += `<text x="${(padL + (w - 0.5) * slot).toFixed(2)}" y="${base + 12}" text-anchor="middle">${w}</text>`;
+  let strip = '';
+  PHASES.forEach(p => {
+    const x0 = padL + (p.w0 - 1) * slot + 1, x1 = padL + p.w1 * slot - 1;
+    strip += `<rect x="${x0.toFixed(2)}" y="${base + 17}" width="${(x1 - x0).toFixed(2)}" height="4" rx="2" fill="var(${p.css})"/>`;
+    if (p.w1 - p.w0 >= 2) strip += `<text x="${((x0 + x1) / 2).toFixed(2)}" y="${base + 31}" text-anchor="middle" class="t-ink">${p.id}</text>`;
+  });
+  const H = base + 36;
+  CHART_META.weekly = { n: PLAN_WEEKS, x0: padL, slot, tip: i => weekTip(S, i + 1), start: Math.max(0, Math.min(S.cur, PLAN_WEEKS) - 1) };
+  return `<svg class="chart" data-chart="weekly" viewBox="0 0 ${SVGW} ${H}" role="img" tabindex="0" aria-label="Weekly miles logged against the floor and upgrade targets for all 35 weeks. Use arrow keys to step through weeks, or open the table below.">${g}${marks}${axis}${strip}</svg>`;
+}
+function cumChartHTML(S) {
+  const padL = 34, padR = 52, padT = 10, plotH = 120, plotW = SVGW - padL - padR;
+  const last = Math.min(Math.max(S.cur, 0), PLAN_WEEKS);
+  const yMax = niceMax(Math.max(PLAN_UP_MI, S.tot.mi), 250);
+  const x = i => padL + i / PLAN_WEEKS * plotW, y = v => padT + plotH - v / yMax * plotH, base = padT + plotH;
+  const pts = key => [[0, 0]].concat(S.weeks.filter(Boolean).map(s => [s.w, s[key]]));
+  const line = arr => arr.map(([i, v], k) => `${k ? 'L' : 'M'}${x(i).toFixed(2)},${y(v).toFixed(2)}`).join('');
+  let g = '';
+  for (let v = 0; v <= yMax; v += 250) g += `<line class="${v ? 'grid' : 'base'}" x1="${padL}" x2="${padL + plotW}" y1="${y(v)}" y2="${y(v)}"/><text x="${padL - 5}" y="${y(v) + 3}" text-anchor="end">${fmtInt(v)}</text>`;
+  const up = pts('cumUp'), fl = pts('cumFloor'), me = pts('cum').slice(0, last + 1);
+  let marks = '';
+  for (let i = 0; i <= PLAN_WEEKS; i++) marks += `<g class="mk" data-i="${i}"><line class="hair" x1="${x(i).toFixed(2)}" x2="${x(i).toFixed(2)}" y1="${padT}" y2="${base}"/></g>`;
+  const area = me.length > 1 ? `<path d="${line(me)}L${x(me[me.length - 1][0]).toFixed(2)},${base}L${x(0)},${base}Z" fill="var(--accent)" opacity=".1"/>` : '';
+  const endLbl = (arr, txt, cls) => { const [i, v] = arr[arr.length - 1]; return `<text x="${(x(i) + 5).toFixed(2)}" y="${(y(v) + 3).toFixed(2)}" class="halo ${cls || ''}">${txt}</text>`; };
+  const meLast = me[me.length - 1];
+  const H = base + 18;
+  let axis = '';
+  for (const w of [0, 5, 10, 15, 20, 25, 30, 35]) axis += `<text x="${x(w).toFixed(2)}" y="${base + 12}" text-anchor="middle">${w ? 'W' + w : 'Oct 5'}</text>`;
+  CHART_META.cum = { n: PLAN_WEEKS + 1, x0: padL - plotW / PLAN_WEEKS / 2, slot: plotW / PLAN_WEEKS, start: last,
+    tip: i => {
+      if (i === 0) return 'Block start · Oct 5, 2026\n0 mi';
+      const s = S.weeks[i];
+      return `${i <= last ? fmtMi(s.cum) + ' mi logged' : 'Ahead'}\nThrough week ${i} · ${fmtShort(s.W.end)}\nFloor plan ${fmtInt(s.cumFloor)} · upgrade plan ${fmtInt(s.cumUp)}`;
+    } };
+  return `<svg class="chart" data-chart="cum" viewBox="0 0 ${SVGW} ${H}" role="img" tabindex="0" aria-label="Cumulative miles: ${fmtMi(S.tot.mi)} logged against ${fmtInt(PLAN_FLOOR_MI)} floor and ${fmtInt(PLAN_UP_MI)} upgrade miles planned. Arrow keys step through weeks.">${g}${area}
+    <path d="${line(up)}" fill="none" stroke="var(--plan-up)" stroke-width="1.5" stroke-linejoin="round"/>
+    <path d="${line(fl)}" fill="none" stroke="var(--plan-floor)" stroke-width="1.5" stroke-linejoin="round"/>
+    ${me.length > 1 ? `<path d="${line(me)}" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+      <circle cx="${x(meLast[0]).toFixed(2)}" cy="${y(meLast[1]).toFixed(2)}" r="4" fill="var(--accent)" stroke="var(--surface)" stroke-width="2"/>` : ''}
+    ${endLbl(up, fmtInt(PLAN_UP_MI) + ' up')}${endLbl(fl, fmtInt(PLAN_FLOOR_MI) + ' floor')}
+    ${me.length > 1 ? `<text x="${(x(meLast[0]) + 7).toFixed(2)}" y="${(y(meLast[1]) - 7).toFixed(2)}" class="t-ink halo">You ${fmtInt(meLast[1])}</text>` : ''}
+    ${marks}${axis}</svg>`;
+}
+function feelChartHTML(S) {
+  const by = []; S.tot.feel.forEach(f => { const w = DAYS[f.iso].week; (by[w] = by[w] || []).push(f.v); });
+  const pts = []; for (let w = 1; w <= PLAN_WEEKS; w++) if (by[w]) pts.push([w, by[w].reduce((a, b) => a + b, 0) / by[w].length, by[w].length]);
+  if (pts.length < 2) return '';
+  const padL = 26, padR = 4, padT = 10, plotH = 84, slot = (SVGW - padL - padR) / PLAN_WEEKS;
+  const x = w => padL + (w - 0.5) * slot, y = v => padT + plotH - (v - 1) / 9 * plotH, base = padT + plotH;
+  let g = '';
+  for (const v of [1, 4, 7, 10]) g += `<line class="${v === 1 ? 'base' : 'grid'}" x1="${padL}" x2="${SVGW - padR}" y1="${y(v)}" y2="${y(v)}"/><text x="${padL - 5}" y="${y(v) + 3}" text-anchor="end">${v}</text>`;
+  const path = pts.map(([w, v], k) => `${k ? 'L' : 'M'}${x(w).toFixed(2)},${y(v).toFixed(2)}`).join('');
+  let marks = '';
+  for (let w = 1; w <= PLAN_WEEKS; w++) {
+    const p = pts.find(q => q[0] === w);
+    marks += `<g class="mk" data-i="${w - 1}"><line class="hair" x1="${x(w).toFixed(2)}" x2="${x(w).toFixed(2)}" y1="${padT}" y2="${base}"/>${p ? `<circle class="lift" cx="${x(w).toFixed(2)}" cy="${y(p[1]).toFixed(2)}" r="4" fill="var(--accent)" stroke="var(--surface)" stroke-width="2"/>` : ''}</g>`;
+  }
+  let axis = ''; for (const w of [1, 5, 10, 15, 20, 25, 30, 35]) axis += `<text x="${x(w).toFixed(2)}" y="${base + 12}" text-anchor="middle">${w}</text>`;
+  CHART_META.feel = { n: PLAN_WEEKS, x0: padL, slot, start: pts[pts.length - 1][0] - 1,
+    tip: i => { const p = pts.find(q => q[0] === i + 1); return p ? `${p[1].toFixed(1)} avg feel\nWeek ${i + 1} · ${plural(p[2], 'rated workout')}` : `Week ${i + 1}\nNo ratings`; } };
+  const avg = S.tot.feel.reduce((a, f) => a + f.v, 0) / S.tot.feel.length;
+  return `<section class="card"><h3>⭐ How runs feel <span class="chip">avg ${avg.toFixed(1)}/10</span></h3>
+    <div class="sub" style="margin:-4px 0 8px">Weekly average of your 1–10 ratings. A slide over several weeks is a cue to take the floor-only option.</div>
+    <svg class="chart" data-chart="feel" viewBox="0 0 ${SVGW} ${base + 18}" role="img" tabindex="0" aria-label="Weekly average feel rating, ${pts.length} weeks rated, overall average ${avg.toFixed(1)} out of 10.">${g}
+      <path d="${path}" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>${marks}${axis}</svg></section>`;
+}
+function floorGridHTML(S) {
+  const icon = { hit: '✓', miss: '✕', open: '•', future: '' };
+  const cells = S.weeks.filter(Boolean).map(s => {
+    const W = s.W, dots = W.strengthDays ? '●'.repeat(Math.min(s.strength, W.strengthDays)) + '○'.repeat(Math.max(0, W.strengthDays - s.strength)) : '';
+    const tip = `${s.runs}/${W.floorRuns} floor runs · ${fmtMi(s.mi)} mi\nWeek ${s.w} · ${fmtRange(W.start, W.end)} · ${W.phase}\nStrength ${s.strength}${W.strengthDays ? '/' + W.strengthDays : ''}${W.cutback ? ' · cutback week' : ''}${W.checkpoint ? ' · checkpoint week' : ''}`;
+    return `<div class="gc ${s.status}${s.w === S.cur ? ' now' : ''}" style="${paceVarStyle(W.phase)}" tabindex="0" data-tip="${esc(tip)}" aria-label="${esc(tip.replace(/\n/g, '. '))}">
+      <div class="gw">W${s.w}</div><div class="gs" aria-hidden="true">${icon[s.status]}</div><div class="gd" aria-hidden="true">${dots}</div></div>`;
+  }).join('');
+  return `<section class="card"><h3>🧱 Floor &amp; strength, week by week</h3>
+    <div class="lg"><span>✓ floor hit</span><span>✕ missed</span><span>• this week</span><span>● strength session</span></div>
+    <div class="grid35">${cells}</div>
+    <div class="sub" style="margin-top:10px">Floor = every planned run that week (4 from week 3). ${S.unlocked ? '🔓 Upgrades unlocked.' : `🔒 ${4 - Math.min(4, S.streak)} more straight floor week${4 - S.streak === 1 ? '' : 's'} to unlock upgrades.`}</div></section>`;
+}
+function weekTableHTML(S) {
+  const rows = S.weeks.filter(Boolean).map(s => `<tr class="${s.w === S.cur ? 'hl' : ''}"><td>${s.w}</td><td>${fmtShort(s.W.start)}</td><td>${s.W.phase}</td><td class="r">${fmtMi(s.W.floorMi)}</td><td class="r">${fmtMi(s.W.upMi)}</td><td class="r">${s.started ? fmtMi(s.mi) : '–'}</td><td class="r">${s.started ? `${s.runs}/${s.W.floorRuns}` : '–'}</td><td class="r">${s.started ? s.strength : '–'}</td><td>${{ hit: '✓', miss: '✕', open: '•', future: '' }[s.status]}</td></tr>`).join('');
+  return `<details class="more"><summary>Show as a table</summary><div class="tblwrap"><table class="tbl"><thead><tr><th>Wk</th><th>Mon</th><th>Phase</th><th class="r">Floor</th><th class="r">Up</th><th class="r">Logged</th><th class="r">Runs</th><th class="r">Str</th><th></th></tr></thead><tbody>${rows}</tbody></table></div></details>`;
+}
+function statsChartsHTML(S) {
+  return `<section class="card"><h3>📊 Weekly miles vs plan</h3>
+      <div class="lg"><span><i class="sw" style="background:linear-gradient(90deg,var(--ph-base) 0 33%,var(--ph-build) 33% 66%,var(--ph-peak) 66%)"></i>Logged (phase color)</span><span><i class="sw" style="background:var(--ghost)"></i>Upgrade target</span><span><i class="tk" style="background:var(--ink-target)"></i>Floor target</span></div>
+      ${weeklyChartHTML(S)}${weekTableHTML(S)}</section>
+    <section class="card"><h3>📈 Cumulative miles</h3>
+      <div class="lg"><span><i class="ln" style="border-color:var(--accent)"></i>You</span><span><i class="ln" style="border-color:var(--plan-floor)"></i>Floor plan</span><span><i class="ln" style="border-color:var(--plan-up)"></i>With upgrades</span></div>
+      ${cumChartHTML(S)}</section>
+    ${floorGridHTML(S)}${feelChartHTML(S)}`;
+}
+function stgChartHTML(s) {
+  const n = STG_WEEKS.length - 1, padL = 26, padR = 4, padT = 8, plotH = 64, slot = (SVGW - padL - padR) / n, bw = Math.min(8, slot * 0.6);
+  const yMax = niceMax(Math.max(...STG_WEEKS.filter(Boolean).map(W => W.planMi), ...s.weeks.filter(Boolean)), 10);
+  const y = v => padT + plotH - v / yMax * plotH, base = padT + plotH;
+  let g = `<line class="base" x1="${padL}" x2="${SVGW - padR}" y1="${base}" y2="${base}"/><line class="grid" x1="${padL}" x2="${SVGW - padR}" y1="${y(yMax)}" y2="${y(yMax)}"/><text x="${padL - 5}" y="${y(yMax) + 3}" text-anchor="end">${yMax}</text><text x="${padL - 5}" y="${base + 3}" text-anchor="end">0</text>`;
+  for (let w = 1; w <= n; w++) {
+    const W = STG_WEEKS[w], mi = s.weeks[w] || 0, cx = padL + (w - 0.5) * slot, x = cx - bw / 2;
+    const gp = barPath(x, y(W.planMi), bw, base - y(W.planMi), 3), ap = barPath(x, y(mi), bw, base - y(mi), 3);
+    g += `<g class="mk" data-i="${w - 1}"><rect class="hit" x="${(cx - slot / 2).toFixed(2)}" y="${padT}" width="${slot.toFixed(2)}" height="${plotH}"/>${gp ? `<path d="${gp}" fill="var(--ghost)"/>` : ''}${ap ? `<path class="lift" d="${ap}" fill="var(--text-2)"/>` : ''}</g>`;
+  }
+  CHART_META.stg = { n, x0: padL, slot, start: n - 1, tip: i => `${fmtMi(s.weeks[i + 1] || 0)} of ${fmtMi(STG_WEEKS[i + 1].planMi)} mi\nSt. George week ${i + 1} · ${fmtShort(STG_WEEKS[i + 1].start)}` };
+  return `<div class="lg" style="margin-top:6px"><span><i class="sw" style="background:var(--text-2)"></i>Logged</span><span><i class="sw" style="background:var(--ghost)"></i>Planned</span></div>
+    <svg class="chart" data-chart="stg" viewBox="0 0 ${SVGW} ${base + 6}" role="img" tabindex="0" aria-label="St. George block: ${fmtMi(s.mi)} of ${fmtMi(STG_PLAN_MI)} planned miles logged across ${n} weeks.">${g}</svg>`;
+}
 function stgStats() {
   const s = { runs: 0, mi: 0, sec: 0, timedMi: 0, longest: 0, weeks: [] };
   for (const [iso, e] of Object.entries(DB.entries)) {
@@ -1947,11 +2091,11 @@ function stgStats() {
 function pastRacesHTML() {
   const s = stgStats(), pct = STG_PLAN_MI ? Math.round(s.mi / STG_PLAN_MI * 100) : 0, mig = DB.meta.migrated;
   return `<section class="card"><h3>🏅 Past races</h3>
-    <div class="li" style="padding-top:0"><div class="lic" style="background:var(--surface-2)">🏜️</div><div class="lim">
+    <div class="li" style="padding-top:0;border-top:0"><div class="lic" style="background:var(--surface-2)">🏜️</div><div class="lim">
       <div class="lt">${STG.name} · ${esc(fmtFull(LAST_RACE.iso))}</div>
       <div class="ls">${LAST_RACE.time} · ${LAST_RACE.pace}/mi · current marathon PR</div></div><span class="chip">PR</span></div>
     ${stgChartHTML(s)}
-    <div class="tiles" style="margin:10px 0 0;grid-template-columns:repeat(3,1fr)">
+    <div class="tiles mini" style="margin:10px 0 0;grid-template-columns:repeat(3,1fr)">
       <div class="tile" style="box-shadow:none;background:var(--surface-2)"><div class="tl">Logged</div><div class="tv">${fmtMi(s.mi)}<small> mi</small></div><div class="ts">of ${fmtMi(STG_PLAN_MI)} planned</div></div>
       <div class="tile" style="box-shadow:none;background:var(--surface-2)"><div class="tl">Of plan</div><div class="tv">${pct}<small>%</small></div><div class="ts">${plural(s.runs, 'run')}</div></div>
       <div class="tile" style="box-shadow:none;background:var(--surface-2)"><div class="tl">Longest</div><div class="tv">${fmtMi(s.longest)}<small> mi</small></div><div class="ts">${s.timedMi ? fmtPace(s.sec / s.timedMi) + '/mi avg' : 'no times'}</div></div>
@@ -1960,7 +2104,7 @@ function pastRacesHTML() {
     <button class="btn small" style="margin-top:10px" data-act="export" data-scope="stg">⬇️ Export St. George log (CSV)</button>
   </section>`;
 }
-function stgChartHTML() { return ''; }
+
 function dataCardHTML() {
   const n = Object.keys(DB.entries).length, theme = DB.settings.theme || 'auto';
   return `<section class="card"><h3>💾 Your data</h3>
@@ -2281,6 +2425,42 @@ document.addEventListener('pointerdown', ev => { const el = ev.target.closest &&
 document.addEventListener('focusin', ev => { const el = ev.target.closest && ev.target.closest('[data-tip]'); if (el) { const r = el.getBoundingClientRect(); showTipFor(el, r.left + r.width / 2, r.top); } });
 document.addEventListener('focusout', ev => { if (ev.target.closest && ev.target.closest('[data-tip]')) hideTip(); });
 window.addEventListener('scroll', hideTip, { passive: true });
+function chartIndex(svg, clientX) {
+  const m = CHART_META[svg.dataset.chart], ctm = svg.getScreenCTM(); if (!m || !ctm) return -1;
+  const pt = svg.createSVGPoint(); pt.x = clientX; pt.y = 0;
+  const i = Math.floor((pt.matrixTransform(ctm.inverse()).x - m.x0) / m.slot);
+  return Math.max(0, Math.min(m.n - 1, i));
+}
+function chartShow(svg, i, cx, cy) {
+  const m = CHART_META[svg.dataset.chart]; if (!m) return;
+  svg.dataset.cur = i;
+  svg.querySelectorAll('.mk.hl').forEach(g => g.classList.remove('hl'));
+  const g = svg.querySelector(`.mk[data-i="${i}"]`); if (g) g.classList.add('hl');
+  if (cx == null && g) { const r = g.getBoundingClientRect(); cx = r.left + r.width / 2; cy = r.top + 8; }
+  TIP.textContent = m.tip(i); TIP.hidden = false;
+  const r = TIP.getBoundingClientRect(), vw = window.innerWidth;
+  let top = cy - r.height - 14; if (top < 8) top = cy + 18;
+  TIP.style.left = `${Math.min(Math.max(8, cx - r.width / 2), vw - r.width - 8)}px`; TIP.style.top = `${top}px`;
+}
+function chartClear(svg) { svg.querySelectorAll('.mk.hl').forEach(g => g.classList.remove('hl')); hideTip(); }
+['pointermove', 'pointerdown'].forEach(t => document.addEventListener(t, ev => {
+  const svg = ev.target.closest && ev.target.closest('svg[data-chart]'); if (!svg) return;
+  chartShow(svg, chartIndex(svg, ev.clientX), ev.clientX, ev.clientY);
+}));
+document.addEventListener('pointerout', ev => {
+  const svg = ev.target.closest && ev.target.closest('svg[data-chart]');
+  if (svg && ev.pointerType !== 'touch' && !(ev.relatedTarget && svg.contains(ev.relatedTarget))) chartClear(svg);
+});
+document.addEventListener('keydown', ev => {
+  const svg = ev.target.closest && ev.target.closest('svg[data-chart]'); if (!svg) return;
+  const m = CHART_META[svg.dataset.chart]; if (!m) return;
+  let i = svg.dataset.cur != null ? +svg.dataset.cur : m.start;
+  if (ev.key === 'ArrowRight') i = Math.min(m.n - 1, i + 1); else if (ev.key === 'ArrowLeft') i = Math.max(0, i - 1);
+  else if (ev.key === 'Home') i = 0; else if (ev.key === 'End') i = m.n - 1; else return;
+  ev.preventDefault(); chartShow(svg, i);
+});
+document.addEventListener('focusin', ev => { const svg = ev.target.closest && ev.target.closest('svg[data-chart]'); if (svg) { const m = CHART_META[svg.dataset.chart]; if (m) chartShow(svg, svg.dataset.cur != null ? +svg.dataset.cur : m.start); } });
+document.addEventListener('focusout', ev => { const svg = ev.target.closest && ev.target.closest('svg[data-chart]'); if (svg) chartClear(svg); });
 
 // ===== 16. INIT =====
 (function init() {
