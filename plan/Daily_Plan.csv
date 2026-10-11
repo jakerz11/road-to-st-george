@@ -14,21 +14,21 @@ Week,Phase,Date,Day,FLOOR (required),Floor mi,UPGRADE (optional),Upgrade mi,Pace
 ,,10/17/2026,Sat,Easy Run,3,,,10:00+,First runs back. Stop if anything hurts sharp.
 ,,10/18/2026,Sun,Rest,,,,—,
 3,Base,10/19/2026,Mon,Rest,,Easy Run,3,10:00–10:45,Upgrade = 5th run. Floor = rest + 20 min strength.
-,,10/20/2026,Tue,Easy + Strides,3,Add 1 mi + 6 strides,,See Paces tab,3 easy + 4x20s strides
+,,10/20/2026,Tue,Easy + Strides,3,Add 1 mi + 6 strides,1,See Paces tab,3 easy + 4x20s strides
 ,,10/21/2026,Wed,Easy Run,2.5,,,10:00–10:45,"Talk test. Govern by pace, not HR."
 ,,10/22/2026,Thu,Rest / Strength,,,,—,"20 min strength: bridges, calf raises, step-downs, lunges"
 ,,10/23/2026,Fri,Easy + Strides,1.5,,,10:00–10:45,6x20s strides at the end
 ,,10/24/2026,Sat,Long Run,5,,,10:00–10:30,Easy
 ,,10/25/2026,Sun,Rest,,,,—,
 4,Base,10/26/2026,Mon,Rest,,Easy Run,3,10:00–10:45,Upgrade = 5th run. Floor = rest + 20 min strength.
-,,10/27/2026,Tue,Easy + Strides,3,4 mi w/ 8x30s fartlek surges,,See Paces tab,3 easy + 6 strides
+,,10/27/2026,Tue,Easy + Strides,3,4 mi w/ 8x30s fartlek surges,1,See Paces tab,3 easy + 6 strides
 ,,10/28/2026,Wed,Easy Run,3,,,10:00–10:45,"Talk test. Govern by pace, not HR."
 ,,10/29/2026,Thu,Rest / Strength,,,,—,"20 min strength: bridges, calf raises, step-downs, lunges"
 ,,10/30/2026,Fri,Easy + Strides,2,,,10:00–10:45,6x20s strides at the end
 ,,10/31/2026,Sat,Long Run,6,,,10:00–10:30,Easy
 ,,11/01/2026,Sun,Rest,,,,—,
 5,Base,11/02/2026,Mon,Rest,,Easy Run,4,10:00–10:45,Upgrade = 5th run. Floor = rest + 20 min strength.
-,,11/03/2026,Tue,Easy + Strides,4,5 mi w/ 6x10s hill sprints,,See Paces tab,4 easy + 6 strides
+,,11/03/2026,Tue,Easy + Strides,4,5 mi w/ 6x10s hill sprints,1,See Paces tab,4 easy + 6 strides
 ,,11/04/2026,Wed,Easy Run,3,,,10:00–10:45,"Talk test. Govern by pace, not HR."
 ,,11/05/2026,Thu,Rest / Strength,,,,—,"20 min strength: bridges, calf raises, step-downs, lunges"
 ,,11/06/2026,Fri,Easy + Strides,2,,,10:00–10:45,6x20s strides at the end
@@ -42,7 +42,7 @@ Week,Phase,Date,Day,FLOOR (required),Floor mi,UPGRADE (optional),Upgrade mi,Pace
 ,,11/14/2026,Sat,Long Run,5,,,10:00–10:30,Cutback week
 ,,11/15/2026,Sun,Rest,,,,—,
 7,Base,11/16/2026,Mon,Rest,,Easy Run,4,10:00–10:45,Upgrade = 5th run. Floor = rest + 20 min strength.
-,,11/17/2026,Tue,Quality,4,5 mi w/ 10x(1 on / 1 off),,See Paces tab,4 mi w/ 6x30s pickups
+,,11/17/2026,Tue,Quality,4,5 mi w/ 10x(1 on / 1 off),1,See Paces tab,4 mi w/ 6x30s pickups
 ,,11/18/2026,Wed,Easy Run,3.5,,,10:00–10:45,"Talk test. Govern by pace, not HR."
 ,,11/19/2026,Thu,Rest / Strength,,,,—,"20 min strength: bridges, calf raises, step-downs, lunges"
 ,,11/20/2026,Fri,Easy + Strides,2.5,,,10:00–10:45,6x20s strides at the end
@@ -56,14 +56,14 @@ Week,Phase,Date,Day,FLOOR (required),Floor mi,UPGRADE (optional),Upgrade mi,Pace
 ,,11/28/2026,Sat,Long Run,7,,,10:00–10:30,Easy
 ,,11/29/2026,Sun,Rest,,,,—,
 9,Base,11/30/2026,Mon,Rest,,Easy Run,4,10:00–10:45,Upgrade = 5th run. Floor = rest + 20 min strength.
-,,12/01/2026,Tue,Quality,4,5 mi w/ 3x5 min @ tempo,,See Paces tab,4 mi w/ 2x5 min @ tempo
+,,12/01/2026,Tue,Quality,4,5 mi w/ 3x5 min @ tempo,1,See Paces tab,4 mi w/ 2x5 min @ tempo
 ,,12/02/2026,Wed,Easy Run,4,,,10:00–10:45,"Talk test. Govern by pace, not HR."
 ,,12/03/2026,Thu,Rest / Strength,,,,—,"20 min strength: bridges, calf raises, step-downs, lunges"
 ,,12/04/2026,Fri,Easy + Strides,3,,,10:00–10:45,6x20s strides at the end
 ,,12/05/2026,Sat,Long Run,9,,,10:00–10:30,Easy
 ,,12/06/2026,Sun,Rest,,,,—,
 10,Base,12/07/2026,Mon,Rest,,Easy Run,4,10:00–10:45,Upgrade = 5th run. Floor = rest + 20 min strength.
-,,12/08/2026,Tue,Quality,5,6 mi w/ 8x45s hills,,See Paces tab,5 mi w/ 6x30s hills
+,,12/08/2026,Tue,Quality,5,6 mi w/ 8x45s hills,1,See Paces tab,5 mi w/ 6x30s hills
 ,,12/09/2026,Wed,Easy Run,4,,,10:00–10:45,"Talk test. Govern by pace, not HR."
 ,,12/10/2026,Thu,Rest / Strength,,,,—,"20 min strength: bridges, calf raises, step-downs, lunges"
 ,,12/11/2026,Fri,Easy + Strides,3,,,10:00–10:45,6x20s strides at the end
@@ -77,21 +77,21 @@ Week,Phase,Date,Day,FLOOR (required),Floor mi,UPGRADE (optional),Upgrade mi,Pace
 ,,12/19/2026,Sat,Long Run,8,,,10:00–10:30,Cutback week
 ,,12/20/2026,Sun,Rest,,,,—,
 12,Base,12/21/2026,Mon,Rest,,Easy Run,4,10:00–10:45,Upgrade = 5th run. Floor = rest + 20 min strength.
-,,12/22/2026,Tue,Quality,4,5 mi w/ 4x5 min @ tempo,,See Paces tab,4 mi w/ 3x5 min @ tempo
+,,12/22/2026,Tue,Quality,4,5 mi w/ 4x5 min @ tempo,1,See Paces tab,4 mi w/ 3x5 min @ tempo
 ,,12/23/2026,Wed,Easy Run,3.5,,,10:00–10:45,Christmas Fri 12/25: run Thu instead
 ,,12/24/2026,Thu,Rest / Strength,,,,—,"20 min strength: bridges, calf raises, step-downs, lunges"
 ,,12/25/2026,Fri,Easy + Strides,2.5,,,10:00–10:45,6x20s strides at the end
 ,,12/26/2026,Sat,Long Run,10,,,10:00–10:30,Easy
 ,,12/27/2026,Sun,Rest,,,,—,
 13,Base,12/28/2026,Mon,Rest,,Easy Run,4,10:00–10:45,Upgrade = 5th run. Floor = rest + 20 min strength.
-,,12/29/2026,Tue,Quality,5,6 mi w/ 20 min @ tempo,,See Paces tab,5 mi w/ 15 min @ tempo
+,,12/29/2026,Tue,Quality,5,6 mi w/ 20 min @ tempo,1,See Paces tab,5 mi w/ 15 min @ tempo
 ,,12/30/2026,Wed,Easy Run,5,,,10:00–10:45,New Year Fri 1/1: run Thu instead
 ,,12/31/2026,Thu,Rest / Strength,,,,—,"20 min strength: bridges, calf raises, step-downs, lunges"
 ,,01/01/2027,Fri,Easy + Strides,3,,,10:00–10:45,6x20s strides at the end
 ,,01/02/2027,Sat,Long Run,11,,,10:00–10:30,Easy
 ,,01/03/2027,Sun,Rest,,,,—,
 14,Base,01/04/2027,Mon,Rest,,Easy Run,5,10:00–10:45,Upgrade = 5th run. Floor = rest + 20 min strength.
-,,01/05/2027,Tue,Quality,5,6 mi w/ 6x2 min @ 5K effort,,See Paces tab,5 mi w/ 5x2 min @ 5K effort
+,,01/05/2027,Tue,Quality,5,6 mi w/ 6x2 min @ 5K effort,1,See Paces tab,5 mi w/ 5x2 min @ 5K effort
 ,,01/06/2027,Wed,Easy Run,5.5,,,10:00–10:45,"Talk test. Govern by pace, not HR."
 ,,01/07/2027,Thu,Rest / Strength,,,,—,"20 min strength: bridges, calf raises, step-downs, lunges"
 ,,01/08/2027,Fri,Easy + Strides,3.5,,,10:00–10:45,6x20s strides at the end
@@ -105,49 +105,49 @@ Week,Phase,Date,Day,FLOOR (required),Floor mi,UPGRADE (optional),Upgrade mi,Pace
 ,,01/16/2027,Sat,CHECKPOINT: 5K time trial,6,,,Race effort,1 mi WU + 5K all-out + 1 mi CD. See Checkpoints tab.
 ,,01/17/2027,Sun,Rest,,,,—,
 16,Build,01/18/2027,Mon,Rest,,Easy Run,5,9:45–10:30,Upgrade = 5th run. Floor = rest + 20 min strength.
-,,01/19/2027,Tue,Quality,5,7 mi: 6x800 @ I pace,,See Paces tab,5 mi w/ 2x10 min @ T
+,,01/19/2027,Tue,Quality,5,7 mi: 6x800 @ I pace,2,See Paces tab,5 mi w/ 2x10 min @ T
 ,,01/20/2027,Wed,Easy Run,5.5,,,9:45–10:30,"Talk test. Govern by pace, not HR."
 ,,01/21/2027,Thu,Rest / Strength,,,,—,"20 min strength: bridges, calf raises, step-downs, lunges"
 ,,01/22/2027,Fri,Easy + Strides,3.5,,,9:45–10:30,6x20s strides at the end
 ,,01/23/2027,Sat,Long Run,13,,,Easy + MP segments,Easy
 ,,01/24/2027,Sun,Rest,,,,—,
 17,Build,01/25/2027,Mon,Rest,,Easy Run,5,9:45–10:30,Upgrade = 5th run. Floor = rest + 20 min strength.
-,,01/26/2027,Tue,Quality,5,7 mi: 3x1.5 mi @ T,,See Paces tab,5 mi w/ 3 @ MP
+,,01/26/2027,Tue,Quality,5,7 mi: 3x1.5 mi @ T,2,See Paces tab,5 mi w/ 3 @ MP
 ,,01/27/2027,Wed,Easy Run,6,,,9:45–10:30,"Talk test. Govern by pace, not HR."
 ,,01/28/2027,Thu,Rest / Strength,,,,—,"20 min strength: bridges, calf raises, step-downs, lunges"
 ,,01/29/2027,Fri,Easy + Strides,4,,,9:45–10:30,6x20s strides at the end
 ,,01/30/2027,Sat,Long Run,14,,,Easy + MP segments,Easy
 ,,01/31/2027,Sun,Rest,,,,—,
 18,Build,02/01/2027,Mon,Rest,,Easy Run,5,9:45–10:30,Upgrade = 5th run. Floor = rest + 20 min strength.
-,,02/02/2027,Tue,Quality,6,7 mi: 5x1K @ I pace,,See Paces tab,6 mi w/ 20 min @ T
+,,02/02/2027,Tue,Quality,6,7 mi: 5x1K @ I pace,1,See Paces tab,6 mi w/ 20 min @ T
 ,,02/03/2027,Wed,Easy Run,6,,,9:45–10:30,"Talk test. Govern by pace, not HR."
 ,,02/04/2027,Thu,Rest / Strength,,,,—,"20 min strength: bridges, calf raises, step-downs, lunges"
 ,,02/05/2027,Fri,Easy + Strides,4,,,9:45–10:30,6x20s strides at the end
 ,,02/06/2027,Sat,Long Run,15,,,Easy + MP segments,Last 3 @ MP
 ,,02/07/2027,Sun,Rest,,,,—,
 19,Build,02/08/2027,Mon,Rest,,Easy Run,4,9:45–10:30,Upgrade = 5th run. Floor = rest + 20 min strength.
-,,02/09/2027,Tue,Easy + Strides,5,6 mi w/ 4 @ MP,,See Paces tab,5 easy + strides
+,,02/09/2027,Tue,Easy + Strides,5,6 mi w/ 4 @ MP,1,See Paces tab,5 easy + strides
 ,,02/10/2027,Wed,Easy Run,5,,,9:45–10:30,Cutback
 ,,02/11/2027,Thu,Rest / Strength,,,,—,"20 min strength: bridges, calf raises, step-downs, lunges"
 ,,02/12/2027,Fri,Easy + Strides,3,,,9:45–10:30,6x20s strides at the end
 ,,02/13/2027,Sat,Long Run,12,,,Easy + MP segments,"Cutback, easy"
 ,,02/14/2027,Sun,Rest,,,,—,
 20,Build,02/15/2027,Mon,Rest,,Easy Run,5,9:45–10:30,Upgrade = 5th run. Floor = rest + 20 min strength.
-,,02/16/2027,Tue,Quality,6,8 mi: 4x1 mi @ T,,See Paces tab,6 mi w/ 4 @ MP
+,,02/16/2027,Tue,Quality,6,8 mi: 4x1 mi @ T,2,See Paces tab,6 mi w/ 4 @ MP
 ,,02/17/2027,Wed,Easy Run,6,,,9:45–10:30,"Talk test. Govern by pace, not HR."
 ,,02/18/2027,Thu,Rest / Strength,,,,—,"20 min strength: bridges, calf raises, step-downs, lunges"
 ,,02/19/2027,Fri,Easy + Strides,4,,,9:45–10:30,6x20s strides at the end
 ,,02/20/2027,Sat,Long Run,16,,,Easy + MP segments,Downhill route (Provo Canyon / Wallsburg Rd)
 ,,02/21/2027,Sun,Rest,,,,—,
 21,Build,02/22/2027,Mon,Rest,,Easy Run,6,9:45–10:30,Upgrade = 5th run. Floor = rest + 20 min strength.
-,,02/23/2027,Tue,Quality,6,8 mi: 6x1K @ I pace,,See Paces tab,6 mi w/ 3x1 mi @ T
+,,02/23/2027,Tue,Quality,6,8 mi: 6x1K @ I pace,2,See Paces tab,6 mi w/ 3x1 mi @ T
 ,,02/24/2027,Wed,Easy Run,6.5,,,9:45–10:30,"Talk test. Govern by pace, not HR."
 ,,02/25/2027,Thu,Rest / Strength,,,,—,"20 min strength: bridges, calf raises, step-downs, lunges"
 ,,02/26/2027,Fri,Easy + Strides,4.5,,,9:45–10:30,6x20s strides at the end
 ,,02/27/2027,Sat,Long Run,17,,,Easy + MP segments,Middle 6 @ MP
 ,,02/28/2027,Sun,Rest,,,,—,
 22,Build,03/01/2027,Mon,Rest,,Easy Run,6,9:45–10:30,Upgrade = 5th run. Floor = rest + 20 min strength.
-,,03/02/2027,Tue,Quality,6,9 mi: 2x3 mi @ T,,See Paces tab,6 mi w/ 25 min @ T
+,,03/02/2027,Tue,Quality,6,9 mi: 2x3 mi @ T,3,See Paces tab,6 mi w/ 25 min @ T
 ,,03/03/2027,Wed,Easy Run,6.5,,,9:45–10:30,"Talk test. Govern by pace, not HR."
 ,,03/04/2027,Thu,Rest / Strength,,,,—,"20 min strength: bridges, calf raises, step-downs, lunges"
 ,,03/05/2027,Fri,Easy + Strides,4.5,,,9:45–10:30,6x20s strides at the end
@@ -161,42 +161,42 @@ Week,Phase,Date,Day,FLOOR (required),Floor mi,UPGRADE (optional),Upgrade mi,Pace
 ,,03/13/2027,Sat,CHECKPOINT: 10K time trial,9,,,Race effort,1.5 mi WU + 10K hard + 1.5 mi CD. See Checkpoints tab.
 ,,03/14/2027,Sun,Rest,,,,—,
 24,Peak,03/15/2027,Mon,Rest,,Easy Run,6,9:30–10:15,Upgrade = 5th run. Floor = rest + 20 min strength.
-,,03/16/2027,Tue,Quality,6,9 mi: 5x1 mi @ T,,See Paces tab,6 mi w/ 5 @ MP
+,,03/16/2027,Tue,Quality,6,9 mi: 5x1 mi @ T,3,See Paces tab,6 mi w/ 5 @ MP
 ,,03/17/2027,Wed,Easy Run,7,,,9:30–10:15,"Talk test. Govern by pace, not HR."
 ,,03/18/2027,Thu,Rest / Strength,,Easy 4 (Peak only),4,—,"20 min strength: bridges, calf raises, step-downs, lunges"
 ,,03/19/2027,Fri,Easy + Strides,5,,,9:30–10:15,6x20s strides at the end
 ,,03/20/2027,Sat,Long Run,18,,,Easy + MP segments,Last 8 @ MP
 ,,03/21/2027,Sun,Rest,,,,—,
 25,Peak,03/22/2027,Mon,Rest,,Easy Run,6,9:30–10:15,Upgrade = 5th run. Floor = rest + 20 min strength.
-,,03/23/2027,Tue,Quality,6,9 mi: 8x800 @ I pace,,See Paces tab,6 mi w/ 2x2 mi @ T
+,,03/23/2027,Tue,Quality,6,9 mi: 8x800 @ I pace,3,See Paces tab,6 mi w/ 2x2 mi @ T
 ,,03/24/2027,Wed,Easy Run,7,,,9:30–10:15,"Talk test. Govern by pace, not HR."
 ,,03/25/2027,Thu,Rest / Strength,,Easy 4 (Peak only),4,—,"20 min strength: bridges, calf raises, step-downs, lunges"
 ,,03/26/2027,Fri,Easy + Strides,5,,,9:30–10:15,6x20s strides at the end
 ,,03/27/2027,Sat,Long Run,20,,,Easy + MP segments,"Easy, first 20"
 ,,03/28/2027,Sun,Rest,,,,—,
 26,Peak,03/29/2027,Mon,Rest,,Easy Run,7,9:30–10:15,Upgrade = 5th run. Floor = rest + 20 min strength.
-,,03/30/2027,Tue,Quality,7,10 mi: 3x2 mi @ T,,See Paces tab,7 mi w/ 30 min @ T
+,,03/30/2027,Tue,Quality,7,10 mi: 3x2 mi @ T,3,See Paces tab,7 mi w/ 30 min @ T
 ,,03/31/2027,Wed,Easy Run,9.5,,,9:30–10:15,"Talk test. Govern by pace, not HR."
 ,,04/01/2027,Thu,Rest / Strength,,Easy 4 (Peak only),4,—,"20 min strength: bridges, calf raises, step-downs, lunges"
 ,,04/02/2027,Fri,Easy + Strides,6.5,,,9:30–10:15,6x20s strides at the end
 ,,04/03/2027,Sat,Long Run,16,,,Easy + MP segments,10 @ MP
 ,,04/04/2027,Sun,Rest,,,,—,
 27,Peak,04/05/2027,Mon,Rest,,Easy Run,5,9:30–10:15,Upgrade = 5th run. Floor = rest + 20 min strength.
-,,04/06/2027,Tue,Quality,5,7 mi w/ 5 @ MP,,See Paces tab,5 mi w/ 3 @ MP
+,,04/06/2027,Tue,Quality,5,7 mi w/ 5 @ MP,2,See Paces tab,5 mi w/ 3 @ MP
 ,,04/07/2027,Wed,Easy Run,7,,,9:30–10:15,Cutback
 ,,04/08/2027,Thu,Rest / Strength,,Easy 4 (Peak only),4,—,"20 min strength: bridges, calf raises, step-downs, lunges"
 ,,04/09/2027,Fri,Easy + Strides,5,,,9:30–10:15,6x20s strides at the end
 ,,04/10/2027,Sat,Long Run,13,,,Easy + MP segments,"Cutback, easy"
 ,,04/11/2027,Sun,Rest,,,,—,
 28,Peak,04/12/2027,Mon,Rest,,Easy Run,6,9:30–10:15,Upgrade = 5th run. Floor = rest + 20 min strength.
-,,04/13/2027,Tue,Quality,6,10 mi: 6x1K @ I + downhill finish,,See Paces tab,6 mi w/ 4x1 mi @ T
+,,04/13/2027,Tue,Quality,6,10 mi: 6x1K @ I + downhill finish,4,See Paces tab,6 mi w/ 4x1 mi @ T
 ,,04/14/2027,Wed,Easy Run,8.5,,,9:30–10:15,"Talk test. Govern by pace, not HR."
 ,,04/15/2027,Thu,Rest / Strength,,Easy 4 (Peak only),4,—,"20 min strength: bridges, calf raises, step-downs, lunges"
 ,,04/16/2027,Fri,Easy + Strides,5.5,,,9:30–10:15,6x20s strides at the end
 ,,04/17/2027,Sat,Long Run,18,,,Easy + MP segments,"Downhill course sim, last 6 steady"
 ,,04/18/2027,Sun,Rest,,,,—,
 29,Peak,04/19/2027,Mon,Rest,,Easy Run,5,9:30–10:15,Upgrade = 5th run. Floor = rest + 20 min strength.
-,,04/20/2027,Tue,Quality,5,7 mi: 3x1 mi @ half pace,,See Paces tab,5 mi w/ 3x1 mi @ half effort
+,,04/20/2027,Tue,Quality,5,7 mi: 3x1 mi @ half pace,2,See Paces tab,5 mi w/ 3x1 mi @ half effort
 ,,04/21/2027,Wed,Easy Run,7,,,9:30–10:15,"Talk test. Govern by pace, not HR."
 ,,04/22/2027,Thu,Rest / Strength,,Easy 4 (Peak only),4,—,"20 min strength: bridges, calf raises, step-downs, lunges"
 ,,04/23/2027,Fri,Easy + Strides,5,,,9:30–10:15,6x20s strides at the end
@@ -210,28 +210,28 @@ Week,Phase,Date,Day,FLOOR (required),Floor mi,UPGRADE (optional),Upgrade mi,Pace
 ,,05/01/2027,Sat,Long Run,14,,,Easy + MP segments,"Easy, recovering from half"
 ,,05/02/2027,Sun,Rest,,,,—,
 31,Peak,05/03/2027,Mon,Rest,,Easy Run,7,9:30–10:15,Upgrade = 5th run. Floor = rest + 20 min strength.
-,,05/04/2027,Tue,Quality,7,Upgrade LR to 22 + 10 mi: 4x1.5 @ T,,See Paces tab,7 mi w/ 2x2 mi @ T
+,,05/04/2027,Tue,Quality,7,Upgrade LR to 22 + 10 mi: 4x1.5 @ T,3,See Paces tab,7 mi w/ 2x2 mi @ T
 ,,05/05/2027,Wed,Easy Run,8,,,9:30–10:15,"Talk test. Govern by pace, not HR."
 ,,05/06/2027,Thu,Rest / Strength,,Easy 4 (Peak only),4,—,"20 min strength: bridges, calf raises, step-downs, lunges"
 ,,05/07/2027,Fri,Easy + Strides,5,,,9:30–10:15,6x20s strides at the end
 ,,05/08/2027,Sat,Long Run,20,+2 mi (Wk 31 only),2,Easy + MP segments,"PEAK: UVM course from Wallsburg, easy"
 ,,05/09/2027,Sun,Rest,,,,—,
 32,Peak,05/10/2027,Mon,Rest,,Easy Run,6,9:30–10:15,Upgrade = 5th run. Floor = rest + 20 min strength.
-,,05/11/2027,Tue,Quality,7,9 mi: 6x1K @ I pace,,See Paces tab,7 mi w/ 4x1K @ I
+,,05/11/2027,Tue,Quality,7,9 mi: 6x1K @ I pace,2,See Paces tab,7 mi w/ 4x1K @ I
 ,,05/12/2027,Wed,Easy Run,9,,,9:30–10:15,"Talk test. Govern by pace, not HR."
 ,,05/13/2027,Thu,Rest / Strength,,Easy 4 (Peak only),4,—,"20 min strength: bridges, calf raises, step-downs, lunges"
 ,,05/14/2027,Fri,Easy + Strides,6,,,9:30–10:15,6x20s strides at the end
 ,,05/15/2027,Sat,Long Run,16,,,Easy + MP segments,"DRESS REHEARSAL: 10 @ goal MP, race gear + fueling"
 ,,05/16/2027,Sun,Rest,,,,—,
 33,Taper,05/17/2027,Mon,Rest,,Easy Run,5,9:30–10:15,Upgrade = 5th run. Floor = rest + 20 min strength.
-,,05/18/2027,Tue,Quality,6,8 mi: 5x1K @ I,,See Paces tab,6 mi w/ 4x1K @ I
+,,05/18/2027,Tue,Quality,6,8 mi: 5x1K @ I,2,See Paces tab,6 mi w/ 4x1K @ I
 ,,05/19/2027,Wed,Easy Run,8,,,9:30–10:15,"Talk test. Govern by pace, not HR."
 ,,05/20/2027,Thu,Rest / Strength,,,,—,"20 min strength: bridges, calf raises, step-downs, lunges"
 ,,05/21/2027,Fri,Easy + Strides,5,,,9:30–10:15,6x20s strides at the end
 ,,05/22/2027,Sat,Long Run,13,,,Easy + MP segments,6 @ goal MP
 ,,05/23/2027,Sun,Rest,,,,—,
 34,Taper,05/24/2027,Mon,Rest,,Easy Run,4,9:30–10:15,Upgrade = 5th run. Floor = rest + 20 min strength.
-,,05/25/2027,Tue,Quality,5,6 mi: 4x1 mi @ MP,,See Paces tab,5 mi w/ 3 @ goal MP
+,,05/25/2027,Tue,Quality,5,6 mi: 4x1 mi @ MP,1,See Paces tab,5 mi w/ 3 @ goal MP
 ,,05/26/2027,Wed,Easy Run,5.5,,,9:30–10:15,"Talk test. Govern by pace, not HR."
 ,,05/27/2027,Thu,Rest / Strength,,,,—,"20 min strength: bridges, calf raises, step-downs, lunges"
 ,,05/28/2027,Fri,Easy + Strides,3.5,,,9:30–10:15,6x20s strides at the end
