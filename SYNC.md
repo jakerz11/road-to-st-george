@@ -37,3 +37,40 @@ The Supabase security advisor's "RLS enabled, no policy" notice on these tables 
   A `null` value removes a field. Merging onto a tombstone starts a fresh entry.
 - `updated_at` values more than 5 minutes in the future are capped at server time + 5 min. A device with a wrong
   clock therefore can't pin a row forever.
+
+## API: `/api/sync` (`api/sync.js` on Vercel)
+
+`https://road-to-st-george.vercel.app/api/sync`. Every request needs the header `X-Sync-Passcode: <passcode>`.
+A request without it, or with a wrong passcode, gets `401 {"ok":false,"error":"unauthorized"}`. Responses are JSON
+with `Cache-Control: no-store`. Times are milliseconds since 1970.
+
+| Request | Does |
+|---|---|
+| `GET ?since=MS` | Rows the server stored after `since` (pass the previous response's `now`). Omit `since` to get everything. |
+| `GET ?from=YYYY-MM-DD&to=YYYY-MM-DD` or `?day=YYYY-MM-DD` | Entries in a day range (can be combined with `since`). |
+| `POST {"entries":[…],"kv":[…]}` | Push changes. Entry: `{day, data, updated_at, deleted?, merge?}`. kv item: `{key, data, updated_at, deleted?}`. A missing `updated_at` means now. |
+| `DELETE ?day=YYYY-MM-DD` or `?key=NAME` | Tombstone one item (`updated_at` = now). |
+
+- GET returns `{ok, now, entries:[{day, data, updated_at, deleted}], kv:[{key, data, updated_at, deleted}]}`, tombstones included.
+- POST and DELETE return `{ok, now, applied:{entries:[days], kv:[keys]}, entries, kv}`. `entries` and `kv` hold the
+  server's row for every item sent. An item missing from `applied` lost to a newer copy already on the server.
+- Errors: 400 bad input, 401 passcode, 405 method, 413 too large, 502/503 database problem (`detail` carries the
+  database message).
+- CORS allows only `https://jakerz11.github.io` and `https://road-to-st-george.vercel.app`. The copy of the app on
+  GitHub Pages calls the Vercel API cross-origin. The CLI is not a browser, so CORS doesn't apply to it.
+
+### How `/api/sync` reaches the database
+
+- **Relay (current setup).** `api/sync.js` validates the request, then forwards `{fn, args}` with the caller's
+  passcode to the Supabase Edge Function `tracker-sync` (`supabase/functions/tracker-sync/index.ts`, deployed with
+  `verify_jwt = false`). The function checks the SHA-256 of the passcode against `tracker_auth` (in constant time,
+  hash cached for 60 s), then runs `tracker_pull`/`tracker_push` with the secret key that Supabase injects into
+  Edge Functions. No secret is stored on Vercel. This was needed because the Vercel connection available while
+  setting this up could not write project environment variables (403).
+- **Direct (optional).** If `SUPABASE_URL`, `SUPABASE_SERVICE_KEY` (the project's `sb_secret_…` key, or a legacy
+  `service_role` JWT) and `SYNC_PASSCODE` are all set on Vercel (Production + Preview), `api/sync.js` checks the
+  passcode itself with `crypto.timingSafeEqual` and calls the two Postgres functions through Supabase REST. A
+  redeploy is needed after setting them. If `SYNC_PASSCODE` alone is set, it is checked as well.
+
+Supabase retires the legacy `anon`/`service_role` JWT keys at the end of 2026, so use an `sb_secret_…` key for
+direct mode. Those keys go on the `apikey` header only, and `api/sync.js` handles both kinds.
