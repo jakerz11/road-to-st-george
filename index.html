@@ -219,6 +219,7 @@ details.more>summary::-webkit-details-marker{display:none}
 .sd .dm{font-size:.66rem;color:var(--text-2);font-weight:800}
 .sd.sel{border-color:var(--text)}
 .sd.today .dd{color:var(--accent)}
+.sd.rest::after,.cc.rest::after{content:"✓";position:absolute;top:2px;right:5px;font-size:.66rem;font-weight:900;color:var(--text-2);opacity:.6}
 .sd.done{background:var(--good-bg)}
 .sd.done::after{content:"✓";position:absolute;top:2px;right:5px;font-size:.66rem;font-weight:900;color:var(--good-ink)}
 .sd.miss::after{content:"";position:absolute;top:6px;right:6px;width:6px;height:6px;border-radius:50%;border:1.5px solid var(--bad)}
@@ -1786,6 +1787,9 @@ function stgCardHTML(s) {
 }
 
 // ===== Log card =====
+// Planned rest days (Sun, floor Mon/Thu rest+strength, Recovery walk days, any 0-mile day) are complete by default:
+// nothing to log, never missed. Logging a run or strength on one still works.
+function isRestDay(d) { return !!d && !d.floor.run && d.kind !== 'race' && d.kind !== 'checkpoint'; }
 function plannedFor(iso) {
   const d = DAYS[iso]; if (!d) { const s = STG_DAYS[iso]; return s ? s.mi : 0; }
   const v = versionFor(d, modeFor(iso)); return v.run ? v.mi : 0;
@@ -1796,12 +1800,10 @@ function logStatusHTML(iso, d) {
     const p = e.actualTime > 0 ? ` · ${fmtDur(e.actualTime * 60)} · ${fmtPace(e.actualTime * 60 / e.actualDist)}/mi` : '';
     return `<div class="logged"><span>✓ ${fmtMi2(e.actualDist)} mi${p}${e.upgrade ? ' · ⚡' : ''}</span><span class="spacer"></span><button data-act="undo" data-iso="${iso}">Undo</button></div>`;
   }
-  if (d && d.kind === 'walk') return e.done
-    ? `<div class="logged"><span>✓ Walked</span><span class="spacer"></span><button data-act="undo" data-iso="${iso}">Undo</button></div>`
-    : `<button class="donebtn" data-act="walked" data-iso="${iso}">✓ Walked today</button>`;
-  if (d && d.kind === 'strength' && mode === 'floor') return e.strength
-    ? `<div class="logged"><span>✓ Strength done</span><span class="spacer"></span><button data-act="strength" data-iso="${iso}">Undo</button></div>`
-    : `<button class="donebtn" data-act="strength" data-iso="${iso}">🏋️ Strength done · 20 min</button>`;
+  if (isRestDay(d) && mode === 'floor') {
+    const extra = d.kind === 'walk' ? ' An easy 20–40 min walk is optional.' : d.kind === 'strength' ? ' 20 min strength is optional (counts toward 2x/week).' : '';
+    return `<div class="logged rest"><span>😴 Rest day: nothing to log.${extra}${e.strength ? ' · ✓ Strength done' : ''}</span></div>`;
+  }
   if (planned > 0) {
     const label = d && d.kind === 'race' ? `🏁 Finished! · 26.2 mi` : `✓ Done · ${fmtMi(planned)} mi${mode === 'upgrade' ? ' ⚡' : ''}`;
     return `<button class="donebtn ${mode === 'upgrade' ? 'up' : ''}" data-act="done" data-iso="${iso}">${label}</button>`;
@@ -1810,7 +1812,7 @@ function logStatusHTML(iso, d) {
 }
 function logCardHTML(iso, d) {
   const e = getE(iso) || {}, planned = plannedFor(iso), mode = d ? modeFor(iso) : 'floor';
-  const runDay = planned > 0 && !(d && d.kind === 'strength' && mode === 'floor');
+  const runDay = planned > 0 && !(isRestDay(d) && mode === 'floor');
   const isRace = d && d.kind === 'race';
   const fields = `<div class="fields" style="grid-template-columns:1fr 1.2fr">
       <div class="field"><label for="dist-${iso}">Distance (mi)</label>
@@ -1820,7 +1822,7 @@ function logCardHTML(iso, d) {
     </div><div class="paceout" aria-live="polite"></div>`;
   const future = iso > todayISO();
   let h = `<section class="card log" data-iso="${iso}" aria-label="Log for ${esc(fmtLong(iso))}">
-    <h3>📝 Log it${future ? ' <span class="chip">ahead of time</span>' : ''}</h3>
+    <h3>${isRestDay(d) && mode === 'floor' && !isRun(e) ? '😴 Rest day' : '📝 Log it'}${future ? ' <span class="chip">ahead of time</span>' : ''}</h3>
     <div class="logstat">${logStatusHTML(iso, d)}</div>`;
   if (runDay || isRun(e)) h += fields;
   else h += `<details class="more"${e.actualDist ? ' open' : ''}><summary>＋ Ran anyway? Log a run</summary>${fields}</details>`;
@@ -1851,8 +1853,9 @@ function weekCardHTML(w, S, selIso) {
     const e = getE(d.iso), mode = modeFor(d.iso), v = versionFor(d, mode), ran = isRun(e);
     const walked = d.kind === 'walk' && e && e.done;
     const miss = d.floor.run && !ran && d.iso < t && !s.hit;
-    const cls = ['sd', d.iso === selIso ? 'sel' : '', d.iso === t ? 'today' : '', ran || walked ? 'done' : '', miss ? 'miss' : ''].join(' ');
-    const lbl = `${DOW_LONG[d.dow]} ${fmtShort(d.iso)}: ${v.title}${v.run ? ' ' + fmtMi(v.mi) + ' mi' : ''}${ran ? ', done' : miss ? ', missed' : ''}`;
+    const rest = !ran && isRestDay(d) && d.iso <= t;
+    const cls = ['sd', d.iso === selIso ? 'sel' : '', d.iso === t ? 'today' : '', ran || walked ? 'done' : '', rest && !walked ? 'rest' : '', miss ? 'miss' : ''].join(' ');
+    const lbl = `${DOW_LONG[d.dow]} ${fmtShort(d.iso)}: ${v.title}${v.run ? ' ' + fmtMi(v.mi) + ' mi' : ''}${ran ? ', done' : miss ? ', missed' : isRestDay(d) ? ', rest day' : ''}`;
     return `<button class="${cls}" data-act="view" data-iso="${d.iso}" aria-label="${esc(lbl)}" style="${paceVarStyle(d.phase)}">
       <span class="dn">${DOW[d.dow]}</span><span class="dd">${dateOf(d.iso).getDate()}</span>
       <span class="di" aria-hidden="true">${KEY_DAYS[d.iso] ? KEY_DAYS[d.iso].icon : KIND[v.kind].icon}</span>
@@ -1865,7 +1868,7 @@ function weekCardHTML(w, S, selIso) {
   const unlockTxt = S.unlocked ? '🔓 Upgrades unlocked' : `🔒 ${4 - Math.min(4, S.streak)} more floor ${4 - S.streak === 1 ? 'week' : 'weeks'} to unlock upgrades`;
   const walks = W.days.filter(d => d.kind === 'walk' && getE(d.iso) && getE(d.iso).done).length;
   const body = W.floorRuns === 0 ? `<div class="wkstats">
-      <div class="wkstat"><div class="v">${walks}<small> / ${W.days.filter(d => d.kind === 'walk').length}</small></div><div class="l">Walk days</div></div>
+      <div class="wkstat"><div class="v">${walks}</div><div class="l">Walks logged (optional)</div></div>
       <div class="wkstat"><div class="v">${s.runs}</div><div class="l">Runs (none planned)</div></div>
       <div class="wkstat"><div class="v">0<small> mi</small></div><div class="l">Floor this week</div></div>
     </div>${ruleHTML('floor', 'good', 'Recovery week: the floor is rest. Walk 20–40 min a day and let St. George heal.')}` : null;
@@ -1929,7 +1932,8 @@ function renderCalendar() {
       lbl += `: St. George plan, ${s.workout}`;
     }
     const walked = d && d.kind === 'walk' && e && e.done;
-    const cls = ['cc', iso === t ? 'today' : '', ran || walked ? 'done' : '', miss ? 'miss' : '', key ? 'key' : '', !d && !s ? 'off' : ''].join(' ');
+    const rest = !ran && !walked && isRestDay(d) && iso <= t;
+    const cls = ['cc', iso === t ? 'today' : '', ran || walked ? 'done' : '', rest ? 'rest' : '', miss ? 'miss' : '', key ? 'key' : '', !d && !s ? 'off' : ''].join(' ');
     cells += `<button class="${cls}" style="--tint:${tint}" data-act="open" data-iso="${iso}" aria-label="${esc(lbl)}${ran ? ', done ' + fmtMi(e.actualDist) + ' mi' : ''}">
       <span class="cn">${n}</span><span class="ci" aria-hidden="true">${icon}</span><span class="cm">${ran ? fmtMi(e.actualDist) : pm}</span></button>`;
   }
@@ -1942,7 +1946,7 @@ function renderCalendar() {
       <div class="legend">${legend}</div></div>
     <div class="card"><div class="row"><div><div class="eyebrow">${MONTHS[m]} logged</div><div style="font-size:1.4rem;font-weight:800">${fmtMi(mi)} mi <span class="sub">· ${plural(runs, 'run')}</span></div></div>
       ${planMi ? `<div class="spacer"></div><div style="text-align:right"><div class="eyebrow">Floor plan</div><div style="font-size:1.4rem;font-weight:800">${fmtMi(planMi)} mi</div></div>` : ''}</div>
-      <div class="sub" style="margin-top:8px">Tap any day to see the workout and log it. ✓ = done · ○ = missed floor run.</div></div>`;
+      <div class="sub" style="margin-top:8px">Tap any day to see the workout and log it. ✓ = done (grey ✓ = rest day, nothing to log) · ○ = missed floor run.</div></div>`;
 }
 
 // ===== 9. DAY SHEET =====
