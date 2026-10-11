@@ -114,3 +114,29 @@ direct mode. Those keys go on the `apikey` header only, and `api/sync.js` handle
   "Offline", and the Today tab warns if changes have been waiting more than 2 days.
 - **Caching:** there is no service worker, so nothing can cache `/api`. Requests use `cache: 'no-store'`, and the API
   answers with `Cache-Control: no-store`.
+
+## Operations
+
+- **Where the passcode lives:**
+  - `/home/box/.config/uvm-tracker/sync.env` (mode 600) on Hans's machine, the only plaintext copy;
+  - each device that has connected (localStorage `uvm27-sync-v1`);
+  - its SHA-256 in `tracker_auth`.
+
+  Get it to Jake's phone through a private channel, then paste it in Stats → Cloud sync.
+- **Rotate the passcode:**
+  1. Generate a new one: `openssl rand -base64 32 | tr '+/' '-_' | tr -d '=\n'`. Put it in `sync.env`.
+  2. Hash it: `printf %s "$NEW" | sha256sum`.
+  3. In the Supabase SQL editor, run
+     `update public.tracker_auth set passcode_sha256 = '<hash>', updated_at = now() where id = 1;`.
+     The Edge Function picks it up within a minute.
+  4. If direct mode is configured on Vercel, update `SYNC_PASSCODE` there too and redeploy.
+  5. On each device, the app shows "That passcode wasn't accepted" and asks for the new one. Nothing local is lost.
+- **Free plan:**
+  - Supabase pauses a free project after about a week with no activity. Normal use keeps it awake: the app syncs
+    whenever it opens, and Hans reads the log.
+  - If it does pause, the app keeps working offline, and its card shows "Sync failed". Restore the project from the
+    Supabase dashboard. Every device then uploads what it queued.
+  - Usage is far below the free limits: one row per day, a few requests per app open.
+- **Test leftovers:** setup left tombstones for `2099-12-30`, `2099-12-31` and the key `test:x`. They're harmless.
+  To clear them, run `delete from public.tracker_entries where day >= '2099-01-01'; delete from public.tracker_kv where key = 'test:x';`
+  in the SQL editor.
