@@ -74,3 +74,43 @@ with `Cache-Control: no-store`. Times are milliseconds since 1970.
 
 Supabase retires the legacy `anon`/`service_role` JWT keys at the end of 2026, so use an `sb_secret_…` key for
 direct mode. Those keys go on the `apikey` header only, and `api/sync.js` handles both kinds.
+
+## The app (`index.html`)
+
+- **Setup:** Stats → Cloud sync → paste the passcode → Connect, once per device. On an iPhone, a home-screen app has
+  storage separate from Safari, so enter the passcode inside the home-screen app itself. The passcode is kept in
+  `localStorage` under `uvm27-sync-v1`, apart from the log, so it never ends up in an export. "Stop syncing on this
+  device" forgets it, and the log stays.
+- **Which URL:** on `*.vercel.app` the app calls `/api/sync`. Anywhere else, including the GitHub Pages copy at
+  `jakerz11.github.io/road-to-st-george/`, where the installed home-screen app lives, it calls
+  `https://road-to-st-george.vercel.app/api/sync`. For local testing, `{"api": "<url>"}` in `uvm27-sync-v1` overrides it.
+- **What syncs:** day entries, checkpoint results and the pinned pace track. The theme stays per device, and the
+  St. George legacy key is never touched.
+- **Bookkeeping** lives in the log store (`uvm27-tracker-v1`) under `sync`:
+  - `u`: edit time per item.
+  - `pend`: items the cloud doesn't have yet.
+  - `since`: server time of the last pull.
+  - `at`: time of the last successful sync.
+- **Edit stamping:** every save compares the log with a snapshot and stamps whatever changed or disappeared with the
+  current time. Every way of editing is therefore covered: the log card, "Clear this day", CSV and Strava import,
+  checkpoints and the track picker.
+- **First run after this update:** existing items get edit time 0 and are queued. The first sync uploads them without
+  overriding anything newer in the cloud. Before that first sync, a copy of the whole store is saved once as
+  `uvm27-tracker-v1:presync`.
+- **When it syncs:**
+  - on load;
+  - about 2 s after an edit;
+  - when the phone comes back online;
+  - when the app returns to the foreground, if the last sync was more than a minute ago;
+  - when it goes to the background with unsent changes;
+  - on "Sync now".
+
+  "Sync now" does a full pull and re-queues anything the cloud is missing. The other syncs pull only changes since
+  the last pull, minus a 10-minute overlap.
+- **Merging:** per item, the newer edit time wins and a tie goes to the cloud. Cloud entries pass through the app's
+  normal `normEntry` cleanup before they're stored.
+- **Never wipes local data:** an empty or failed pull changes nothing. A local item only changes when a newer copy, or
+  an explicit delete (a tombstone), comes from the cloud. While offline, edits wait in `pend`. The card shows
+  "Offline", and the Today tab warns if changes have been waiting more than 2 days.
+- **Caching:** there is no service worker, so nothing can cache `/api`. Requests use `cache: 'no-store'`, and the API
+  answers with `Cache-Control: no-store`.

@@ -1200,6 +1200,11 @@ const STORE_KEY = 'uvm27-tracker-v1';
 const LEGACY_KEY = 'stg-marathon-log';            // St. George app: { entries: { iso: {done,rating,actualDist,actualTime} } }
 const LEGACY_BACKUP_KEY = 'stg-marathon-log:backup'; // one-time copy; the legacy key itself is never modified
 let STORAGE_OK = true, SAVE_FAIL = false;
+// Cloud sync (section 4b). The passcode has its own key, so it never ends up in an export or a backup copy.
+const SYNC_KEY = 'uvm27-sync-v1';
+const SYNC_API = /\.vercel\.app$/.test(location.hostname) ? '/api/sync' : 'https://road-to-st-george.vercel.app/api/sync';
+const SYNC = { busy: false, again: false, timer: 0, state: '', msg: '' }; // state: '' | syncing | ok | offline | auth | error
+let SNAP = null; // synced item -> JSON of the version this device last stamped or merged
 const BOOT_NOTES = [];
 function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { STORAGE_OK = false; return null; } }
 function lsSet(k, v) { try { localStorage.setItem(k, v); return true; } catch (e) { STORAGE_OK = false; return false; } }
@@ -1257,12 +1262,18 @@ function loadDB() {
     }
     dirty = true;
   }
+  if (initSyncState(db)) dirty = true;
   if (dirty) lsSet(STORE_KEY, JSON.stringify(db));
   return db;
 }
 let DB = loadDB();
+snapshot();
 // On failure the next toast shows a warning instead of a success message (or a fallback toast fires).
-function saveDB() { if (!lsSet(STORE_KEY, JSON.stringify(DB))) { SAVE_FAIL = true; setTimeout(() => { if (SAVE_FAIL) toast(''); }, 0); } }
+function saveDB() {
+  stampChanges();
+  if (!lsSet(STORE_KEY, JSON.stringify(DB))) { SAVE_FAIL = true; setTimeout(() => { if (SAVE_FAIL) toast(''); }, 0); }
+  syncSoon();
+}
 function getE(iso) { return DB.entries[iso] || null; }
 function putE(iso, patch) {
   const e = Object.assign({ done: false, rating: 0, actualDist: 0, actualTime: 0 }, DB.entries[iso] || {}, patch);
@@ -1273,6 +1284,170 @@ function putE(iso, patch) {
   saveDB();
 }
 const isRun = e => !!(e && e.done && e.actualDist > 0);
+
+// ===== 4b. CLOUD SYNC (optional; see SYNC.md) =====
+// The log always lives here in localStorage and works offline. Once a passcode is saved on this device, every day,
+// checkpoint result and the pinned track is also kept in the cloud log Hans reads, merged item by item: the copy
+// edited last wins. Sync never clears this device. An item only changes when a newer copy, or an explicit delete,
+// arrives from the cloud, and a one-time copy of the whole log is set aside before the first sync.
+// Items: 'e:YYYY-MM-DD' (a day's entry), 'k:checkpoint:<id>' (a checkpoint result), 'k:settings' ({track}).
+// DB.sync = { u: {item: edit time in ms}, pend: {item: 1 until the cloud has this device's copy}, since, at }.
+function syncCfg() { try { const c = JSON.parse(lsGet(SYNC_KEY) || '{}'); return c && typeof c === 'object' ? c : {}; } catch (e) { return {}; } }
+function syncOn() { return !!syncCfg().passcode; }
+function syncable(k) { return /^e:\d{4}-\d{2}-\d{2}$/.test(k) || k === 'k:settings' || (k.startsWith('k:checkpoint:') && !!CP[k.slice(13)]); }
+function itemOf(k) {
+  if (k.startsWith('e:')) return DB.entries[k.slice(2)];
+  if (k === 'k:settings') return { track: DB.settings.track || 'auto' };
+  return DB.checkpoints[k.slice(13)];
+}
+function syncKeys() {
+  return Object.keys(DB.entries).map(iso => `e:${iso}`)
+    .concat(Object.keys(DB.checkpoints).filter(id => CP[id]).map(id => `k:checkpoint:${id}`), ['k:settings']);
+}
+function itemSig(v) { return JSON.stringify(v, Object.keys(v).sort()); } // a function declaration: used at load, before this line runs
+function snapshot() { SNAP = new Map(syncKeys().map(k => [k, itemSig(itemOf(k))])); }
+// First load with sync support: existing items get edit time 0 (older than any real edit) and are queued, so the
+// first sync uploads this log without overriding anything newer that is already in the cloud.
+function initSyncState(db) {
+  const s = db.sync;
+  if (s && s.u && typeof s.u === 'object' && s.pend && typeof s.pend === 'object') { s.since = +s.since || 0; s.at = +s.at || 0; return false; }
+  const n = { u: {}, pend: {}, since: 0, at: 0 };
+  for (const iso of Object.keys(db.entries)) { n.u[`e:${iso}`] = 0; n.pend[`e:${iso}`] = 1; }
+  for (const [id, c] of Object.entries(db.checkpoints)) { n.u[`k:checkpoint:${id}`] = Date.parse(c && c.at) || 0; n.pend[`k:checkpoint:${id}`] = 1; }
+  n.u['k:settings'] = 0;
+  if (db.settings.track && db.settings.track !== 'auto') n.pend['k:settings'] = 1;
+  db.sync = n;
+  return true;
+}
+// Runs on every save: whatever differs from the snapshot was just edited (or deleted) on this device.
+function stampChanges() {
+  if (!SNAP) return;
+  const S = DB.sync, now = Date.now(), seen = new Set();
+  const touch = k => { S.u[k] = Math.max(now, (S.u[k] || 0) + 1); S.pend[k] = 1; }; // always later than the copy it replaces
+  for (const k of syncKeys()) {
+    const sig = itemSig(itemOf(k)); seen.add(k);
+    if (SNAP.get(k) !== sig) { touch(k); SNAP.set(k, sig); }
+  }
+  for (const k of [...SNAP.keys()]) if (!seen.has(k)) { touch(k); SNAP.delete(k); }
+}
+// Apply one cloud row to the local log. Returns true if the local log changed.
+function applyRow(k, r) {
+  const before = SNAP.get(k), d = !r.deleted && r.data && typeof r.data === 'object' ? r.data : null;
+  if (k.startsWith('e:')) {
+    const e = d && normEntry(d);
+    if (e && (e.done || e.rating || e.actualDist || e.actualTime || e.upgrade || e.strength || e.pain || e.note)) DB.entries[k.slice(2)] = e;
+    else delete DB.entries[k.slice(2)];
+  } else if (k === 'k:settings') {
+    DB.settings.track = d && TRACKS[d.track] ? d.track : 'auto';
+  } else {
+    const id = k.slice(13), sec = d ? Math.round(+d.sec) : 0;
+    if (sec > 0) DB.checkpoints[id] = { sec, at: typeof d.at === 'string' ? d.at : new Date(+r.updated_at || Date.now()).toISOString() };
+    else delete DB.checkpoints[id];
+  }
+  const v = itemOf(k);
+  if (v) SNAP.set(k, itemSig(v)); else SNAP.delete(k);
+  return SNAP.get(k) !== before;
+}
+// Pull (sent = null): take each cloud row unless this device's copy is newer, in which case that copy is queued for
+// upload. A tie goes to the cloud, so devices converge. Push answer (sent = the edit times we sent): adopt the
+// cloud's row for each item unless it was edited here again while the request was out.
+function mergeRows(res, sent) {
+  const S = DB.sync; let n = 0;
+  const rows = (res.entries || []).map(r => [`e:${r.day}`, r]).concat((res.kv || []).map(r => [`k:${r.key}`, r]));
+  for (const [k, r] of rows) {
+    if (!syncable(k)) continue;
+    const R = +r.updated_at || 0;
+    if (sent) { if (!(k in sent) || S.u[k] !== sent[k]) continue; }
+    else if (S.u[k] !== undefined && R < S.u[k]) { S.pend[k] = 1; continue; }
+    if (applyRow(k, r)) n++;
+    S.u[k] = R; delete S.pend[k];
+  }
+  return n;
+}
+// After a full pull, queue whatever this device has that the cloud lacks (but not an untouched default setting).
+function queueMissing(pull) {
+  const S = DB.sync, have = new Set((pull.entries || []).map(r => `e:${r.day}`).concat((pull.kv || []).map(r => `k:${r.key}`)));
+  for (const k of syncKeys()) {
+    if (have.has(k) || (k === 'k:settings' && !S.u[k] && (DB.settings.track || 'auto') === 'auto')) continue;
+    if (S.u[k] === undefined) S.u[k] = 0;
+    S.pend[k] = 1;
+  }
+}
+async function syncFetch(method, query, body) {
+  const cfg = syncCfg(), ctl = typeof AbortController === 'function' ? new AbortController() : null;
+  const timer = ctl ? setTimeout(() => ctl.abort(), 20000) : 0;
+  let r, j = null;
+  try {
+    r = await fetch((cfg.api || SYNC_API) + query, { method, cache: 'no-store', signal: ctl ? ctl.signal : undefined,
+      headers: Object.assign({ 'X-Sync-Passcode': cfg.passcode }, body ? { 'Content-Type': 'application/json' } : {}),
+      body: body ? JSON.stringify(body) : undefined });
+    j = await r.json().catch(() => null);
+  } catch (err) { throw Object.assign(new Error('offline'), { offline: true }); }
+  finally { clearTimeout(timer); }
+  if (!r.ok || !j || !j.ok) {
+    throw Object.assign(new Error((j && (j.detail || j.error)) || `server answered ${r.status}`), { auth: r.status === 401 && !!j && j.error === 'unauthorized' });
+  }
+  return j;
+}
+function syncSoon(ms) {
+  clearTimeout(SYNC.timer);
+  if (syncOn() && Object.keys(DB.sync.pend).length) SYNC.timer = setTimeout(syncNow, ms == null ? 2000 : ms);
+}
+// Pull what changed in the cloud (everything when full), merge, then push this device's newer copies.
+async function syncNow(opts) {
+  if (!syncOn()) return false;
+  if (SYNC.busy) { SYNC.again = true; return false; }
+  clearTimeout(SYNC.timer);
+  SYNC.busy = true; SYNC.state = 'syncing'; syncUI();
+  let changed = 0;
+  try {
+    stampChanges();
+    const S = DB.sync, full = !!(opts && opts.full) || !S.since;
+    if (!S.at && lsGet(`${STORE_KEY}:presync`) === null) lsSet(`${STORE_KEY}:presync`, JSON.stringify(DB)); // one-time safety copy
+    const pull = await syncFetch('GET', full ? '' : `?since=${Math.max(0, S.since - 600000)}`);
+    changed += mergeRows(pull, null);
+    if (full) queueMissing(pull);
+    S.since = +pull.now || S.since;
+    const keys = Object.keys(S.pend);
+    for (let i = 0; i < keys.length; i += 500) {
+      const sent = {}, body = { entries: [], kv: [] };
+      for (const k of keys.slice(i, i + 500)) {
+        const v = itemOf(k), item = { updated_at: (sent[k] = S.u[k] || 0) };
+        if (v === undefined) item.deleted = true; else item.data = v;
+        if (k.startsWith('e:')) body.entries.push(Object.assign({ day: k.slice(2) }, item));
+        else body.kv.push(Object.assign({ key: k.slice(2) }, item));
+      }
+      changed += mergeRows(await syncFetch('POST', '', body), sent);
+    }
+    S.at = Date.now(); SYNC.state = 'ok'; SYNC.msg = '';
+  } catch (err) {
+    if (err.auth) lsSet(SYNC_KEY, JSON.stringify(Object.assign(syncCfg(), { passcode: '' }))); // wrong passcode: ask again
+    SYNC.state = err.offline ? 'offline' : err.auth ? 'auth' : 'error'; SYNC.msg = err.message;
+  } finally {
+    if (!lsSet(STORE_KEY, JSON.stringify(DB))) SAVE_FAIL = true;
+    SYNC.busy = false;
+    if (changed) refresh(true); else syncUI();
+    if (SYNC.again) { SYNC.again = false; syncSoon(300); }
+  }
+  return true;
+}
+async function syncConnect() {
+  const el = $('#sync-pass'), pass = el ? el.value.trim() : '';
+  if (!pass) { toast('Enter the sync passcode first'); return; }
+  if (!lsSet(SYNC_KEY, JSON.stringify(Object.assign(syncCfg(), { passcode: pass })))) { toast('⚠️ Could not save the passcode on this device'); return; }
+  if (el) el.blur();
+  await syncNow({ full: true });
+  refresh(true);
+  toast(SYNC.state === 'ok' ? '☁️ Sync is on. This log is backed up and shared with Hans.' : syncProblem(), 3600);
+}
+function syncProblem() {
+  return SYNC.state === 'offline' ? '📴 Offline. Changes stay on this device and sync later.'
+    : SYNC.state === 'auth' ? '✕ That passcode wasn’t accepted.' : `⚠️ Sync failed: ${SYNC.msg}`;
+}
+function agoText(ms) {
+  const s = (Date.now() - ms) / 1000, d = new Date(ms);
+  return s < 60 ? 'just now' : s < 3600 ? `${Math.round(s / 60)} min ago` : s < 86400 ? `${Math.round(s / 3600)} h ago` : `${MON[d.getMonth()]} ${d.getDate()}`;
+}
 
 // ===== 5. DERIVED: pace track, goal, weekly stats =====
 function trackForResult(cp, sec) { for (const id of ['3:30', '3:45', '4:00']) if (sec <= cp.cuts[id]) return id; return 'behind'; }
@@ -1502,6 +1677,10 @@ function heroHTML(S) {
 function alertsHTML(S) {
   const out = [], t = S.t;
   if (!STORAGE_OK) out.push(`<div class="rule bad"><span class="ri">⚠️</span><div><b>Storage is blocked.</b> Logs won’t be saved on this device (private browsing?).</div></div>`);
+  if (syncOn() && DB.sync.at && Date.now() - DB.sync.at > 2 * 864e5 && Object.keys(DB.sync.pend).length) {
+    const n = Object.keys(DB.sync.pend).length;
+    out.push(`<div class="rule warn"><span class="ri">☁️</span><div><b>Cloud sync last worked ${esc(agoText(DB.sync.at))}.</b> ${plural(n, 'change')} ${n === 1 ? 'is' : 'are'} only on this device so far. Stats → Cloud sync has details.</div></div>`);
+  }
   if (BOOT_NOTES.length && !STATE.bootSeen) out.push(`<div class="rule good"><span class="ri">📦</span><div><b>Welcome to the new block.</b> ${BOOT_NOTES.map(esc).join(' ')} <button class="link" data-act="dismiss-boot">Got it</button></div></div>`);
   // Pain rule: flagged in the last 2 days.
   for (let i = 0; i <= 2; i++) {
@@ -1939,6 +2118,7 @@ function renderStats(soft) {
     ['s-tiles', () => tilesHTML(S)],
     ['s-charts', () => statsChartsHTML(S)],
     ['s-past', () => pastRacesHTML()],
+    ['s-sync', () => syncCardHTML()],
     ['s-data', () => dataCardHTML()]
   ], soft);
 }
@@ -2123,6 +2303,28 @@ function pastRacesHTML() {
   </section>`;
 }
 
+function syncCardHTML() {
+  if (!syncOn()) return `<section class="card"><h3>☁️ Cloud sync</h3>
+    <div class="sub">Back this log up to the cloud and share it with Hans. Enter the sync passcode once on each device. The log keeps working offline either way.</div>
+    ${SYNC.state === 'auth' ? '<div class="sub" style="margin-top:8px;color:var(--bad-ink)">That passcode wasn’t accepted. Check it and try again.</div>' : ''}
+    <div style="display:flex;gap:8px;margin-top:10px">
+      <input class="input" id="sync-pass" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Sync passcode" aria-label="Sync passcode" style="flex:1;min-width:0">
+      <button class="btn primary" data-act="sync-connect">Connect</button>
+    </div>
+  </section>`;
+  const S = DB.sync, pend = Object.keys(S.pend).length;
+  const [ic, label] = { syncing: ['⏳', 'Syncing…'], ok: ['✓', 'Synced'], offline: ['📴', 'Offline'], error: ['⚠️', 'Sync failed'] }[SYNC.state] || ['☁️', 'On'];
+  return `<section class="card"><h3>☁️ Cloud sync <span class="chip" aria-live="polite">${ic} ${label}</span></h3>
+    <div class="sub">${S.at ? `Last synced ${esc(agoText(S.at))}` : 'Not synced yet'}${pend ? ` · ${plural(pend, 'change')} waiting to upload` : ' · everything uploaded'}.</div>
+    ${SYNC.state === 'offline' ? '<div class="sub" style="margin-top:6px">No connection right now. Changes are saved on this device and upload when you’re back online.</div>' : ''}
+    ${SYNC.state === 'error' ? `<div class="sub" style="margin-top:6px;color:var(--bad-ink)">${esc(SYNC.msg)}</div>` : ''}
+    <button class="btn block" style="margin-top:10px" data-act="sync-now"${SYNC.busy ? ' disabled' : ''}>🔄 Sync now</button>
+    <div style="text-align:right;margin-top:4px"><button class="link" data-act="sync-forget">Stop syncing on this device</button></div>
+  </section>`;
+}
+// Re-render just the sync card (unless the passcode field has focus).
+function syncUI() { const box = document.getElementById('s-sync'); if (box && !box.contains(document.activeElement)) box.innerHTML = syncCardHTML(); }
+
 function dataCardHTML() {
   const n = Object.keys(DB.entries).length, theme = DB.settings.theme || 'auto';
   return `<section class="card"><h3>💾 Your data</h3>
@@ -2133,7 +2335,7 @@ function dataCardHTML() {
     <div class="flabel" style="margin-top:14px">Appearance</div>
     <div class="seg wide" role="group" aria-label="Theme" style="margin-top:0">${['auto', 'light', 'dark'].map(t => `<button data-act="theme" data-v="${t}" aria-pressed="${theme === t}">${t === 'auto' ? 'Auto' : t === 'light' ? 'Light' : 'Dark'}</button>`).join('')}</div>
   </section>
-  <div class="foot">Road to Utah Valley · plan: Floor + Upgrade hybrid · single file, no network calls</div>`;
+  <div class="foot">Road to Utah Valley · plan: Floor + Upgrade hybrid · single file · works offline${syncOn() ? ' · cloud sync on' : ''}</div>`;
 }
 
 // ===== 12. EXPORT =====
@@ -2409,6 +2611,13 @@ document.addEventListener('click', ev => {
     case 'import': $('#import-file').click(); break;
     case 'theme': DB.settings.theme = el.dataset.v; saveDB(); applyTheme(); refresh(); break;
     case 'dismiss-boot': STATE.bootSeen = true; refresh(); break;
+    case 'sync-connect': syncConnect(); break;
+    case 'sync-now': syncNow({ full: true }).then(ran => { if (ran) toast(SYNC.state === 'ok' ? '✓ Synced' : syncProblem(), 3200); }); break;
+    case 'sync-forget':
+      if (confirm('Stop syncing on this device? Your log stays here. It just won’t reach the cloud until you enter the passcode again.')) {
+        lsSet(SYNC_KEY, JSON.stringify(Object.assign(syncCfg(), { passcode: '' }))); SYNC.state = ''; refresh();
+      }
+      break;
   }
 });
 document.addEventListener('change', ev => {
@@ -2428,6 +2637,7 @@ document.addEventListener('keydown', ev => {
   const el = ev.target;
   if ((ev.key === 'Enter' || ev.key === ' ') && el.matches && el.matches('[data-act][role="button"]')) { ev.preventDefault(); el.click(); }
   if (ev.key === 'Enter' && el.matches && el.matches('input[data-field]')) el.blur();
+  if (ev.key === 'Enter' && el.id === 'sync-pass') { ev.preventDefault(); syncConnect(); }
 });
 // A soft refresh skipped the section holding the focused input; re-render once focus has left the inputs
 // (after a beat, so a tap on a button still lands on the element the user saw).
@@ -2501,14 +2711,19 @@ document.addEventListener('focusout', ev => { const svg = ev.target.closest && e
   STATE.calY = cd.getFullYear(); STATE.calM = cd.getMonth();
   $('#import-file').addEventListener('change', e => handleImportFile(e.target));
   $('#sheet').addEventListener('click', e => { if (e.target.id === 'sheet') closeSheet(); });
-  window.addEventListener('storage', e => { if (e.key === STORE_KEY) { DB = loadDB(); applyTheme(); refresh(); } });
+  window.addEventListener('storage', e => {
+    if (e.key === STORE_KEY) { DB = loadDB(); snapshot(); applyTheme(); refresh(); } else if (e.key === SYNC_KEY) refresh();
+  });
+  window.addEventListener('online', () => syncNow());
   document.addEventListener('visibilitychange', () => {
-    if (document.hidden) return;
+    if (document.hidden) { if (Object.keys(DB.sync.pend).length) syncNow(); return; }
     const now = todayISO();
     if (now !== STATE.lastDay) { if (STATE.view === STATE.lastDay) STATE.view = clampView(now); STATE.lastDay = now; }
     refresh(true);
+    if (Date.now() - DB.sync.at > 60000) syncNow();
   });
   refresh();
+  setTimeout(() => syncNow(), 800);
 })();
 </script>
 </body>
