@@ -1,0 +1,6 @@
+# Secrets never belong in this repo (the sync passcode lives in ~/.config/uvm-tracker/sync.env).
+.env
+.env.*
+*.env
+.vercel/
+node_modules/
