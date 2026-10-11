@@ -1,0 +1,7 @@
+{
+  "rewrites": [
+    { "source": "/road-to-st-george", "destination": "/" },
+    { "source": "/road-to-st-george/", "destination": "/" },
+    { "source": "/road-to-st-george/:path*", "destination": "/:path*" }
+  ]
+}
